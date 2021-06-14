@@ -1,0 +1,93 @@
+package com.oracle.oci.eclipse.ui.explorer.dataflow.wizards;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.wizard.WizardPage;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Spinner;
+import org.eclipse.swt.widgets.Text;
+
+import com.oracle.oci.eclipse.account.AuthProvider;
+import com.oracle.oci.eclipse.sdkclients.PrivateEndPointsClient;
+import com.oracle.bmc.core.ComputeClient;
+import com.oracle.bmc.core.model.Shape;
+import com.oracle.bmc.core.requests.ListShapesRequest;
+import com.oracle.bmc.dataflow.model.Application;
+import com.oracle.bmc.dataflow.model.ApplicationSummary;
+import com.oracle.bmc.dataflow.model.PrivateEndpoint;
+import com.oracle.bmc.dataflow.model.PrivateEndpointSummary;
+import com.oracle.bmc.dataflow.model.Run;
+import com.oracle.bmc.dataflow.model.RunSummary;
+
+
+public class EditPrivateEndpointPage extends WizardPage {
+    private Text nameText,dnsText;
+	private Combo dshapeCombo;
+	private Combo eshapeCombo;
+	private Spinner numExecSpinner;
+    private ISelection selection;
+	private PrivateEndpoint pep;
+	private Application app;
+
+    public EditPrivateEndpointPage(ISelection selection,PrivateEndpointSummary pepSum) {
+        super("wizardPage");
+        setTitle("Re Run Wizard");
+        setDescription("This wizard creates a re-run request. Please enter the following details.");
+        this.selection = selection;
+		try {
+			this.pep=PrivateEndPointsClient.getInstance().getPrivateEndpointDetails(pepSum.getId());
+		} catch (Exception e) {
+			
+		}
+    }
+
+    @Override
+    public void createControl(Composite parent) {
+        Composite container = new Composite(parent, SWT.NULL);
+        GridLayout layout = new GridLayout();
+        container.setLayout(layout);
+        layout.numColumns = 2;
+        layout.verticalSpacing = 9;
+		
+        Label nameLabel = new Label(container, SWT.NULL);
+        nameLabel.setText("&Name:");
+        nameText = new Text(container, SWT.BORDER | SWT.SINGLE);
+        nameText.setText(pep.getDisplayName());
+        GridData gd = new GridData(GridData.FILL_HORIZONTAL);
+        nameText.setLayoutData(gd);
+		
+		Label dnsLabel = new Label(container, SWT.NULL);
+        dnsLabel.setText("&DNS zones to resolve:");
+		dnsText = new Text(container, SWT.BORDER);
+		dnsText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		dnsText.setText(String.join(",", pep.getDnsZones()));
+		
+        setControl(container);
+    }
+	
+	 private void updateStatus(String message) {
+        setErrorMessage(message);
+        setPageComplete(message == null);
+    }
+
+    public List<String> getDNS() {
+        
+		return Arrays.asList(dnsText.getText().split(","));
+    }
+	
+	public String getName() {
+        
+		return nameText.getText();
+    }
+	
+}

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+w * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl.
  */
 package com.oracle.oci.eclipse.ui.explorer;
@@ -29,6 +29,12 @@ import com.oracle.oci.eclipse.ui.explorer.container.ContainerClustersElement;
 import com.oracle.oci.eclipse.ui.explorer.container.editor.ContainerClustersEditor;
 import com.oracle.oci.eclipse.ui.explorer.database.ADBRootElement;
 import com.oracle.oci.eclipse.ui.explorer.database.editor.ADBInstanceEditor;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.DataflowApplicationElement;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.DataflowPrivateEndPointsElement;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.DataflowRunElement;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.editor.ApplicationEditor;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.editor.PrivateEndpointEditor;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.editor.RunEditor;
 import com.oracle.oci.eclipse.ui.explorer.objectstorage.editor.ObjectsEditor;
 
 public class NavigatorDoubleClick implements IDoubleClickListener{
@@ -39,6 +45,11 @@ public class NavigatorDoubleClick implements IDoubleClickListener{
     static IEditorPart editorPartADBInstance = null;
     static IEditorPart editorPartContainerClusters  = null;
     IEditorPart editorPartBucket = null;
+    //
+    static IEditorPart editorPartApplication = null;
+    static IEditorPart editorPartRun = null;
+    static IEditorPart editorPartPrivateEndPoints = null;
+    //
     static ConcurrentHashMap<String, IEditorPart> bucketsEditorsMap = new ConcurrentHashMap<String, IEditorPart>();
 
     public static ConcurrentHashMap<String, IEditorPart> getBucketsEditorsMap() {
@@ -55,6 +66,7 @@ public class NavigatorDoubleClick implements IDoubleClickListener{
         closeAllDatabaseWindows();
         closeAllContainerClustersWindows();
         closeAllBucketWindows();
+        closeAllDataflowWindows();
 
     }
     private static void closeAllComputeWindows() {
@@ -79,6 +91,15 @@ public class NavigatorDoubleClick implements IDoubleClickListener{
         closeWindow(bucketsEditorsMap.get(bucketName));
         bucketsEditorsMap.remove(bucketName);
     }
+    
+    //
+    private static void closeAllDataflowWindows() {
+        closeWindow(editorPartApplication);
+        closeWindow(editorPartRun);
+        closeWindow(editorPartPrivateEndPoints);
+    }
+    //
+    
     public static void closeWindow(IEditorPart currentEditorPart) {
         Display.getDefault().asyncExec(new Runnable() {
             @Override
@@ -130,6 +151,7 @@ public class NavigatorDoubleClick implements IDoubleClickListener{
                         }
                     });
                 }
+                
                 // Compute
                 if (obj instanceof ComputeInstanceElement) {
                     final IEditorInput input = new EditorInput(InstanceEditor.TITLE, "");
@@ -152,7 +174,75 @@ public class NavigatorDoubleClick implements IDoubleClickListener{
                         }
                     });
                 }
-
+                // Dataflow Application
+                if (obj instanceof DataflowApplicationElement) {
+                    final IEditorInput input = new EditorInput(ApplicationEditor.TITLE, "");
+                    Display.getDefault().asyncExec(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+                                // If the window is not created or it is closed, open it
+                                // else if the window is already open, activate it
+                                if(editorPartApplication == null ||
+                                        activeWindow.getActivePage().findEditor(editorPartApplication.getEditorInput()) == null) {
+                                    editorPartApplication = activeWindow.getActivePage().openEditor(input, ApplicationEditor.ID);
+                                } else {
+                                    activeWindow.getActivePage().activate(editorPartApplication);
+                                }
+                            } catch (Exception e) {
+                                ErrorHandler.logErrorStack(e.getMessage(), e);
+                            }
+                        }
+                    });
+                }
+                
+                
+                // Dataflow PrivateEndPoints
+                if (obj instanceof DataflowPrivateEndPointsElement) {
+                    final IEditorInput input = new EditorInput(PrivateEndpointEditor.TITLE, "");
+                    Display.getDefault().asyncExec(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+                                // If the window is not created or it is closed, open it
+                                // else if the window is already open, activate it
+                                if(editorPartPrivateEndPoints == null ||
+                                        activeWindow.getActivePage().findEditor(editorPartPrivateEndPoints.getEditorInput()) == null) {
+                                    editorPartPrivateEndPoints = activeWindow.getActivePage().openEditor(input, PrivateEndpointEditor.ID);
+                                } else {
+                                    activeWindow.getActivePage().activate(editorPartPrivateEndPoints);
+                                }
+                            } catch (Exception e) {
+                                ErrorHandler.logErrorStack(e.getMessage(), e);
+                            }
+                        }
+                    });
+                }     
+                
+                // Dataflow Runs
+                if (obj instanceof DataflowRunElement) {
+                    final IEditorInput input = new EditorInput(RunEditor.TITLE, "");
+                    Display.getDefault().asyncExec(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+                                // If the window is not created or it is closed, open it
+                                // else if the window is already open, activate it
+                                if(editorPartRun == null ||
+                                        activeWindow.getActivePage().findEditor(editorPartRun.getEditorInput()) == null) {
+                                    editorPartRun = activeWindow.getActivePage().openEditor(input, RunEditor.ID);
+                                } else {
+                                    activeWindow.getActivePage().activate(editorPartRun);
+                                }
+                            } catch (Exception e) {
+                                ErrorHandler.logErrorStack(e.getMessage(), e);
+                            }
+                        }
+                    });
+                }  
                 // Database - ADB instance
                 if (obj instanceof ADBRootElement) {
                     final IEditorInput input = new EditorInput(ADBInstanceEditor.TITLE, "");
