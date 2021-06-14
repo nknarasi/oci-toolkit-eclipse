@@ -78,7 +78,7 @@ public class DetailsObjectAction extends BaseAction {
         List<TablePair> data = new ArrayList<TablePair>();
         data.add(new TablePair("Bucket Name", this.bucketName));
         data.add(new TablePair("Object Name", name));
-        data.add(new TablePair("Storage Tier", getArchivalState(objDetails.getArchivalState())));
+        data.add(new TablePair("Storage Tier", getArchivalState(objDetails.getArchivalState().toString())));
         data.add(new TablePair("Content Type", objDetails.getContentType()));
         data.add(new TablePair("Content Length", objDetails.getContentLength().toString()));
         data.add(new TablePair("Content MD5 Hash", objDetails.getContentMd5()));

@@ -19,6 +19,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
@@ -46,7 +47,8 @@ public abstract class BaseTable extends Composite {
     protected void addTableLabels(FormToolkit toolkit, Composite left, Composite right) {}
     Label profileLabel;
     Label compartmentLabel;
-    Label regionLabel;
+    Label regionLabel;    protected Button ccb;
+    protected String compartmentName;
 
     protected void createTable() {
         FormToolkit toolkit = new FormToolkit(Display.getDefault());
@@ -65,13 +67,13 @@ public abstract class BaseTable extends Composite {
 
         Composite left = toolkit.createComposite(headingComp, SWT.LEFT| SWT.FILL | SWT.TOP);
         left.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
-        left.setLayout(new GridLayout(1, true));
+        left.setLayout(new GridLayout(2, true));
         Composite right = toolkit.createComposite(headingComp, SWT.RIGHT | SWT.FILL);
         right.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
         right.setLayout(new GridLayout(1, true));
 
-        profileLabel = new Label(left, SWT.NONE);
-        compartmentLabel = new Label(left, SWT.NONE);
+        profileLabel = new Label(left, SWT.NONE);GridData plgd=new GridData();plgd.horizontalSpan=2;profileLabel.setLayoutData(plgd);
+        compartmentLabel = new Label(left, SWT.NONE);ccb=new Button(left,SWT.PUSH);ccb.setVisible(false);
         regionLabel = new Label(left, SWT.NONE);
         updateTableLabels();
         addTableLabels(toolkit, left, right);
@@ -94,7 +96,6 @@ public abstract class BaseTable extends Composite {
         viewer.getTable().setHeaderVisible(true);
         viewer.setUseHashlookup(true);
         viewer.setContentProvider(new TableContentProvider(viewer));
-
         createColumns(tableColumnLayout, viewer.getTable());
         hookMenu();
     }
@@ -102,12 +103,24 @@ public abstract class BaseTable extends Composite {
 
     private void updateTableLabels() {
         profileLabel.setText("Profile: " + PreferencesWrapper.getProfile());
-        compartmentLabel.setText("Compartment: " + AuthProvider.getInstance().getCompartmentName());
+        if(compartmentName == null)
+        {
+            compartmentLabel.setText("Compartment: " + AuthProvider.getInstance().getCompartmentName());
+        }
+        else
+        {
+        	 compartmentLabel.setText("Compartment: " + compartmentName);
+        }
         regionLabel.setText("Region: " + AuthProvider.getInstance().getRegion().toString());
         compartmentLabel.getParent().requestLayout();
     }
+   
 
-    private void hookMenu() {
+    public void setCompartmentName(String compartmentName) {
+		this.compartmentName = compartmentName;
+	}
+
+	private void hookMenu() {
         MenuManager menuManager = new MenuManager("#PopupMenu");
         menuManager.setRemoveAllWhenShown(true);
         menuManager.addMenuListener(new MenuListener());

@@ -137,6 +137,40 @@ public class ObjStorageClient extends BaseClient {
         return bList;
     }
 
+    
+    
+    ///////////////////ADDED NEW/////////////////////////////////
+    public List<BucketSummary> getBucketsinCompartment(String CompartmentId) throws Exception {
+        String nextToken = null;
+        List<BucketSummary> bList = new ArrayList<BucketSummary>();
+        String namespace = getNamespace(getObjectStorageClient());
+        if (namespace == null) return bList;
+
+        Builder listBucketsBuilder =
+                ListBucketsRequest.builder()
+                .namespaceName(namespace)
+                .compartmentId(CompartmentId);
+
+        do {
+            listBucketsBuilder.page(nextToken);
+            try {
+                ListBucketsResponse listBucketsResponse =
+                        objectStorageClient.listBuckets(listBucketsBuilder.build());
+                bList.addAll(listBucketsResponse.getItems());
+                nextToken = listBucketsResponse.getOpcNextPage();
+            } catch(Throwable e) {
+                ErrorHandler.logError("Unable to list buckets: " + e.getMessage());
+                return bList;
+            }
+
+        } while (nextToken != null);
+
+        return bList;
+    }
+
+    
+    
+    
     public List<ObjectSummary> getBucketObjects(String bucket) throws Exception {
 
         String nextToken = null;
