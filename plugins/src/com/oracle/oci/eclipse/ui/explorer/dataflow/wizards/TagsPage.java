@@ -27,6 +27,7 @@ import com.oracle.bmc.identity.model.TagNamespaceSummary;
 import com.oracle.bmc.identity.requests.GetTagNamespaceRequest;
 import com.oracle.bmc.identity.requests.ListTagNamespacesRequest;
 import com.oracle.oci.eclipse.account.AuthProvider;
+import com.oracle.oci.eclipse.sdkclients.IdentClient;
 
 
 public class TagsPage extends WizardPage {
@@ -46,7 +47,7 @@ public class TagsPage extends WizardPage {
     public TagsPage(ISelection selection,String compid) {
         super("wizardPage");
         setTitle("Tag Wizard");
-        setDescription("This wizard adds Tags.");
+        setDescription("This wizard lets you add Tags.");
         this.selection = selection;
         this.compid=compid;
         this.namespacesList=getNamespaces();
@@ -170,7 +171,7 @@ public class TagsPage extends WizardPage {
 		 IdentityClient client = new IdentityClient(AuthProvider.getInstance().getProvider());
 		 
 		//if(compid==null) 
-		compid=AuthProvider.getInstance().getCompartmentId();
+		compid=IdentClient.getInstance().getRootCompartment().getId();
 		ListTagNamespacesRequest listTagNamespacesRequest = ListTagNamespacesRequest.builder().compartmentId(compid)
 			//.limit(570)
 			.includeSubcompartments(true).lifecycleState(TagNamespace.LifecycleState.Active)
@@ -183,8 +184,8 @@ public class TagsPage extends WizardPage {
 	        	rl[i]=l.get(i).getName();
 	        }
 	        rl[l.size()]="Free Form Tags";
-	        /*System.out.println(l.size());
-	        for (TagNamespaceSummary e:l) {
+	        //System.out.println(l.get(0));
+	        /*for (TagNamespaceSummary e:l) {
 	            System.out.println(getTagNamespace(e.getId()).toString());
 	        }*/
 	        return rl;

@@ -75,7 +75,7 @@ public class PrivateEndPointsClient  extends BaseClient {
         String nextToken = null;
    		List<PrivateEndpointSummary> privateEndpointsummary = new ArrayList<PrivateEndpointSummary>();  		
          Builder listPrivateEndpointsBuilder =  ListPrivateEndpointsRequest.builder()
-        		 .compartmentId(AuthProvider.getInstance().getCompartmentId());
+        		 .compartmentId(AuthProvider.getInstance().getCompartmentId()).sortBy(ListPrivateEndpointsRequest.SortBy.TimeCreated);
          do {
              listPrivateEndpointsBuilder.page(nextToken);
              try {
@@ -94,7 +94,7 @@ public class PrivateEndPointsClient  extends BaseClient {
         String nextToken = null;
    		List<PrivateEndpointSummary> privateEndpointsummary = new ArrayList<PrivateEndpointSummary>();   		
          Builder listPrivateEndpointsBuilder =  ListPrivateEndpointsRequest.builder()
-        		 .compartmentId(CompartmentId);
+        		 .compartmentId(CompartmentId).sortBy(ListPrivateEndpointsRequest.SortBy.TimeCreated);;
          do {
              listPrivateEndpointsBuilder.page(nextToken);
              try {

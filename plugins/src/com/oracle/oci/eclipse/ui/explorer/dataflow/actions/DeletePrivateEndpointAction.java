@@ -27,7 +27,8 @@ public class DeletePrivateEndpointAction extends BaseAction {
     		MessageDialog.openInformation(pepTable.getShell(), "Failed to Delete Private Endpoint", "Still in the create state");
     		return;
     	}
-    	boolean result = MessageDialog.openConfirm(pepTable.getShell(), "Confirm", "Please confirm");
+    	boolean result = MessageDialog.openConfirm(pepTable.getShell(), "Please Confirm", "Are you sure you want to delete "+pep.getDisplayName()+".");
+    	
 		if (result){
 			try{
 			DataFlowClient client = PrivateEndPointsClient.getInstance().getDataFLowClient();

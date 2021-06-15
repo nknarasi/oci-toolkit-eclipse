@@ -79,14 +79,14 @@ public class RunClient extends BaseClient {
         }
     }
     
-    public List<RunSummary> getRuns() throws Exception {
+    public List<RunSummary> getRuns(ListRunsRequest.SortBy s,ListRunsRequest.SortOrder so) throws Exception {
     	
         String nextToken = null;
    		List<RunSummary> runssummary = new ArrayList<RunSummary>();
    		
    		
          Builder listRunsBuilder =  ListRunsRequest.builder()
-        		 .compartmentId(AuthProvider.getInstance().getCompartmentId());
+        		 .compartmentId(AuthProvider.getInstance().getCompartmentId()).sortBy(s).sortOrder(so);
          do {
              listRunsBuilder.page(nextToken);
              try {
@@ -105,14 +105,14 @@ public class RunClient extends BaseClient {
         return runssummary;
     }
     
-   public List<RunSummary> getRunsinCompartment(String CompartmentId) throws Exception {
+   public List<RunSummary> getRunsinCompartment(String CompartmentId,ListRunsRequest.SortBy s,ListRunsRequest.SortOrder so) throws Exception {
     	
         String nextToken = null;
    		List<RunSummary> runssummary = new ArrayList<RunSummary>();
    		
    		
          Builder listRunsBuilder =  ListRunsRequest.builder()
-        		 .compartmentId(CompartmentId);
+        		 .compartmentId(CompartmentId).sortBy(s).sortOrder(so);
          do {
              listRunsBuilder.page(nextToken);
              try {

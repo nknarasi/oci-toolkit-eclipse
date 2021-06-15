@@ -21,6 +21,7 @@ import com.oracle.bmc.dataflow.model.CreateRunDetails;
 import com.oracle.bmc.dataflow.model.RunSummary;
 import com.oracle.bmc.dataflow.requests.CreateRunRequest;
 import com.oracle.oci.eclipse.sdkclients.RunClient;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.DataflowConstants;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.editor.RunTable;
 
 //import com.oracle.oci.eclipse.sdkclients.ObjStorageClient;
@@ -93,6 +94,11 @@ public class RunWizard extends Wizard implements INewWizard {
         Object[] obj;
 		if(runSum!=null) obj=page.getDetails();
 		else obj=page.getDetails_app();
+		if(!(page3.loguri().equals("")||page3.loguri()==null)) obj[11]=page3.loguri();
+		if(!(page3.buckuri().equals("")||page3.buckuri()==null)) obj[15]=page3.buckuri();
+		if(!sparkprop((String)obj[14])) return false;
+		if(!check(obj)) return false;
+		if(!sparkprop((String)obj[14])) return false;
         CreateRunDetails createRunDetails = CreateRunDetails.builder()
         		.applicationId((String)obj[0])
         		.archiveUri((String)obj[1])
@@ -129,7 +135,52 @@ public class RunWizard extends Wizard implements INewWizard {
         }
         return true;
     }
-
+    
+    boolean sparkprop(String v) {
+    	
+    	String l[];
+    	if(v.charAt(0)=='3') l=DataflowConstants.Spark3PropertiesList;
+    	else l=DataflowConstants.Spark2PropertiesList;
+    	boolean b;
+    	for(String e:page3.getconfig().keySet()) {
+    		b=false;
+    		for(String ie:l) {
+    			String nie=new String(ie);
+    			if(nie.charAt(nie.length()-1)=='*') nie=nie.substring(0, nie.length()-1);
+    			if(e.indexOf(nie)==0) {b=true;break;}
+    		}
+    		if(b) continue;
+    		else {open("Improper Values","Spark Property Invalid");return false;}
+    	}
+    	
+    	return true;
+    }
+    
+    boolean check(Object[] obj) {
+    	
+    	//display-name
+    	String n=(String)obj[6];
+    	if(n.equals("")||n==null) {open("Improper Values","Name cannot be empty");return false;}
+    	
+    	//loguri
+    	n=(String)obj[11];
+    	boolean b=(n.length()>9)&&(n.substring(0,6).equals("oci://"))&&(n.substring(n.length()-1).equals("/"))
+    			&&n.split("@").length==2;
+    	if(!b) {open("Improper Values","Log Bucket Uri of improper format");return false;}
+    	
+    	//whuri
+    	n=(String)obj[15];
+    	b=(n.length()>9)&&(n.substring(0,6).equals("oci://"))&&(n.substring(n.length()-1).equals("/"))
+    			&&n.split("@").length==2;
+    	if(!b) {open("Improper Values","Warehouse Bucket Uri of improper format");return false;}
+    	
+    	return true;
+    }
+    
+    void open(String h,String m) {
+    	MessageDialog.openInformation(getShell(), h, m);
+    }
+    
     /**
      * We will accept the selection in the workbench to see if
      * we can initialize from it.

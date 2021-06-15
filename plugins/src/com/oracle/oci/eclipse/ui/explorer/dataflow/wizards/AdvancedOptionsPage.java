@@ -40,8 +40,8 @@ public class AdvancedOptionsPage extends WizardPage {
 
     public AdvancedOptionsPage(ISelection selection,Object obj) {
         super("wizardPage");
-        setTitle("Run Wizard");
-        setDescription("This wizard creates a run request. Please enter the following details.");
+        setTitle("Advanced Options Wizard");
+        setDescription("This wizard lets you choose certain advanced functionalities.");
         this.selection = selection;
         this.obj=obj;
     }
@@ -84,7 +84,7 @@ public class AdvancedOptionsPage extends WizardPage {
         c3.setLayoutData(gd);GridLayout l3=new GridLayout();l3.numColumns=1;c3.setLayout(new GridLayout());
         
         Button add=new Button(c3,SWT.PUSH);add.setLayoutData(new GridData());
-        add.setText("Another Property");
+        add.setText("Add Spark Property");
         
         add.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
@@ -165,9 +165,9 @@ public class AdvancedOptionsPage extends WizardPage {
 		return m;
 	}
 	 String loguri() {
-		 return text1.getText();
+		 return text1.getText().trim();
 	 }
 	 String buckuri() {
-		 return text2.getText();
+		 return text2.getText().trim();
 	 }
 }

@@ -130,7 +130,7 @@ public class RunWizardPage extends WizardPage {
     public Object[] getDetails() {
         
 		return (new Object[]{run.getApplicationId(),run.getArchiveUri(),null,run.getCompartmentId(),null,null,
-				nameText.getText(),dshapeCombo.getText(),run.getExecute(),eshapeCombo.getText(),null,
+				nameText.getText().trim(),dshapeCombo.getText(),run.getExecute(),eshapeCombo.getText(),null,
 				run.getLogsBucketUri(),numExecSpinner.getSelection(),run.getParameters(),run.getSparkVersion(),
 				run.getWarehouseBucketUri(),run.getOpcRequestId()
 				});
@@ -139,7 +139,7 @@ public class RunWizardPage extends WizardPage {
 	public Object[] getDetails_app() {
         
 		return (new Object[]{app.getId(),app.getArchiveUri(),null,app.getCompartmentId(),null,null,
-				nameText.getText(),dshapeCombo.getText(),app.getExecute(),eshapeCombo.getText(),null,
+				nameText.getText().trim(),dshapeCombo.getText(),app.getExecute(),eshapeCombo.getText(),null,
 				app.getLogsBucketUri(),numExecSpinner.getSelection(),app.getParameters(),app.getSparkVersion(),
 				app.getWarehouseBucketUri()
 				});
