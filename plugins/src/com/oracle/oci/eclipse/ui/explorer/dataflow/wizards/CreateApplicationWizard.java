@@ -87,6 +87,9 @@ public class CreateApplicationWizard extends Wizard implements INewWizard {
     	else if (firstpage.getLanguage()== ApplicationLanguage.Python) {
     		createApplicationRequestBuilder = createApplicationRequestBuilder.arguments(firstpage.getArguments());			
     	}
+    	else if (firstpage.getLanguage()== ApplicationLanguage.Sql) {
+    		createApplicationRequestBuilder = createApplicationRequestBuilder.parameters(firstpage.getParameters());			
+    	}
     	
 		final boolean usesAdvancedOptions = thirdpage.usesAdvancedOptions();
 		if (usesAdvancedOptions) {

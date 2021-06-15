@@ -56,6 +56,8 @@ public class EditApplicationWizardPage2  extends WizardPage {
 	private Text compartmentText;
 	private Compartment selectedApplicationCompartment;
 	private Combo PrivateEndpointsCombo;
+	private Label PrivateEndpointsLabel;
+	private Label compartmentLabel;
 	private List<PrivateEndpointSummary> PrivateEndpoints;			
     private Set<SparkProperty> CreatedPropertiesSet=new HashSet<SparkProperty>();   
 	private Composite PropertiesSection;
@@ -63,7 +65,7 @@ public class EditApplicationWizardPage2  extends WizardPage {
 	private Composite AdvancedOptionsComposite;
 	private  DataTransferObject dto; 
 	private boolean NetworkSectionSelected=false;
-
+	private int intial = -1; 
 	private boolean UsesAdvancedOptions=false;
 	
 	public EditApplicationWizardPage2(ISelection selection,DataTransferObject dto,String applicationId) {
@@ -142,33 +144,8 @@ public class EditApplicationWizardPage2  extends WizardPage {
         	 for (Map.Entry<String,String> property : application.getConfiguration().entrySet()) {
         		 SparkProperty propertypresent = new SparkProperty(PropertiesSection,AdvancedOptionsComposite,scrolledcomposite,CreatedPropertiesSet,application.getSparkVersion());
         		 CreatedPropertiesSet.add(propertypresent);
-        		 
-        		 if(application.getSparkVersion().equals(DataflowConstants.Versions[0])){
-        			 int index=-1;
-        				 for(int i=0; i<DataflowConstants.Spark2PropertiesList.length ; i++) {
-        					 if(DataflowConstants.Spark2PropertiesList[i].equals(property.getKey())) {
-        						 index= i;
-        						 break;
-        					 }
-        				 }
-        				 if(index!=-1) {
-            				 propertypresent.TagKey.select(index);
-            				 propertypresent.TagValue.setText(property.getValue());
-        				 }
-        			 }
-        			 else {
-        				 int index=-1;
-        				 for(int i=0; i<DataflowConstants.Spark3PropertiesList.length ; i++) {
-        					 if(DataflowConstants.Spark3PropertiesList[i].equals(property.getKey())) {
-        						 index= i;
-        						 break;
-        					 }
-        				 }
-        				 if(index!=-1) {
-            				 propertypresent.TagKey.select(index);
-            				 propertypresent.TagValue.setText(property.getValue());
-        				 }
-        			 }
+        		 propertypresent.TagKey.setText(property.getKey());
+				 propertypresent.TagValue.setText(property.getValue());
         	 }         	
     		 container.layout(true,true);
          	 scrolledcomposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
@@ -230,16 +207,46 @@ public class EditApplicationWizardPage2  extends WizardPage {
 		NetworkGroupPrivateSubnetRadioButton = new Button(NetworkGroup, SWT.RADIO);
 		NetworkGroupPrivateSubnetRadioButton.setText("Secure Access to Private Subnet");
 		
-		if(application.getPrivateEndpointId()!=null) {
+		if(application.getPrivateEndpointId() !=null) {
 			NetworkGroupPrivateSubnetRadioButton.setSelection(true);
 			NetworkSectionSelected= true;
+			
 			PrivateEndpointSection= new Composite(currentcontainer, SWT.NONE);
             GridLayout innerTopLayout = new GridLayout();
             innerTopLayout.numColumns = 1;
             PrivateEndpointSection.setLayout(innerTopLayout);
             PrivateEndpointSection.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
     		
-            choosePrivateSubnet(PrivateEndpointSection);     
+                       
+            
+            PrivateEndPointsClient oci = PrivateEndPointsClient.getInstance();
+            PrivateEndpoint current = oci.getPrivateEndpointDetails(application.getPrivateEndpointId());
+    		Compartment rootCompartment = IdentClient.getInstance().getRootCompartment();
+    		List<Compartment> Allcompartments = IdentClient.getInstance().getCompartmentList(rootCompartment);
+    		for(Compartment compartment : Allcompartments) {
+    			if(compartment.getId().equals(current.getCompartmentId())) {
+    				 selectedApplicationCompartment = compartment;   			
+    				 break;
+    			}
+    		}
+    		
+    		PrivateEndpoints = oci.getPrivateEndPointsinCompartment(selectedApplicationCompartment.getId());		
+
+    		int sizeoflist= PrivateEndpoints.size();
+    		String[] PrivateEndpointsList = new String[sizeoflist];
+    		for(int i = 0; i < PrivateEndpoints.size(); i++)
+    		{  
+    			PrivateEndpointsList[i]= PrivateEndpoints.get(i).getDisplayName();
+    			if(PrivateEndpoints.get(i).getId().equals(application.getPrivateEndpointId())) {
+    				intial = i;
+    				break;
+    			}
+    		}
+    		
+            choosePrivateSubnet(PrivateEndpointSection);     			
+			compartmentText.setText(selectedApplicationCompartment.getName());
+			PrivateEndpointsCombo.select(intial);
+
 		}
 		else {
 			NetworkGroupInternetAccessRadioButton.setSelection(true);
@@ -257,9 +264,7 @@ public class EditApplicationWizardPage2  extends WizardPage {
                     innerTopLayout.numColumns = 1;
                     PrivateEndpointSection.setLayout(innerTopLayout);
                     PrivateEndpointSection.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-            		
                     choosePrivateSubnet(PrivateEndpointSection);     
-
             	}
             	AdvancedOptionsComposite.layout(true,true);
         		container.layout(true,true);
@@ -272,8 +277,9 @@ public class EditApplicationWizardPage2  extends WizardPage {
             @Override
             public void widgetSelected(SelectionEvent e) {
             	if(NetworkSectionSelected)
-            	{
+            	{;
             		NetworkSectionSelected= false;
+            		compartmentLabel.dispose();
             		compartmentText.dispose();
             		compartmentButton.dispose();
             		PrivateEndpointsCombo.dispose();
@@ -294,7 +300,7 @@ public class EditApplicationWizardPage2  extends WizardPage {
 	
 	private void choosePrivateSubnet(Composite currentcontainer) {
 		
-		Label compartmentLabel = new Label(currentcontainer, SWT.NULL);
+		compartmentLabel = new Label(currentcontainer, SWT.NULL);
 		compartmentLabel.setText("&Choose a compartment:");
 		innerTopContainer = new Composite(currentcontainer, SWT.NONE);
         GridLayout innerTopLayout = new GridLayout();
@@ -305,28 +311,13 @@ public class EditApplicationWizardPage2  extends WizardPage {
         compartmentText = new Text(innerTopContainer, SWT.BORDER | SWT.SINGLE);
         compartmentText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         compartmentText.setEditable(false);
-        
-        PrivateEndPointsClient oci = PrivateEndPointsClient.getInstance();
-        PrivateEndpoint current = oci.getPrivateEndpointDetails(application.getPrivateEndpointId());
-		Compartment rootCompartment = IdentClient.getInstance().getRootCompartment();
-		List<Compartment> Allcompartments = IdentClient.getInstance().getCompartmentList(rootCompartment);
-		for(Compartment compartment : Allcompartments) {
-			if(compartment.getId().equals(current.getCompartmentId())) {
-				 compartmentText.setText(compartment.getName());
-				 selectedApplicationCompartment = compartment;
-				break;
-			}
-		}
-        
-       
-
+              
         compartmentButton = new Button(innerTopContainer, SWT.PUSH);
         compartmentButton.setText("Choose...");
         compartmentButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-            	handleSelectApplicationCompartmentEvent();
-            	
+            	handleSelectApplicationCompartmentEvent(currentcontainer);           	
             }
         });	
         chooseSubnet(currentcontainer,selectedApplicationCompartment.getId());
@@ -344,27 +335,18 @@ public class EditApplicationWizardPage2  extends WizardPage {
 		PrivateEndpoints = oci.getPrivateEndPointsinCompartment(compartmentId);		
 
 		int sizeoflist= PrivateEndpoints.size();
-		int pos=-1;
 		String[] PrivateEndpointsList = new String[sizeoflist];
 		for(int i = 0; i < PrivateEndpoints.size(); i++)
 		{  
 			PrivateEndpointsList[i]= PrivateEndpoints.get(i).getDisplayName();
-			if(PrivateEndpoints.get(i).getId().equals(application.getPrivateEndpointId())) {
-				pos=i;
-			}
 		}
 
-		Label PrivateEndpointsLabel = new Label(currentcontainer, SWT.NULL);
+		PrivateEndpointsLabel = new Label(currentcontainer, SWT.NULL);
 		PrivateEndpointsLabel.setText("&Choose Private Endpoint:");
-		GridData gd4 = new GridData(GridData.FILL_HORIZONTAL);
-		PrivateEndpointsCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
-		PrivateEndpointsCombo.setLayoutData(gd4);
+		PrivateEndpointsCombo = new Combo(currentcontainer, SWT.DROP_DOWN | SWT.READ_ONLY);
+		PrivateEndpointsCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		 
 		PrivateEndpointsCombo.setItems(PrivateEndpointsList);
-		if(pos!=-1)
-			PrivateEndpointsCombo.select(pos);
-		
-		
         currentcontainer.layout(true,true);
         AdvancedOptionsComposite.layout(true,true);
         container.layout(true,true);
@@ -372,13 +354,18 @@ public class EditApplicationWizardPage2  extends WizardPage {
         container.pack();
 	}
 	
-	private void handleSelectApplicationCompartmentEvent() {
+	private void handleSelectApplicationCompartmentEvent(Composite currentcontainer) {
     	Consumer<Compartment> consumer=new Consumer<Compartment>() {
 			@Override
 			public void accept(Compartment compartment) {
 				if (compartment != null) {
 					selectedApplicationCompartment = compartment;
 					compartmentText.setText(selectedApplicationCompartment.getName());
+					if(PrivateEndpointsCombo != null)
+						PrivateEndpointsCombo.dispose();
+					if(PrivateEndpointsLabel != null)
+						PrivateEndpointsLabel.dispose();					
+					chooseSubnet(currentcontainer,selectedApplicationCompartment.getId());
 				}
 			}
 		};

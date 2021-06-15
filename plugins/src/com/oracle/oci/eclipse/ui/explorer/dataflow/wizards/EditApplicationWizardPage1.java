@@ -292,13 +292,21 @@ public class EditApplicationWizardPage1  extends WizardPage {
 		MainClassNamelabel = new Label(container, SWT.NULL);
 		MainClassNamelabel.setText("&Main Class Name:");
 		MainClassNameText = new Text(container, SWT.BORDER | SWT.SINGLE);
-		GridData gd7 = new GridData(GridData.FILL_HORIZONTAL);
-		MainClassNameText.setLayoutData(gd7);		
+		MainClassNameText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));		
+		MainClassNameText.setText(application.getClassName());
+		
+		
 		Argumentslabel = new Label(container, SWT.NULL);
 		Argumentslabel.setText("&Arguments:");
 		ArgumentsText = new Text(container, SWT.BORDER | SWT.SINGLE);
-		GridData gd8 = new GridData(GridData.FILL_HORIZONTAL);
-		ArgumentsText.setLayoutData(gd8);
+		ArgumentsText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));		
+		if(application.getArguments() != null) {
+			String arguments= "";
+			for(String i : application.getArguments()) {
+				arguments += "\"" + i + "\"" +" ";
+			}
+			ArgumentsText.setText(arguments);
+		}
 	}
 	
 	private void PythonLanguageSelected(Composite container) {		
@@ -307,6 +315,13 @@ public class EditApplicationWizardPage1  extends WizardPage {
 		ArgumentsText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		GridData gd8 = new GridData(GridData.FILL_HORIZONTAL);
 		ArgumentsText.setLayoutData(gd8);
+		if(application.getArguments() != null) {
+			String arguments= "";
+			for(String i : application.getArguments()) {
+				arguments += "\"" + i + "\"" +" ";
+			}
+			ArgumentsText.setText(arguments);
+		}
 	}
 	
 	

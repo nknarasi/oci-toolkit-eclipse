@@ -36,12 +36,11 @@ public class Parameters {
 		 TagValue.setMessage("Value");
 		 CloseButton=new Button(composite,SWT.PUSH);
 		 CloseButton.setText("Remove");
-		 //refresh(composite, container, scrolledcomposite);
+		 refresh(container, scrolledcomposite);
 		 addClose(composite,container, scrolledcomposite,CreatedParametersSet);
 	 }
 	
-	 void refresh(Composite current,Composite container, ScrolledComposite scrolledcomposite ) {
-		 current.layout(true,true);
+	 void refresh(Composite container, ScrolledComposite scrolledcomposite ) {
 		 container.layout(true,true);
      	 scrolledcomposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 	 }
@@ -52,7 +51,7 @@ public class Parameters {
 	            public void widgetSelected(SelectionEvent e) {
 					 composite.dispose();
 					 CreatedPropertiesSet.remove(Parameters.this);
-					 refresh(current,container, scrolledcomposite);
+					 refresh(container, scrolledcomposite);
 	            }
 	        });
 	 }

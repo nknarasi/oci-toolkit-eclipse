@@ -18,7 +18,7 @@ public class SparkProperty {
 	
 	 Composite composite;
 	 Text TagValue;
-	 Combo TagKey;
+	 Text TagKey;
 	 Button CloseButton;
 	 
 	 SparkProperty(Composite current,Composite container, ScrolledComposite scrolledcomposite,Set<SparkProperty> CreatedPropertiesSet,String Version){
@@ -29,17 +29,10 @@ public class SparkProperty {
 		 GridLayout1.numColumns = 3 ;
 		 composite.setLayout(GridLayout1);
 
-		 TagKey=new Combo(composite,SWT.DROP_DOWN);
+		 TagKey = new Text(composite,SWT.BORDER);
 		 TagKey.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		 TagKey.setMessage("Key");
 		 
-		 if(Version.equals(DataflowConstants.Versions[0])){
-			// System.out.println("Data transfered is "+ Version);
-			 TagKey.setItems(DataflowConstants.Spark2PropertiesList);
-		 }
-		 else if(Version.equals(DataflowConstants.Versions[1]))		 {
-			// System.out.println("Data transfered is "+ Version);
-				 TagKey.setItems(DataflowConstants.Spark3PropertiesList);	
-		 }
 		 TagValue = new Text(composite,SWT.BORDER);
 		 TagValue.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		 TagValue.setMessage("Value");

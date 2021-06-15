@@ -48,6 +48,7 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 	private Text compartmentText;
 	private Compartment selectedApplicationCompartment;
 	private Combo PrivateEndpointsCombo;
+	private Label PrivateEndpointsLabel;
 	private List<PrivateEndpointSummary> PrivateEndpoints;	
     private Set<SparkProperty> CreatedPropertiesSet=new HashSet<SparkProperty>();    
 	private Composite PropertiesSection;
@@ -226,10 +227,11 @@ public class CreateApplicationWizardPage3   extends WizardPage {
         compartmentButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-            	handleSelectApplicationCompartmentEvent();
+            	handleSelectApplicationCompartmentEvent(currentcontainer);
             }
         });	
         chooseSubnet(currentcontainer,selectedApplicationCompartment.getId());
+        
         currentcontainer.layout(true,true);
         AdvancedOptionsComposite.layout(true,true);
         container.layout(true,true);
@@ -245,8 +247,10 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 		for(int i = 0; i < PrivateEndpoints.size(); i++){  
 			PrivateEndpointsList[i]= PrivateEndpoints.get(i).getDisplayName();
 		}
-		Label PrivateEndpointsLabel = new Label(currentcontainer, SWT.NULL);
+		
+		PrivateEndpointsLabel = new Label(currentcontainer, SWT.NULL);
 		PrivateEndpointsLabel.setText("&Choose Private Endpoint:");
+		
 		GridData gd4 = new GridData(GridData.FILL_HORIZONTAL);
 		PrivateEndpointsCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
 		PrivateEndpointsCombo.setLayoutData(gd4);		 
@@ -258,13 +262,18 @@ public class CreateApplicationWizardPage3   extends WizardPage {
         container.pack();
 	}
 	
-	private void handleSelectApplicationCompartmentEvent() {
+	private void handleSelectApplicationCompartmentEvent(Composite currentcontainer) {
     	Consumer<Compartment> consumer=new Consumer<Compartment>() {
 			@Override
 			public void accept(Compartment compartment) {
 				if (compartment != null) {
 					selectedApplicationCompartment = compartment;
 					compartmentText.setText(selectedApplicationCompartment.getName());
+					if(PrivateEndpointsCombo != null)
+						PrivateEndpointsCombo.dispose();
+					if(PrivateEndpointsLabel != null)
+						PrivateEndpointsLabel.dispose();					
+					chooseSubnet(currentcontainer,selectedApplicationCompartment.getId());
 				}
 			}
 		};

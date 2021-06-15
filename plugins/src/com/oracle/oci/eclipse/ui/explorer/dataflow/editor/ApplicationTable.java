@@ -39,6 +39,7 @@ import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DetailsApplicationAct
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.EditApplicationAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RefreshApplicationAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RunApplicationAction;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.wizards.CreateApplicationWizard;
 
 public class ApplicationTable extends BaseTable{
    
@@ -185,7 +186,11 @@ public class ApplicationTable extends BaseTable{
         createApplicationButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-            	new CreateApplicationAction(ApplicationTable.this,COMPARTMENT_ID);          	          	
+            	CustomWizardDialog dialog = new CustomWizardDialog(Display.getDefault().getActiveShell(), new CreateApplicationWizard(COMPARTMENT_ID));
+     	       	dialog.setFinishButtonText("Create");
+   	        	if (Window.OK == dialog.open()) {
+   	        	refresh(true);
+   	        	}      	          	
             }
             public void widgetDefaultSelected(SelectionEvent e) {}
         });	

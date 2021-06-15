@@ -3,13 +3,18 @@ package com.oracle.oci.eclipse.ui.explorer.dataflow.wizards;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -24,6 +29,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 import com.oracle.bmc.dataflow.model.ApplicationLanguage;
+import com.oracle.bmc.dataflow.model.ApplicationParameter;
 import com.oracle.bmc.identity.model.Compartment;
 import com.oracle.oci.eclipse.sdkclients.IdentClient;
 import com.oracle.oci.eclipse.ui.account.BucketSelectWizard;
@@ -39,6 +45,8 @@ public class CreateApplicationWizardPage extends WizardPage {
 	private Text ApplicationDescriptionText;
 	private Text compartmentText;
 	
+    private ScrolledComposite sc;
+    
 	private ISelection selection;
 	
 	private Compartment selectedApplicationCompartment;
@@ -55,6 +63,10 @@ public class CreateApplicationWizardPage extends WizardPage {
 	private Button LanguageGroupScalaRadioButton;
 	
 	private ApplicationLanguage LanguageUsed;
+
+    private Composite basesqlcontainer;
+
+    private Set<Parameters> sqlset=new HashSet<Parameters>();
 		
 	private Label MainClassNamelabel;
 	private Label Argumentslabel;
@@ -83,12 +95,18 @@ public class CreateApplicationWizardPage extends WizardPage {
 	}
 	
 	@Override
-	public void createControl(Composite parent) {		
-		container = new Composite(parent, SWT.NULL);
+	public void createControl(Composite parent) {	
+		
+		sc=new ScrolledComposite(parent,SWT.V_SCROLL);
+    	sc.setExpandHorizontal( true );
+    	sc.setExpandVertical( true );       
+    	sc.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	
+		container = new Composite(sc, SWT.NULL);
+		sc.setContent(container);
 		GridLayout layout = new GridLayout();
 		container.setLayout(layout);
 		layout.numColumns = 2;
-		layout.verticalSpacing = 9;
 		
 		Label compartmentLabel = new Label(container, SWT.NULL);
 		compartmentLabel.setText("&Choose a compartment:");
@@ -179,7 +197,8 @@ public class CreateApplicationWizardPage extends WizardPage {
 		 
 		 LanguageUsed  = ApplicationLanguage.Java;            		
 		 JavaLanguageSelected(container);		 
-		 setControl(container);
+		 
+		 setControl(sc);
 		
 	}
 	
@@ -261,6 +280,21 @@ public class CreateApplicationWizardPage extends WizardPage {
 		
 		LanguageGroupSQLRadioButton = new Button(LanguageGroup, SWT.RADIO);
 		LanguageGroupSQLRadioButton.setText("SQL");		
+		LanguageGroupSQLRadioButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+            	if(LanguageUsed != ApplicationLanguage.Sql )
+            	{
+            		disposePrevious();
+            		LanguageUsed  = ApplicationLanguage.Sql;            		
+            		SQLLanguageSelected(container);            		
+            	}
+            	currentcontainer.layout(true,true);
+            	currentcontainer.pack();
+            	container.layout(true,true);
+
+            }
+        });	
 		
 		LanguageGroupScalaRadioButton = new Button(LanguageGroup, SWT.RADIO);
 		LanguageGroupScalaRadioButton.setText("Scala");
@@ -294,6 +328,18 @@ public class CreateApplicationWizardPage extends WizardPage {
 		if(MainClassNamelabel != null) {
 			MainClassNamelabel.dispose();
 		}
+		
+
+		for(Parameters item : sqlset) {
+			item.composite.dispose();
+		}
+
+
+		
+		if(basesqlcontainer != null) {
+			basesqlcontainer.dispose();
+		}
+	
 	}
 	private void JavaLanguageSelected(Composite container) {	
 		MainClassNamelabel = new Label(container, SWT.NULL);
@@ -314,6 +360,32 @@ public class CreateApplicationWizardPage extends WizardPage {
 		ArgumentsText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		GridData gd8 = new GridData(GridData.FILL_HORIZONTAL);
 		ArgumentsText.setLayoutData(gd8);
+	}
+	
+	private void SQLLanguageSelected(Composite parent) {
+		
+		basesqlcontainer = new Composite(parent, SWT.NULL);
+		GridData grid1 = new GridData(GridData.FILL_HORIZONTAL);
+		grid1.horizontalSpan = 2;
+		basesqlcontainer.setLayoutData(grid1);
+        GridLayout layout1 = new GridLayout();
+        basesqlcontainer.setLayout(layout1);
+        layout1.numColumns = 1;
+		
+
+        
+        Button addParameter = new Button(basesqlcontainer,SWT.PUSH);
+        addParameter.setLayoutData(new GridData());
+        addParameter.setText("Add a Parameter");        
+        addParameter.addSelectionListener(new SelectionAdapter() {        	
+            public void widgetSelected(SelectionEvent e) {          	
+            	Parameters newtag= new Parameters(basesqlcontainer,container,sc, sqlset);
+            	//container.layout(true,true);
+            	//sc.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
+            	sqlset.add(newtag);
+            }
+          });        
+
 	}
 	
 	private void handleSelectApplicationCompartmentEvent() {
@@ -408,6 +480,17 @@ public class CreateApplicationWizardPage extends WizardPage {
 	public String getMainClassName() {		
 		return MainClassNameText.getText();
 	}	
+	
+	public  List<ApplicationParameter> getParameters(){
+		List<ApplicationParameter> Parameters = new ArrayList<ApplicationParameter>();	 
+		 for(Parameters parameter : sqlset) {	
+			 Parameters.add(ApplicationParameter.builder()
+					 .name(parameter.TagKey.getText())
+					 .value(parameter.TagValue.getText())
+					 .build());
+		 }		 
+		 return Parameters;
+	 }
 	
 	public List<String> getArguments(){		
 	    List<String> arguments = new ArrayList<String>();
