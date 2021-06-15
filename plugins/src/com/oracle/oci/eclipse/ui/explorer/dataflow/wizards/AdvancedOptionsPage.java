@@ -36,6 +36,7 @@ public class AdvancedOptionsPage extends WizardPage {
     private Composite c,c2,c3;
     private ScrolledComposite sc;
     private Set<sparkkv> set=new HashSet<sparkkv>();
+    Button add,show;
     Label sn;
 
     public AdvancedOptionsPage(ISelection selection,Object obj) {
@@ -57,7 +58,7 @@ public class AdvancedOptionsPage extends WizardPage {
         c = new Composite(sc,SWT.NONE);
         sc.setContent(c);GridLayout l=new GridLayout();l.numColumns=1;c.setLayout(l);
         
-        Button show=new Button(c,SWT.CHECK);show.setText("Show Advanced Options");show.setLayoutData(new GridData());
+        show=new Button(c,SWT.CHECK);show.setText("Show Advanced Options");show.setLayoutData(new GridData());
         show.addSelectionListener(new SelectionAdapter()
         {
             @Override
@@ -83,7 +84,7 @@ public class AdvancedOptionsPage extends WizardPage {
         c3=new Composite(c2,SWT.NONE);GridData gd=new GridData(GridData.FILL_HORIZONTAL);gd.horizontalSpan=2;
         c3.setLayoutData(gd);GridLayout l3=new GridLayout();l3.numColumns=1;c3.setLayout(new GridLayout());
         
-        Button add=new Button(c3,SWT.PUSH);add.setLayoutData(new GridData());
+        add=new Button(c3,SWT.PUSH);add.setLayoutData(new GridData());
         add.setText("Add Spark Property");
         
         add.addSelectionListener(new SelectionAdapter() {
@@ -111,8 +112,23 @@ public class AdvancedOptionsPage extends WizardPage {
 			}
         }
         text1.setText(s);
+        if(obj instanceof RunSummary) {
+        	try {
+				s=RunClient.getInstance().getRunDetails(((RunSummary)obj).getId().toString()).getWarehouseBucketUri();
+			} catch (Exception e1) {
+				MessageDialog.openError(Display.getDefault().getActiveShell(),"Error",e1.getMessage());
+			}
+        }
+        else {
+        	try {
+				s=ApplicationClient.getInstance().getApplicationDetails(((ApplicationSummary)obj).getId()).getWarehouseBucketUri();
+			} catch (Exception e1) {
+				MessageDialog.openError(Display.getDefault().getActiveShell(),"Error",e1.getMessage());
+			}
+        }
         Label label2=new Label(c2,SWT.NONE);label2.setText("Warehouse Bucket URI");
         text2=new Text(c2,SWT.BORDER);text2.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        text2.setText(s);
         
         setControl(sc);
     }
@@ -122,6 +138,9 @@ public class AdvancedOptionsPage extends WizardPage {
         setPageComplete(message == null);
     }
 	
+	 boolean ischecked() {
+		 return show.getSelection();
+	 }
 	 
 	 class sparkkv{
 		 

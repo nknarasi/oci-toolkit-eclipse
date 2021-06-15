@@ -90,31 +90,30 @@ public class RunWizard extends Wizard implements INewWizard {
         // Refresh TreeView to show new nodes
         //ObjStorageContentProvider.getInstance().getBucketsAndRefresh();
         try {
-        DataFlowClient client=RunClient.getInstance().getDataFlowClient();
         Object[] obj;
 		if(runSum!=null) obj=page.getDetails();
 		else obj=page.getDetails_app();
-		if(!(page3.loguri().equals("")||page3.loguri()==null)) obj[11]=page3.loguri();
-		if(!(page3.buckuri().equals("")||page3.buckuri()==null)) obj[15]=page3.buckuri();
-		if(!sparkprop((String)obj[14])) return false;
+		if(page3.ischecked()) {obj[11]=page3.loguri();obj[15]=page3.buckuri();}
+		if(page3.ischecked()&&!sparkprop((String)obj[14])) return false;
 		if(!check(obj)) return false;
 		if(!sparkprop((String)obj[14])) return false;
+		DataFlowClient client=RunClient.getInstance().getDataFlowClient();
         CreateRunDetails createRunDetails = CreateRunDetails.builder()
         		.applicationId((String)obj[0])
         		.archiveUri((String)obj[1])
         		//.arguments(new ArrayList<>(Arrays.asList("EXAMPLE--Value")))
         		.compartmentId((String)obj[3])
-        		.configuration(page3.getconfig())
+        		.configuration(page3.ischecked()?page3.getconfig():null)
         		.definedTags(page2.getOT())
         		.displayName((String)obj[6])
         		.driverShape((String)obj[7])
         		.execute((String)obj[8])
         		.executorShape((String)obj[9])
         		.freeformTags(page2.getFT())
-        		.logsBucketUri((page3.loguri().equals("")||page3.loguri()==null)?(String)obj[11]:page3.loguri())
+        		.logsBucketUri((String)obj[11])
         		.numExecutors((Integer)obj[12])
         		.parameters((List<ApplicationParameter>)obj[13])
-        		.warehouseBucketUri((page3.buckuri().equals("")||page3.buckuri()==null)?(String)obj[15]:page3.buckuri()).build();
+        		.warehouseBucketUri((String)obj[15]).build();
 		CreateRunRequest createRunRequest;
 		if(runSum!=null){		
         createRunRequest = CreateRunRequest.builder()
@@ -169,7 +168,7 @@ public class RunWizard extends Wizard implements INewWizard {
     	if(!b) {open("Improper Values","Log Bucket Uri of improper format");return false;}
     	
     	//whuri
-    	n=(String)obj[15];
+    	n=(String)obj[15];System.out.print(n+"lollol");
     	b=(n.length()>9)&&(n.substring(0,6).equals("oci://"))&&(n.substring(n.length()-1).equals("/"))
     			&&n.split("@").length==2;
     	if(!b) {open("Improper Values","Warehouse Bucket Uri of improper format");return false;}
