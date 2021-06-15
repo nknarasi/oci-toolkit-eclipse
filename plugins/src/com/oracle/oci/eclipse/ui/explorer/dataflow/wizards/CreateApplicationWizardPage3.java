@@ -47,7 +47,7 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 	private Button compartmentButton;
 	private Text compartmentText;
 	private Compartment selectedApplicationCompartment;
-	private Combo PrivateEndpointsCombo;
+	public Combo PrivateEndpointsCombo;
 	private Label PrivateEndpointsLabel;
 	private List<PrivateEndpointSummary> PrivateEndpoints;	
     private Set<SparkProperty> CreatedPropertiesSet=new HashSet<SparkProperty>();    
@@ -285,11 +285,11 @@ public class CreateApplicationWizardPage3   extends WizardPage {
     }	
 	
 	public String getWarehouseUri() {		
-		return WarehouseLocationText.getText();
+		return WarehouseLocationText.getText().trim();
 	}
 	
 	public String getApplicationLogLocation() {		
-		return LogLocationText.getText();
+		return LogLocationText.getText().trim();
 	}
 	
 	public String getPrivateEndPointId() {

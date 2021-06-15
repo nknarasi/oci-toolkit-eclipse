@@ -27,6 +27,7 @@ import com.oracle.bmc.identity.model.TagNamespaceSummary;
 import com.oracle.bmc.identity.requests.GetTagNamespaceRequest;
 import com.oracle.bmc.identity.requests.ListTagNamespacesRequest;
 import com.oracle.oci.eclipse.account.AuthProvider;
+import com.oracle.oci.eclipse.sdkclients.IdentClient;
 
 
 public class TagsPage extends WizardPage {
@@ -171,7 +172,7 @@ public class TagsPage extends WizardPage {
 		 
 		//if(compid==null) 
 		compid=AuthProvider.getInstance().getCompartmentId();
-		ListTagNamespacesRequest listTagNamespacesRequest = ListTagNamespacesRequest.builder().compartmentId(compid)
+		ListTagNamespacesRequest listTagNamespacesRequest = ListTagNamespacesRequest.builder().compartmentId(IdentClient.getInstance().getRootCompartment().getId())
 			//.limit(570)
 			.includeSubcompartments(true).lifecycleState(TagNamespace.LifecycleState.Active)
 			.build();

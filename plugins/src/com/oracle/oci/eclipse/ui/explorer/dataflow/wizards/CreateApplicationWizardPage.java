@@ -17,6 +17,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
@@ -31,6 +32,7 @@ import org.eclipse.swt.widgets.Text;
 import com.oracle.bmc.dataflow.model.ApplicationLanguage;
 import com.oracle.bmc.dataflow.model.ApplicationParameter;
 import com.oracle.bmc.identity.model.Compartment;
+import com.oracle.oci.eclipse.account.AuthProvider;
 import com.oracle.oci.eclipse.sdkclients.IdentClient;
 import com.oracle.oci.eclipse.ui.account.BucketSelectWizard;
 import com.oracle.oci.eclipse.ui.account.CompartmentSelectWizard;
@@ -49,7 +51,9 @@ public class CreateApplicationWizardPage extends WizardPage {
     
 	private ISelection selection;
 	
-	private Compartment selectedApplicationCompartment;
+	private String selectedApplicationCompartmentId= AuthProvider.getInstance().getCompartmentId();
+	private String selectedApplicationCompartmentName= AuthProvider.getInstance().getCompartmentName();
+	
 	
 	private Combo SparkVersionCombo;
 	private Combo DriverShapeCombo;
@@ -88,7 +92,8 @@ public class CreateApplicationWizardPage extends WizardPage {
 		List<Compartment> Allcompartments = IdentClient.getInstance().getCompartmentList(rootCompartment);
 		for(Compartment compartment : Allcompartments) {
 			if(compartment.getId().equals(COMPARTMENT_ID)) {
-				this.selectedApplicationCompartment= compartment;
+				this.selectedApplicationCompartmentId= compartment.getId();
+				this.selectedApplicationCompartmentName= compartment.getName();
 				break;
 			}
 		}
@@ -119,7 +124,7 @@ public class CreateApplicationWizardPage extends WizardPage {
         compartmentText = new Text(innerTopContainer, SWT.BORDER | SWT.SINGLE);
         compartmentText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         compartmentText.setEditable(false);
-        compartmentText.setText(selectedApplicationCompartment.getName());
+        compartmentText.setText(selectedApplicationCompartmentName);
 
         Button compartmentButton = new Button(innerTopContainer, SWT.PUSH);
         compartmentButton.setText("Choose...");
@@ -139,6 +144,7 @@ public class CreateApplicationWizardPage extends WizardPage {
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		displayNameText.setLayoutData(gd);
 		displayNameText.setText("App " + defaultApplicationName);
+		
 		
 		Label Applicationdescriptionlabel = new Label(container, SWT.NULL);
 		Applicationdescriptionlabel.setText("&Application Description:");
@@ -248,6 +254,7 @@ public class CreateApplicationWizardPage extends WizardPage {
             public void widgetSelected(SelectionEvent e) {
             	if(LanguageUsed != ApplicationLanguage.Java )
             	{
+            		FileUriText.setText("");
             		disposePrevious();
             		LanguageUsed  = ApplicationLanguage.Java;            		
             		JavaLanguageSelected(container);            		
@@ -268,6 +275,7 @@ public class CreateApplicationWizardPage extends WizardPage {
             	if(LanguageUsed != ApplicationLanguage.Python )
             	{
             		disposePrevious();
+            		FileUriText.setText("");
             		LanguageUsed  = ApplicationLanguage.Python;            		
             		PythonLanguageSelected(container);            		
             	}
@@ -286,6 +294,7 @@ public class CreateApplicationWizardPage extends WizardPage {
             	if(LanguageUsed != ApplicationLanguage.Sql )
             	{
             		disposePrevious();
+            		FileUriText.setText("");
             		LanguageUsed  = ApplicationLanguage.Sql;            		
             		SQLLanguageSelected(container);            		
             	}
@@ -304,6 +313,7 @@ public class CreateApplicationWizardPage extends WizardPage {
             	if(LanguageUsed != ApplicationLanguage.Scala )
             	{
             		disposePrevious();
+            		FileUriText.setText("");
             		LanguageUsed  = ApplicationLanguage.Scala;            		
             		JavaLanguageSelected(container);            		
             	}
@@ -380,8 +390,6 @@ public class CreateApplicationWizardPage extends WizardPage {
         addParameter.addSelectionListener(new SelectionAdapter() {        	
             public void widgetSelected(SelectionEvent e) {          	
             	Parameters newtag= new Parameters(basesqlcontainer,container,sc, sqlset);
-            	//container.layout(true,true);
-            	//sc.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
             	sqlset.add(newtag);
             }
           });        
@@ -393,8 +401,9 @@ public class CreateApplicationWizardPage extends WizardPage {
 			@Override
 			public void accept(Compartment compartment) {
 				if (compartment != null) {
-					selectedApplicationCompartment = compartment;
-					compartmentText.setText(selectedApplicationCompartment.getName());
+					selectedApplicationCompartmentId = compartment.getId();
+					selectedApplicationCompartmentName = compartment.getName();
+					compartmentText.setText(selectedApplicationCompartmentName);
 				}
 			}
 		};
@@ -415,7 +424,7 @@ public class CreateApplicationWizardPage extends WizardPage {
 			}
 		};
     	CustomWizardDialog dialog = new CustomWizardDialog(Display.getDefault().getActiveShell(),
-				new BucketSelectWizard(consumer,selectedApplicationCompartment.getId(),LanguageUsed));
+				new BucketSelectWizard(consumer,selectedApplicationCompartmentId,LanguageUsed));
 		dialog.setFinishButtonText("Select");
 		if (Window.OK == dialog.open()) {
 		}
@@ -427,7 +436,7 @@ public class CreateApplicationWizardPage extends WizardPage {
 	}
 	
 	public String getApplicationCompartmentId() {
-		return selectedApplicationCompartment.getId();
+		return selectedApplicationCompartmentId;
 	}
 	
 	public String getDisplayName() {
@@ -474,7 +483,7 @@ public class CreateApplicationWizardPage extends WizardPage {
 	}
 	
 	public String getArchiveUri() {		
-		return ArchiveUriText.getText();
+		return ArchiveUriText.getText().trim();
 	}
 	
 	public String getMainClassName() {		
@@ -535,20 +544,6 @@ public class CreateApplicationWizardPage extends WizardPage {
 	    return arguments;		
 	}
 
-	private boolean validations() {
-		if(!validateDisplayName() ) {
-			return false;
-		}
-		return true;
-	}
-	
-	private boolean validateDisplayName() {
-		if(this.displayNameText.getText().equals(null) || this.displayNameText.getText().length() > 3) {
-			return false;
-		}
-		else
-			return true; 
-	}
 	
 	 @Override
 	    public IWizardPage getNextPage() {

@@ -8,6 +8,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.widgets.Display;
 import com.oracle.bmc.dataflow.model.Application;
+import com.oracle.bmc.dataflow.model.ApplicationLanguage;
 import com.oracle.bmc.dataflow.model.ApplicationSummary;
 import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
@@ -81,7 +82,7 @@ public class DetailsApplicationAction extends BaseAction {
 	        else
 	        	data.add(new TablePair("Archive URL", application.getArchiveUri()));
 	        
-	        if(!application.getClassName().equals(null) && !application.getClassName().equals(""))
+	        if(application.getLanguage() == ApplicationLanguage.Java)
 	        	data.add(new TablePair("Main Class Name", application.getClassName()));
 	        
 	        
@@ -99,6 +100,10 @@ public class DetailsApplicationAction extends BaseAction {
 	        
 	        if(application.getConfiguration() != null)
 	        	data.add(new TablePair("Configuration", application.getConfiguration().toString()));
+	        
+	        if(application.getLanguage() == ApplicationLanguage.Sql &&  application.getParameters() != null) {
+	        	data.add(new TablePair("Parameters", application.getParameters().toString()));
+	        }
 	        return data;
 	    }
 }
