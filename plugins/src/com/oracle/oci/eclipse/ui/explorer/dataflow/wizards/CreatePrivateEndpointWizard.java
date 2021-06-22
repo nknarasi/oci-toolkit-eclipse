@@ -1,6 +1,7 @@
 package com.oracle.oci.eclipse.ui.explorer.dataflow.wizards;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -56,9 +57,10 @@ public class CreatePrivateEndpointWizard extends Wizard implements INewWizard {
                 //monitor.done();
             }
         };
-        
         try {
-			Object[] obj=page.getDetails();
+        	Object[] obj=page.getDetails();
+        	ArrayList<String> nsgl=page2.getnsgs();
+        	if(!check((String)obj[3],(String[])obj[4],(String)obj[8],nsgl)) return false;
 			CreatePrivateEndpointDetails createPrivateEndpointDetails = CreatePrivateEndpointDetails.builder()
 		.compartmentId(pepTable.compid==null?(String)obj[0]:pepTable.compid)
 		.definedTags(page3.getOT())
@@ -88,6 +90,19 @@ public class CreatePrivateEndpointWizard extends Wizard implements INewWizard {
         return true;
     }
 	
+    boolean check(String name,String[] dnsl,String sid,ArrayList<String> nsgl) {
+    	
+    	if(name.isEmpty()) {open("Improper Values","Enter proper name for the Private-Endpoint");return false;}
+    	if(sid==null||sid.isEmpty()) {open("Improper Values","Select proper Sub-net Id for the Private-Endpoint");return false;}
+    	if(dnsl==null||dnsl.length==0||dnsl[0].isEmpty()) {open("Improper Values","Enter proper DNS zones for the Private-Endpoint");return false;}
+    	if(nsgl==null) {open("Improper Values","Enter proper NSG IDs for the Private-Endpoint");return false;}
+    	return true;
+    }
+    
+    void open(String h,String m) {
+    	MessageDialog.openInformation(getShell(), h, m);
+    }
+    
     @Override
     public void init(IWorkbench workbench, IStructuredSelection selection) {
         this.selection = selection;

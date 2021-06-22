@@ -8,6 +8,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.widgets.Display;
 import com.oracle.bmc.dataflow.model.Application;
+import com.oracle.bmc.dataflow.model.ApplicationLanguage;
 import com.oracle.bmc.dataflow.model.ApplicationSummary;
 import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
@@ -75,13 +76,37 @@ public class DetailsApplicationAction extends BaseAction {
 	        data.add(new TablePair("Executor Shape", application.getExecutorShape()));
 	        data.add(new TablePair("Number of Executors", application.getNumExecutors().toString()));
 	        data.add(new TablePair("File URL", application.getFileUri()));
-	        data.add(new TablePair("Archive URL", application.getArchiveUri()));
-	        data.add(new TablePair("Main Class Name", application.getClassName()));
-	        data.add(new TablePair("Arguments", application.getArguments().toString()));
+	        
+	        if(application.getArchiveUri().equals(null) || application.getArchiveUri().equals("") )
+	        	data.add(new TablePair("Archive URL", "NO VALUE"));
+	        else
+	        	data.add(new TablePair("Archive URL", application.getArchiveUri()));
+	        
+	        if(application.getLanguage() == ApplicationLanguage.Java)
+	        	data.add(new TablePair("Main Class Name", application.getClassName()));
+	        
+	        
+	        if(application.getArguments().size() == 0)
+	        	data.add(new TablePair("Arguments", "NO VALUE"));
+	        else
+	        	data.add(new TablePair("Arguments", application.getArguments().toString()));
+	        
 	        data.add(new TablePair("Application Log Location", application.getLogsBucketUri()));
+	        
 	        data.add(new TablePair("Oracle Tags", application.getDefinedTags().toString()));
-	        data.add(new TablePair("FreeForm Tags", application.getFreeformTags().toString()));
-	        data.add(new TablePair("Configuration", application.getConfiguration().toString()));
+	        
+	        if(application.getFreeformTags().size() != 0)
+	        	data.add(new TablePair("FreeForm Tags", application.getFreeformTags().toString()));
+	        
+	        if(application.getConfiguration() != null)
+	        	data.add(new TablePair("Configuration", application.getConfiguration().toString()));
+	        
+	        if(application.getLanguage() == ApplicationLanguage.Sql &&  application.getParameters() != null) {
+	        	data.add(new TablePair("Parameters", application.getParameters().toString()));
+	        }
+	        if(application.getPrivateEndpointId() != null) {
+	        	data.add(new TablePair("Private Endpoints", application.getPrivateEndpointId()));
+	        }
 	        return data;
 	    }
 }

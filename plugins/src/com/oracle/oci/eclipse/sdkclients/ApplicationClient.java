@@ -10,6 +10,7 @@ import com.oracle.bmc.dataflow.model.ApplicationSummary;
 import com.oracle.bmc.dataflow.model.CreateApplicationDetails;
 import com.oracle.bmc.dataflow.model.CreateRunDetails;
 import com.oracle.bmc.dataflow.model.UpdateApplicationDetails;
+import com.oracle.bmc.dataflow.model.UpdateRunDetails;
 import com.oracle.bmc.dataflow.requests.CreateApplicationRequest;
 import com.oracle.bmc.dataflow.requests.CreateRunRequest;
 import com.oracle.bmc.dataflow.requests.DeleteApplicationRequest;
@@ -23,6 +24,7 @@ import com.oracle.bmc.dataflow.responses.CreateApplicationResponse;
 import com.oracle.bmc.dataflow.responses.CreateRunResponse;
 import com.oracle.bmc.dataflow.responses.ListApplicationsResponse;
 import com.oracle.bmc.dataflow.responses.UpdateApplicationResponse;
+import com.oracle.bmc.dataflow.responses.UpdateRunResponse;
 
 public class ApplicationClient extends BaseClient {
 
@@ -129,6 +131,17 @@ public class ApplicationClient extends BaseClient {
                         .build());
     }
     
+    public Application createApplicationandgetId(final CreateApplicationDetails request) {
+        CreateApplicationResponse response =
+                dataflowClient.createApplication(
+                        CreateApplicationRequest.builder()
+                        .createApplicationDetails(request)
+                        .build());
+        
+        return response.getApplication();
+        
+    }
+    
     public void deleteApplication(String ApplicationId) throws Exception {
         dataflowClient.deleteApplication(DeleteApplicationRequest.builder().applicationId(ApplicationId).build());
         ErrorHandler.logInfo("Application deleted: " + ApplicationId);
@@ -141,10 +154,29 @@ public class ApplicationClient extends BaseClient {
         		.build());   
     }
     
+    public void runEditApplication(String applicationId, final UpdateApplicationDetails request) {    
+    	UpdateApplicationResponse response=	dataflowClient.updateApplication(UpdateApplicationRequest.builder()
+    			.applicationId(applicationId)
+    			.updateApplicationDetails(request)
+    			.build()) ;
+    	
+    	
+    }
+    
     public void editApplication(String applicationId,final UpdateApplicationDetails request ) {
     	UpdateApplicationResponse response=	dataflowClient.updateApplication(UpdateApplicationRequest.builder()
     			.applicationId(applicationId)
     			.updateApplicationDetails(request)
     			.build()) ;
+    }
+    
+    
+    public Application editApplicationandgetId(String applicationId,final UpdateApplicationDetails request ) {
+    	UpdateApplicationResponse response=	dataflowClient.updateApplication(UpdateApplicationRequest.builder()
+    			.applicationId(applicationId)
+    			.updateApplicationDetails(request)
+    			.build()) ;
+    	return response.getApplication();
+    	
     }
 }

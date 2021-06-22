@@ -5,32 +5,41 @@ import java.util.HashMap;
 
 import java.util.List;
 import java.util.Map;
-
+import java.util.Map.Entry;
+import java.util.function.Consumer;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 
 import com.oracle.bmc.dataflow.model.ApplicationLanguage;
+import com.oracle.bmc.identity.model.Compartment;
 import com.oracle.bmc.objectstorage.model.BucketSummary;
 import com.oracle.bmc.objectstorage.model.ObjectSummary;
 import com.oracle.oci.eclipse.Activator;
 import com.oracle.oci.eclipse.Icons;
 import com.oracle.oci.eclipse.sdkclients.IdentClient;
 import com.oracle.oci.eclipse.sdkclients.ObjStorageClient;
+import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
 
 
 public class BucketSelectWizardPage extends WizardPage {
@@ -40,10 +49,12 @@ public class BucketSelectWizardPage extends WizardPage {
     private static final String GRAND_CHILDREN_FETCHED = "grandChildrenFetched";
     private ISelection selection;
     private Tree tree;
+    private Text compartmentText;
     private Image IMAGE;
     private ApplicationLanguage language;
     private List<BucketSummary> buckets;
-    private String compartmentId;
+	private Compartment selectedApplicationCompartment;
+	Map<BucketSummary, TreeItem> BucketTreeMap;
     
     public BucketSelectWizardPage(ISelection selection,String CompartmentId,ApplicationLanguage language) {
         super("wizardPage");
@@ -51,8 +62,15 @@ public class BucketSelectWizardPage extends WizardPage {
         setDescription("Choose the Bucket");
         this.selection = selection;
         this.language= language;
-        this.compartmentId= CompartmentId;
         IMAGE = Activator.getImage(Icons.BUCKET.getPath());
+        Compartment rootCompartment = IdentClient.getInstance().getRootCompartment();
+		List<Compartment> Allcompartments = IdentClient.getInstance().getCompartmentList(rootCompartment);
+		for(Compartment compartment : Allcompartments) {
+			if(compartment.getId().equals(CompartmentId)) {
+				this.selectedApplicationCompartment= compartment;
+				break;
+			}
+		}
     }
 
     @Override
@@ -61,42 +79,77 @@ public class BucketSelectWizardPage extends WizardPage {
         Composite container = new Composite(parent, SWT.NULL);
         GridLayout layout = new GridLayout();
         container.setLayout(layout);
+        
+		Label compartmentLabel = new Label(container, SWT.NULL);
+		compartmentLabel.setText("&Choose a compartment:");
+		Composite innerTopContainer = new Composite(container, SWT.NONE);
+        GridLayout innerTopLayout = new GridLayout();
+        innerTopLayout.numColumns = 2;
+        innerTopContainer.setLayout(innerTopLayout);
+        innerTopContainer.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+        compartmentText = new Text(innerTopContainer, SWT.BORDER | SWT.SINGLE);
+        compartmentText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        compartmentText.setEditable(false);
+        compartmentText.setText(selectedApplicationCompartment.getName());
+
+        Button compartmentButton = new Button(innerTopContainer, SWT.PUSH);
+        compartmentButton.setText("Choose...");
+        compartmentButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+            	handleSelectApplicationCompartmentEvent();
+            }
+        });
 
         tree = new Tree(container, SWT.RADIO | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
         tree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-        try {
-			buckets = ObjStorageClient.getInstance().getBucketsinCompartment(compartmentId);
+                
+        createBucketSection();
+        
+        setControl(container);
+    }
+    
+    
+    private void createBucketSection() {
+
+    	if(BucketTreeMap != null)
+    	{
+        	for(Entry<BucketSummary,TreeItem> item: BucketTreeMap.entrySet() ) {        		
+        		item.getValue().removeAll();
+        		item.getValue().dispose();
+        		//BucketTreeMap.remove(item.getKey());       		
+        	}
+    	}
+    	try {
+			buckets = ObjStorageClient.getInstance().getBucketsinCompartment(selectedApplicationCompartment.getId());
 		} catch (Exception e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-        
-        
-
-        Job job = new Job("Get Objects inside Bucket in User Compartment") {
+    	
+    	
+   	 Job job = new Job("Get Objects inside Bucket in User Compartment") {
             @Override
             protected IStatus run(IProgressMonitor monitor) {
                 // Get root compartment children from server
-
+           
+            	
                 // update tree node using UI thread
                 Display.getDefault().asyncExec(new Runnable() {
                     @Override
                     public void run() {
                         try {
                             // add root compartment node to tree
-                        	Map<BucketSummary, TreeItem> BucketTreeMap= new HashMap<BucketSummary,TreeItem>();
-                        	for(BucketSummary bucket : buckets) {
-                        		
-                       		
+                        	BucketTreeMap= new HashMap<BucketSummary,TreeItem>();
+                        	for(BucketSummary bucket : buckets) {                       		
                         		BucketTreeMap.put(bucket, new TreeItem(tree,0));
                         		BucketTreeMap.get(bucket).setText(bucket.getName());
                         		BucketTreeMap.get(bucket).setImage(IMAGE);
                         		BucketTreeMap.get(bucket).setData(BUCKET_KEY,bucket);
-
                         	}
                            
-                        	for(BucketSummary bucket : buckets) {
-                        		
+                        	for(BucketSummary bucket : buckets) {                        		
                         		for(ObjectSummary objects :ObjStorageClient.getInstance().getBucketObjects(bucket.getName())) {
                         			Job job = new Job("Get contents of buckets") {
                                         @Override
@@ -110,8 +163,7 @@ public class BucketSelectWizardPage extends WizardPage {
                                                             treeItem.setText(objects.getName());
                                                             treeItem.setImage(IMAGE);
                                                             treeItem.setData(OBJECT_KEY,objects);
-                                                    	}
-                                                        
+                                                    	}                                                     
                                                     } catch(Exception e) {}
                                                 }
                                             });
@@ -121,9 +173,6 @@ public class BucketSelectWizardPage extends WizardPage {
                                     job.schedule();
                         			}
                         	}
-                        	
-                           
-
                         } catch(Exception ex) {}
                     }
                 });
@@ -137,18 +186,26 @@ public class BucketSelectWizardPage extends WizardPage {
             public void handleEvent(Event event) {}
         });
 
-        tree.addListener(SWT.Expand, new Listener() {
-            @Override
-            public void handleEvent(Event e) {
-                try {
-                    handNodeExpanionEvent(e);
-                } catch (Throwable ex) {}
-            }
-        });
-
-        setControl(container);
-    }
     
+   }
+    
+	private void handleSelectApplicationCompartmentEvent() {
+    	Consumer<Compartment> consumer=new Consumer<Compartment>() {
+			@Override
+			public void accept(Compartment compartment) {
+				if (compartment != null) {
+					selectedApplicationCompartment = compartment;
+					compartmentText.setText(selectedApplicationCompartment.getName());
+					 createBucketSection();
+				}
+			}
+		};
+    	CustomWizardDialog dialog = new CustomWizardDialog(Display.getDefault().getActiveShell(),
+    	new CompartmentSelectWizard(consumer, false));
+		dialog.setFinishButtonText("Select");
+		if (Window.OK == dialog.open()) {
+		}
+    }
     private boolean correctformat (String Name) {
     	if(language == ApplicationLanguage.Java) {
     		String ending = Name.substring(Name.length()-4);
@@ -175,20 +232,6 @@ public class BucketSelectWizardPage extends WizardPage {
     		}
     	}
     	return true;
-    }
-    private void handNodeExpanionEvent(Event e) {
-        TreeItem treeItem = (TreeItem) e.item;
-        synchronized (treeItem) {
-            String grandChildrenFetched = (String) treeItem.getData(GRAND_CHILDREN_FETCHED);
-            if (grandChildrenFetched != null && grandChildrenFetched.equalsIgnoreCase("true"))
-                return;
-            treeItem.setData(GRAND_CHILDREN_FETCHED, "true");
-        }
-
-        TreeItem children[] = treeItem.getItems();
-        if (children == null || (children.length == 0))
-            return;
-
     }
     
     private void updateStatus(String message) {

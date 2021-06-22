@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
+
+import javax.swing.JButton;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -15,6 +18,7 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -35,6 +39,7 @@ import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DetailsApplicationAct
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.EditApplicationAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RefreshApplicationAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RunApplicationAction;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.wizards.CreateApplicationWizard;
 
 public class ApplicationTable extends BaseTable{
    
@@ -48,6 +53,7 @@ public class ApplicationTable extends BaseTable{
     private static final int UPDATED_COL = 5;
     
     private static String COMPARTMENT_ID;
+    private static String COMPARTMENT_NAME;
     
     public ApplicationTable(Composite parent, int style) {
         super(parent, style);
@@ -134,7 +140,7 @@ public class ApplicationTable extends BaseTable{
     @Override
     protected void fillMenu(IMenuManager manager) {
         manager.add(new RefreshApplicationAction(ApplicationTable.this));
-        manager.add(new CreateApplicationAction(ApplicationTable.this,COMPARTMENT_ID));
+       // manager.add(new CreateApplicationAction(ApplicationTable.this,COMPARTMENT_ID));
         manager.add(new Separator());
         if (getSelectedObjects().size() == 1) {
             manager.add(new DetailsApplicationAction(ApplicationTable.this));
@@ -146,6 +152,57 @@ public class ApplicationTable extends BaseTable{
 
     @Override
     protected void addTableLabels(FormToolkit toolkit, Composite left, Composite right) {
+    	
+    	
+    	//14-June 
+		ccb.setText("Change Compartment");ccb.setVisible(true);
+        ccb.addSelectionListener(new SelectionListener() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                
+				Consumer<Compartment> consumer=new Consumer<Compartment>() {
+
+				@Override
+				public void accept(Compartment comp) {
+					COMPARTMENT_ID = comp.getId();
+					COMPARTMENT_NAME = comp.getName();
+				}
+				};
+				CustomWizardDialog dialog = new CustomWizardDialog(Display.getDefault().getActiveShell(),
+						new CompartmentSelectWizard(consumer, false));
+				dialog.setFinishButtonText("Select");
+				if (Window.OK == dialog.open()) {
+					setCompartmentName(new String(COMPARTMENT_NAME));
+					refresh(true);
+				}
+            }
+
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) {}
+        });
+        
+        Button createApplicationButton = toolkit.createButton(right,"Create Application", SWT.PUSH);
+        createApplicationButton.setText("Create Application");
+        createApplicationButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+            	CustomWizardDialog dialog = new CustomWizardDialog(Display.getDefault().getActiveShell(), new CreateApplicationWizard(COMPARTMENT_ID));
+     	       	dialog.setFinishButtonText("Create");
+   	        	if (Window.OK == dialog.open()) {
+   	        	refresh(true);
+   	        	}      	          	
+            }
+            public void widgetDefaultSelected(SelectionEvent e) {}
+        });	
+        
+        
+        //
+        
+        
+        
+        
+    	//OLD CODE
+    	/*
         Button compartmentButton = toolkit.createButton(right,"Choose Compartment", SWT.PUSH);
         compartmentButton.setText("Choose Compartment");
         compartmentButton.addSelectionListener(new SelectionAdapter() {
@@ -156,8 +213,10 @@ public class ApplicationTable extends BaseTable{
             }
             public void widgetDefaultSelected(SelectionEvent e) {}
         });	
+        */
     }
     
+    /*
 	private void handleSelectApplicationCompartmentEvent() {
     	Consumer<Compartment> consumer=new Consumer<Compartment>() {
 			@Override
@@ -175,4 +234,5 @@ public class ApplicationTable extends BaseTable{
 		if (Window.OK == dialog.open()) {
 		}
     }	
+    */
 }

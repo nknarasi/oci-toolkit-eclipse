@@ -3,15 +3,21 @@ package com.oracle.oci.eclipse.ui.explorer.dataflow.wizards;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
@@ -23,8 +29,13 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
+
+import com.oracle.bmc.dataflow.model.Application;
 import com.oracle.bmc.dataflow.model.ApplicationLanguage;
+import com.oracle.bmc.dataflow.model.ApplicationParameter;
 import com.oracle.bmc.identity.model.Compartment;
+import com.oracle.oci.eclipse.account.AuthProvider;
+import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
 import com.oracle.oci.eclipse.sdkclients.IdentClient;
 import com.oracle.oci.eclipse.ui.account.BucketSelectWizard;
 import com.oracle.oci.eclipse.ui.account.CompartmentSelectWizard;
@@ -39,15 +50,19 @@ public class CreateApplicationWizardPage extends WizardPage {
 	private Text ApplicationDescriptionText;
 	private Text compartmentText;
 	
+    private ScrolledComposite sc;
+    
 	private ISelection selection;
 	
-	private Compartment selectedApplicationCompartment;
+	private String selectedApplicationCompartmentId= AuthProvider.getInstance().getCompartmentId();
+	private String selectedApplicationCompartmentName= AuthProvider.getInstance().getCompartmentName();
+	
 	
 	private Combo SparkVersionCombo;
 	private Combo DriverShapeCombo;
 	private Combo ExecutorShapeCombo;
 	private Spinner NumofExecutorsSpinner;
-	
+	Button usesparksubmitButton;
 	private Group LanguageGroup;
 	private Button LanguageGroupJavaRadioButton;
 	private Button LanguageGroupPythonRadioButton;
@@ -55,14 +70,29 @@ public class CreateApplicationWizardPage extends WizardPage {
 	private Button LanguageGroupScalaRadioButton;
 	
 	private ApplicationLanguage LanguageUsed;
+
+    private Composite basesqlcontainer;
+
+    private Set<Parameters> sqlset=new HashSet<Parameters>();
 		
 	private Label MainClassNamelabel;
 	private Label Argumentslabel;
 	private Text MainClassNameText;
 	private Text ArgumentsText;
 	private Text ArchiveUriText;
-	private Text FileUriText;
+	Text FileUriText;
 	private DataTransferObject dto;
+	
+	private boolean UsesSparkSubmit=false;
+	private Composite LanguageComposite ;
+	private Button FileSelectButton;
+	private Label FileUrilabel;
+	private Label Languagelabel;
+	private Label ArchiveUrilabel;
+	private Composite FileUriContainer ;
+	
+	private Label SparkSubmitlabel;
+	private Text SparkSubmitText;
 	
 	public CreateApplicationWizardPage(ISelection selection,DataTransferObject dto,String COMPARTMENT_ID) {
 		super("page");
@@ -73,22 +103,34 @@ public class CreateApplicationWizardPage extends WizardPage {
 		this.dto=dto;
 
 		Compartment rootCompartment = IdentClient.getInstance().getRootCompartment();
+		if(dto.getApplicationId()!=null)
+		{
+			Application app= ApplicationClient.getInstance().getApplicationDetails(dto.applicationId);
+			COMPARTMENT_ID = app.getId();
+		}
 		List<Compartment> Allcompartments = IdentClient.getInstance().getCompartmentList(rootCompartment);
 		for(Compartment compartment : Allcompartments) {
 			if(compartment.getId().equals(COMPARTMENT_ID)) {
-				this.selectedApplicationCompartment= compartment;
+				this.selectedApplicationCompartmentId= compartment.getId();
+				this.selectedApplicationCompartmentName= compartment.getName();
 				break;
 			}
 		}
 	}
 	
 	@Override
-	public void createControl(Composite parent) {		
-		container = new Composite(parent, SWT.NULL);
+	public void createControl(Composite parent) {	
+		
+		sc=new ScrolledComposite(parent,SWT.V_SCROLL);
+    	sc.setExpandHorizontal( true );
+    	sc.setExpandVertical( true );       
+    	sc.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+    	
+		container = new Composite(sc, SWT.NULL);
+		sc.setContent(container);
 		GridLayout layout = new GridLayout();
 		container.setLayout(layout);
 		layout.numColumns = 2;
-		layout.verticalSpacing = 9;
 		
 		Label compartmentLabel = new Label(container, SWT.NULL);
 		compartmentLabel.setText("&Choose a compartment:");
@@ -101,7 +143,7 @@ public class CreateApplicationWizardPage extends WizardPage {
         compartmentText = new Text(innerTopContainer, SWT.BORDER | SWT.SINGLE);
         compartmentText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         compartmentText.setEditable(false);
-        compartmentText.setText(selectedApplicationCompartment.getName());
+        compartmentText.setText(selectedApplicationCompartmentName);
 
         Button compartmentButton = new Button(innerTopContainer, SWT.PUSH);
         compartmentButton.setText("Choose...");
@@ -121,6 +163,7 @@ public class CreateApplicationWizardPage extends WizardPage {
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		displayNameText.setLayoutData(gd);
 		displayNameText.setText("App " + defaultApplicationName);
+		
 		
 		Label Applicationdescriptionlabel = new Label(container, SWT.NULL);
 		Applicationdescriptionlabel.setText("&Application Description:");
@@ -146,15 +189,53 @@ public class CreateApplicationWizardPage extends WizardPage {
 		
 		Label NumofExecutorslabel = new Label(container, SWT.NULL);
 		NumofExecutorslabel.setText("&Number of Executors:");
-		createNumofExecutorsSpinner(container);
-					
-		Label LanguageLabel = new Label(container, SWT.NULL);
-		LanguageLabel.setText("&Language:");
+		createNumofExecutorsSpinner(container); 
+		
+
+		
+			usesparksubmitButton =  new Button(container,SWT.CHECK);
+	        usesparksubmitButton.setText("Use Spark Submit");
+	        usesparksubmitButton.addSelectionListener(new SelectionAdapter() {
+	     	    @Override
+	     	    public void widgetSelected(SelectionEvent event) {
+	     	    	 Button btn = (Button) event.getSource();
+	     	    	 if(btn.getSelection()) {
+	     	    		UsesSparkSubmit=true; 
+	     	    		disposeLanguagesection();
+	     	    		withSparkSubmit(container);
+	     	    	 }
+	     	    	 else
+	     	    	 {
+	     	    		UsesSparkSubmit=false;
+	     	    		disposeSparkSubmit();
+	     	    		withoutSparkSubmit(container);
+	     	    	 }
+	     	    	 container.layout(true,true);
+	     	    }
+	     	});
+	        	        
+	     Label dummy = new Label(container, SWT.NULL);
+	   				
+		withoutSparkSubmit(container);	 
+		 setControl(sc);
+		
+	}
+	
+	private void withSparkSubmit(Composite container) {		
+		 SparkSubmitlabel = new Label(container, SWT.NULL);
+		 SparkSubmitlabel.setText("&Spark Submit Command:");
+		 SparkSubmitText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		 SparkSubmitText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));          		        
+	}
+	
+	private void withoutSparkSubmit(Composite container){
+		Languagelabel = new Label(container, SWT.NULL);
+		Languagelabel.setText("&Language:");
 		createLanguageCombo(container);
 		
-		Label FileUriLabel = new Label(container, SWT.NULL);
-		FileUriLabel.setText("&Choose a File:");
-		Composite FileUriContainer = new Composite(container, SWT.NONE);
+		FileUrilabel = new Label(container, SWT.NULL);
+		FileUrilabel.setText("&Choose a File:");
+		FileUriContainer = new Composite(container, SWT.NONE);
         GridLayout FileUriLayout = new GridLayout();
         FileUriLayout.numColumns = 2;
         FileUriContainer.setLayout(FileUriLayout);
@@ -163,26 +244,67 @@ public class CreateApplicationWizardPage extends WizardPage {
         FileUriText = new Text(FileUriContainer, SWT.BORDER | SWT.SINGLE);
         FileUriText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         FileUriText.setEditable(false);
-        Button compartmentButton2 = new Button(FileUriContainer, SWT.PUSH);
-        compartmentButton2.setText("Choose...");
-        compartmentButton2.addSelectionListener(new SelectionAdapter() {
+        FileSelectButton = new Button(FileUriContainer, SWT.PUSH);
+        FileSelectButton.setText("Choose");
+        
+        FileSelectButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
             	handleSelectObjectEvent();
             }
         });        
-		 Label ArchiveUrilabel = new Label(container, SWT.NULL);
+
+		 ArchiveUrilabel = new Label(container, SWT.NULL);
 		 ArchiveUrilabel.setText("&Archive URL:");
 		 ArchiveUriText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		 GridData gd10 = new GridData(GridData.FILL_HORIZONTAL);
 		 ArchiveUriText.setLayoutData(gd10);   
 		 
+	        if(dto.isLocal()) {
+	        	FileUriText.setText("Not Required");
+	        	ArchiveUriText.setText("Not Required");
+	        	ArchiveUriText.setEditable(false);
+	        	FileSelectButton.setEnabled(false); 
+	        }
 		 LanguageUsed  = ApplicationLanguage.Java;            		
-		 JavaLanguageSelected(container);		 
-		 setControl(container);
-		
+		 JavaLanguageSelected(container);
+		 SQLLanguageSelected(container);
 	}
 	
+	private void disposeSparkSubmit() {
+		if(SparkSubmitlabel != null) {
+			SparkSubmitlabel.dispose();
+			SparkSubmitText.dispose();
+		}
+	}
+	
+	private void disposeLanguagesection() {
+
+		if(Languagelabel != null) 
+			Languagelabel.dispose();
+			
+		if(LanguageGroup != null) {			
+			LanguageGroupJavaRadioButton.dispose();
+			LanguageGroupPythonRadioButton.dispose();
+			LanguageGroupSQLRadioButton.dispose();
+			LanguageGroupScalaRadioButton.dispose();
+			LanguageGroup.dispose();
+		}
+			
+		if(FileUrilabel != null) {
+			FileUrilabel.dispose();
+			FileUriText.dispose();
+			FileSelectButton.dispose();
+			FileUriContainer.dispose();
+		}
+		disposePrevious();
+		if(ArchiveUrilabel != null) {
+			ArchiveUrilabel.dispose();
+			ArchiveUriText.dispose();
+		}
+		
+			
+	}
 	private void createDriverShapeCombo(Composite container) {	
 		DriverShapeCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
 		GridData gd3 = new GridData(GridData.FILL_HORIZONTAL);
@@ -229,9 +351,13 @@ public class CreateApplicationWizardPage extends WizardPage {
             public void widgetSelected(SelectionEvent e) {
             	if(LanguageUsed != ApplicationLanguage.Java )
             	{
+            		if(!dto.isLocal())
+            			FileUriText.setText("");
             		disposePrevious();
             		LanguageUsed  = ApplicationLanguage.Java;            		
-            		JavaLanguageSelected(container);            		
+            		JavaLanguageSelected(container);
+            		SQLLanguageSelected(container);             		
+            		
             	}
             	currentcontainer.layout(true,true);
             	container.layout(true,true);
@@ -249,8 +375,13 @@ public class CreateApplicationWizardPage extends WizardPage {
             	if(LanguageUsed != ApplicationLanguage.Python )
             	{
             		disposePrevious();
+            		if(!dto.isLocal())
+            			FileUriText.setText("");
             		LanguageUsed  = ApplicationLanguage.Python;            		
-            		PythonLanguageSelected(container);            		
+            		PythonLanguageSelected(container);  
+            		SQLLanguageSelected(container);  
+            		
+            		
             	}
             	currentcontainer.layout(true,true);
             	currentcontainer.pack();
@@ -261,6 +392,24 @@ public class CreateApplicationWizardPage extends WizardPage {
 		
 		LanguageGroupSQLRadioButton = new Button(LanguageGroup, SWT.RADIO);
 		LanguageGroupSQLRadioButton.setText("SQL");		
+		LanguageGroupSQLRadioButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+            	if(LanguageUsed != ApplicationLanguage.Sql )
+            	{
+            		disposePrevious();
+            		if(!dto.isLocal())
+            			FileUriText.setText("");
+            		LanguageUsed  = ApplicationLanguage.Sql;            		
+            		SQLLanguageSelected(container);   
+            		
+            	}
+            	currentcontainer.layout(true,true);
+            	currentcontainer.pack();
+            	container.layout(true,true);
+
+            }
+        });	
 		
 		LanguageGroupScalaRadioButton = new Button(LanguageGroup, SWT.RADIO);
 		LanguageGroupScalaRadioButton.setText("Scala");
@@ -270,8 +419,12 @@ public class CreateApplicationWizardPage extends WizardPage {
             	if(LanguageUsed != ApplicationLanguage.Scala )
             	{
             		disposePrevious();
+            		if(!dto.isLocal())
+            			FileUriText.setText("");
             		LanguageUsed  = ApplicationLanguage.Scala;            		
-            		JavaLanguageSelected(container);            		
+            		JavaLanguageSelected(container); 
+            		SQLLanguageSelected(container);  
+            		
             	}
             	
             	currentcontainer.layout(true,true);
@@ -294,6 +447,15 @@ public class CreateApplicationWizardPage extends WizardPage {
 		if(MainClassNamelabel != null) {
 			MainClassNamelabel.dispose();
 		}
+		
+		for(Parameters item : sqlset) {
+			item.composite.dispose();
+		}
+		
+		if(basesqlcontainer != null) {
+			basesqlcontainer.dispose();
+		}
+	
 	}
 	private void JavaLanguageSelected(Composite container) {	
 		MainClassNamelabel = new Label(container, SWT.NULL);
@@ -306,6 +468,8 @@ public class CreateApplicationWizardPage extends WizardPage {
 		ArgumentsText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		GridData gd8 = new GridData(GridData.FILL_HORIZONTAL);
 		ArgumentsText.setLayoutData(gd8);
+		
+		
 	}
 	
 	private void PythonLanguageSelected(Composite container) {		
@@ -314,6 +478,32 @@ public class CreateApplicationWizardPage extends WizardPage {
 		ArgumentsText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		GridData gd8 = new GridData(GridData.FILL_HORIZONTAL);
 		ArgumentsText.setLayoutData(gd8);
+		
+		
+	}
+	
+	private void SQLLanguageSelected(Composite parent) {
+		
+		basesqlcontainer = new Composite(parent, SWT.NULL);
+		GridData grid1 = new GridData(GridData.FILL_HORIZONTAL);
+		grid1.horizontalSpan = 2;
+		basesqlcontainer.setLayoutData(grid1);
+        GridLayout layout1 = new GridLayout();
+        basesqlcontainer.setLayout(layout1);
+        layout1.numColumns = 1;
+		
+
+        
+        Button addParameter = new Button(basesqlcontainer,SWT.PUSH);
+        addParameter.setLayoutData(new GridData());
+        addParameter.setText("Add a Parameter");        
+        addParameter.addSelectionListener(new SelectionAdapter() {        	
+            public void widgetSelected(SelectionEvent e) {          	
+            	Parameters newtag= new Parameters(basesqlcontainer,container,sc, sqlset);
+            	sqlset.add(newtag);
+            }
+          });        
+
 	}
 	
 	private void handleSelectApplicationCompartmentEvent() {
@@ -321,8 +511,9 @@ public class CreateApplicationWizardPage extends WizardPage {
 			@Override
 			public void accept(Compartment compartment) {
 				if (compartment != null) {
-					selectedApplicationCompartment = compartment;
-					compartmentText.setText(selectedApplicationCompartment.getName());
+					selectedApplicationCompartmentId = compartment.getId();
+					selectedApplicationCompartmentName = compartment.getName();
+					compartmentText.setText(selectedApplicationCompartmentName);
 				}
 			}
 		};
@@ -343,7 +534,7 @@ public class CreateApplicationWizardPage extends WizardPage {
 			}
 		};
     	CustomWizardDialog dialog = new CustomWizardDialog(Display.getDefault().getActiveShell(),
-				new BucketSelectWizard(consumer,selectedApplicationCompartment.getId(),LanguageUsed));
+				new BucketSelectWizard(consumer,selectedApplicationCompartmentId,LanguageUsed));
 		dialog.setFinishButtonText("Select");
 		if (Window.OK == dialog.open()) {
 		}
@@ -355,7 +546,7 @@ public class CreateApplicationWizardPage extends WizardPage {
 	}
 	
 	public String getApplicationCompartmentId() {
-		return selectedApplicationCompartment.getId();
+		return selectedApplicationCompartmentId;
 	}
 	
 	public String getDisplayName() {
@@ -402,12 +593,31 @@ public class CreateApplicationWizardPage extends WizardPage {
 	}
 	
 	public String getArchiveUri() {		
-		return ArchiveUriText.getText();
+		return ArchiveUriText.getText().trim();
 	}
 	
 	public String getMainClassName() {		
 		return MainClassNameText.getText();
 	}	
+	
+	public boolean usesSparkSubmit() {
+		return UsesSparkSubmit;
+	}
+	
+	public String getSparkSubmit() {
+		return SparkSubmitText.getText();
+	}
+	
+	public  List<ApplicationParameter> getParameters(){
+		List<ApplicationParameter> Parameters = new ArrayList<ApplicationParameter>();	 
+		 for(Parameters parameter : sqlset) {	
+			 Parameters.add(ApplicationParameter.builder()
+					 .name(parameter.TagKey.getText())
+					 .value(parameter.TagValue.getText())
+					 .build());
+		 }		 
+		 return Parameters;
+	 }
 	
 	public List<String> getArguments(){		
 	    List<String> arguments = new ArrayList<String>();
@@ -452,24 +662,122 @@ public class CreateApplicationWizardPage extends WizardPage {
 	    return arguments;		
 	}
 
-	private boolean validations() {
-		if(!validateDisplayName() ) {
-			return false;
-		}
-		return true;
+	void onEnterPage()
+	{
+	    final DataTransferObject dto = ((LocalFileSelectWizard) getWizard()).dto;
+	    String applicationId = dto.applicationId;
+	    if(applicationId != null) {
+	    	Application application = ApplicationClient.getInstance().getApplicationDetails(applicationId);
+	    	
+	    	displayNameText.setText(application.getDisplayName());
+	    	
+	    	if(application.getDescription()!= null)
+	    		ApplicationDescriptionText.setText(application.getDescription());
+	    	
+	    	if(application.getSparkVersion().equals(DataflowConstants.Versions[0])) {
+				SparkVersionCombo.select(0);
+			}
+			else {
+				SparkVersionCombo.select(1);
+			}		
+	    	
+	    	for(int i=0; i<DataflowConstants.Shapes.length ; i++) {
+				if(application.getDriverShape().equals(DataflowConstants.Shapes[i])) {
+					DriverShapeCombo.select(i);
+				}
+			}	
+	    	
+	    	for(int i=0; i<DataflowConstants.Shapes.length ; i++) {
+				if(application.getExecutorShape().equals(DataflowConstants.Shapes[i])) {
+					ExecutorShapeCombo.select(i);
+				}
+			}	
+	    	
+	    	NumofExecutorsSpinner.setSelection(application.getNumExecutors());
+	    	
+	    	if(UsesSparkSubmit) {
+	    		disposeSparkSubmit();
+	    	}
+	    	else
+	    	{
+	    		disposeLanguagesection();
+	    	}
+	    	
+	    	 if(application.getExecute() != null && !application.getExecute().equals("")) {
+	    		UsesSparkSubmit=true; 
+	    		withSparkSubmit(container);
+	    		usesparksubmitButton.setSelection(true);
+	    		SparkSubmitText.setText(application.getExecute());
+	    		
+	    	 }
+	    	 else {
+	    		 UsesSparkSubmit=false; 	    		 
+	    		 usesparksubmitButton.setSelection(false);
+	    		 withoutSparkSubmit(container);	    		 
+	    		 LanguageUsed  = application.getLanguage();    		
+	    		 LanguageGroupJavaRadioButton.setSelection(false);
+	    		 if(LanguageUsed == ApplicationLanguage.Java) {
+	    				LanguageGroupJavaRadioButton.setSelection(true);
+	    		 }
+	    		 else if(LanguageUsed == ApplicationLanguage.Python) {
+	    			 LanguageGroupPythonRadioButton.setSelection(true);
+	    		 }
+	    		 else if(LanguageUsed == ApplicationLanguage.Scala) {
+	    			 LanguageGroupScalaRadioButton.setSelection(true);
+	    		 }
+	    		 else  {
+	    			 LanguageGroupSQLRadioButton.setSelection(true);
+	    		 }
+	    		 
+	    		 disposePrevious();
+	    		 if(LanguageUsed == ApplicationLanguage.Java ||LanguageUsed == ApplicationLanguage.Scala ) {
+	    			 JavaLanguageSelected(container);
+	    			 MainClassNameText.setText(application.getClassName());
+	    			 if(application.getArguments() != null) {
+	    					String arguments= "";
+	    					for(String i : application.getArguments()) {
+	    						arguments +=  i  +" ";
+	    					}
+	    					ArgumentsText.setText(arguments);
+	    				}
+	    		 }
+	    		 else if(LanguageUsed == ApplicationLanguage.Python ) {
+	    			 PythonLanguageSelected(container);
+	    			 if(application.getArguments() != null) {
+	    					String arguments= "";
+	    					for(String i : application.getArguments()) {
+	    						arguments +=   i  +" ";
+	    					}
+	    					ArgumentsText.setText(arguments);
+	    				}
+	    		 } 
+	    		 else {
+	    			 SQLLanguageSelected(container);
+	    			
+	    		 }
+	    		 
+	    		 if(application.getParameters() != null)
+ 		        {
+ 		        	 for (ApplicationParameter parameter : application.getParameters()) {
+ 		             	Parameters newparameter = new Parameters(basesqlcontainer,container,sc, sqlset);
+ 		             	sqlset.add(newparameter);
+ 		        		 	newparameter.TagKey.setText(parameter.getName());
+ 		     			newparameter.TagValue.setText(parameter.getValue());
+ 		        	 		}         	
+ 		        }       
+	    	 }    	
+	    }
+	   
+	    container.pack();
+	    container.layout(true,true);
+	    sc.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 	}
 	
-	private boolean validateDisplayName() {
-		if(this.displayNameText.getText().equals(null) || this.displayNameText.getText().length() > 3) {
-			return false;
-		}
-		else
-			return true; 
-	}
+	
 	
 	 @Override
 	    public IWizardPage getNextPage() {
-	        dto.setData(this.SparkVersionCombo.getText().toString());    
+	        dto.setData(this.SparkVersionCombo.getText().toString());           
 	        return super.getNextPage();
 	    }
 }

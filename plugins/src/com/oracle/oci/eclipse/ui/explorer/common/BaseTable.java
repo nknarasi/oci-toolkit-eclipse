@@ -92,9 +92,6 @@ public abstract class BaseTable extends Composite {
         tableComp.setLayout(tableColumnLayout);
 
         viewer = new TableViewer(tableComp, SWT.BORDER | SWT.VIRTUAL | SWT.MULTI);
-        //
-        
-        //
         viewer.getTable().setLinesVisible(true);
         viewer.getTable().setHeaderVisible(true);
         viewer.setUseHashlookup(true);
@@ -166,10 +163,11 @@ public abstract class BaseTable extends Composite {
 
 
     protected TableColumn createColumn(TableColumnLayout tableColumnLayout, Table tree, String columnName, int size) {
-        TableColumn column = new TableColumn(tree, SWT.ITALIC | SWT.BOLD);
+        TableColumn column = new TableColumn(tree, SWT.NONE);
         column.setMoveable(true);
         column.setText(columnName);
         tableColumnLayout.setColumnData(column, new ColumnWeightData(size));
+
         return column;
     }
 

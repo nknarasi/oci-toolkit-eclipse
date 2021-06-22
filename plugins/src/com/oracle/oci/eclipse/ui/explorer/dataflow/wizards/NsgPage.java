@@ -160,7 +160,7 @@ public class NsgPage extends WizardPage {
 					        for(NetworkSecurityGroup e:nsgl) {
 					        	sl[i]=e.getDisplayName();m.put(e.getDisplayName(),e.getId());i++;
 					        }}
-					        if(sl.length>0) combo.setItems(sl);
+					        combo.setItems(sl);
 						}
 						};
 						CustomWizardDialog dialog = new CustomWizardDialog(Display.getDefault().getActiveShell(),
@@ -174,8 +174,9 @@ public class NsgPage extends WizardPage {
 	 }
 	 
 	 ArrayList<String> getnsgs(){
-		 
+		 l=new ArrayList<String>();
 		 for(Nsg e:set) {
+			 if(e.nsgid==null) return null;
 			 l.add(e.nsgid);
 		 }
 		 return l;

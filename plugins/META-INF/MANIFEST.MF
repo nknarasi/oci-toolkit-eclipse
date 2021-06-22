@@ -18,7 +18,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.datatools.connectivity.ui;resolution:=optional,
  org.eclipse.datatools.connectivity.ui.dse;resolution:=optional,
  org.eclipse.equinox.security,
- org.eclipse.osgi
+ org.eclipse.osgi,
+ org.eclipse.jdt.core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: lib/sdk/oci-java-sdk-full-1.37.0.jar,
