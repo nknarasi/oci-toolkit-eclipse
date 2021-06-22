@@ -104,6 +104,9 @@ public class DetailsApplicationAction extends BaseAction {
 	        if(application.getLanguage() == ApplicationLanguage.Sql &&  application.getParameters() != null) {
 	        	data.add(new TablePair("Parameters", application.getParameters().toString()));
 	        }
+	        if(application.getPrivateEndpointId() != null) {
+	        	data.add(new TablePair("Private Endpoints", application.getPrivateEndpointId()));
+	        }
 	        return data;
 	    }
 }

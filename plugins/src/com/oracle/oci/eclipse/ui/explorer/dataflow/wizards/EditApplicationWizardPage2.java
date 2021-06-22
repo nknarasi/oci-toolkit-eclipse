@@ -206,19 +206,16 @@ public class EditApplicationWizardPage2  extends WizardPage {
 		
 		NetworkGroupPrivateSubnetRadioButton = new Button(NetworkGroup, SWT.RADIO);
 		NetworkGroupPrivateSubnetRadioButton.setText("Secure Access to Private Subnet");
-		if(application.getPrivateEndpointId() != null) {
+		if(application.getPrivateEndpointId() != null && !application.getPrivateEndpointId().equals("")) {
 			NetworkGroupPrivateSubnetRadioButton.setSelection(true);
-			NetworkSectionSelected= true;
-			
+			NetworkSectionSelected= true;		
 			
 			PrivateEndpointSection= new Composite(currentcontainer, SWT.NONE);
             GridLayout innerTopLayout = new GridLayout();
             innerTopLayout.numColumns = 1;
             PrivateEndpointSection.setLayout(innerTopLayout);
             PrivateEndpointSection.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-    		
-                       
-            
+
             PrivateEndPointsClient oci = PrivateEndPointsClient.getInstance();
             PrivateEndpoint current = oci.getPrivateEndpointDetails(application.getPrivateEndpointId());
     		Compartment rootCompartment = IdentClient.getInstance().getRootCompartment();
@@ -231,7 +228,6 @@ public class EditApplicationWizardPage2  extends WizardPage {
     		}
     		
     		PrivateEndpoints = oci.getPrivateEndPointsinCompartment(selectedApplicationCompartment.getId());		
-
     		int sizeoflist= PrivateEndpoints.size();
     		String[] PrivateEndpointsList = new String[sizeoflist];
     		for(int i = 0; i < PrivateEndpoints.size(); i++)
@@ -244,8 +240,7 @@ public class EditApplicationWizardPage2  extends WizardPage {
     		}
     		
             choosePrivateSubnet(PrivateEndpointSection);     			
-			compartmentText.setText(selectedApplicationCompartment.getName());
-			PrivateEndpointsCombo.select(intial);
+			
 
 		}
 		else {
@@ -279,6 +274,7 @@ public class EditApplicationWizardPage2  extends WizardPage {
             public void widgetSelected(SelectionEvent e) {
             	if(NetworkSectionSelected)
             	{
+            		
             		NetworkSectionSelected= false;
             		
             		compartmentLabel.dispose();
@@ -313,6 +309,8 @@ public class EditApplicationWizardPage2  extends WizardPage {
         compartmentText = new Text(innerTopContainer, SWT.BORDER | SWT.SINGLE);
         compartmentText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         compartmentText.setEditable(false);
+        compartmentText.setText(selectedApplicationCompartment.getName());
+
               
         compartmentButton = new Button(innerTopContainer, SWT.PUSH);
         compartmentButton.setText("Choose...");
@@ -349,6 +347,8 @@ public class EditApplicationWizardPage2  extends WizardPage {
 		PrivateEndpointsCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		 
 		PrivateEndpointsCombo.setItems(PrivateEndpointsList);
+		if(intial != -1)
+			PrivateEndpointsCombo.select(intial);
         currentcontainer.layout(true,true);
         AdvancedOptionsComposite.layout(true,true);
         container.layout(true,true);

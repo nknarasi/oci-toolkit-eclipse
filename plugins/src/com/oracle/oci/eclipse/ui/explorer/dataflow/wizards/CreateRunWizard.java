@@ -183,13 +183,13 @@ public class CreateRunWizard  extends Wizard implements INewWizard{
         .applicationId(application.getId())
         .displayName(firstpage.getDisplayName())
         .archiveUri(application.getArchiveUri())
-        .arguments(firstpage.getArguments())
+        .arguments(application.getArguments())
         .driverShape(firstpage.getDriverShape())
         .executorShape(firstpage.getExecutorShape())
         .numExecutors(Integer.valueOf(firstpage.getNumofExecutors()))
         
         .definedTags(secondpage.getOT())
-        .freeformTags(secondpage.getFT())
+        .freeformTags(secondpage.getFT())        
         
         .configuration(thirdpage.getSparkProperties())
         .logsBucketUri(thirdpage.getApplicationLogLocation())

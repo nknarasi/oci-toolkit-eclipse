@@ -186,14 +186,7 @@ public class BucketSelectWizardPage extends WizardPage {
             public void handleEvent(Event event) {}
         });
 
-        tree.addListener(SWT.Expand, new Listener() {
-            @Override
-            public void handleEvent(Event e) {
-                try {
-                    handNodeExpanionEvent(e);
-                } catch (Throwable ex) {}
-            }
-        });
+    
    }
     
 	private void handleSelectApplicationCompartmentEvent() {
@@ -240,21 +233,6 @@ public class BucketSelectWizardPage extends WizardPage {
     	}
     	return true;
     }
-    private void handNodeExpanionEvent(Event e) {
-        TreeItem treeItem = (TreeItem) e.item;
-        synchronized (treeItem) {
-            String grandChildrenFetched = (String) treeItem.getData(GRAND_CHILDREN_FETCHED);
-            if (grandChildrenFetched != null && grandChildrenFetched.equalsIgnoreCase("true"))
-                return;
-            treeItem.setData(GRAND_CHILDREN_FETCHED, "true");
-        }
-
-        TreeItem children[] = treeItem.getItems();
-        if (children == null || (children.length == 0))
-            return;
-
-    }
-
     
     private void updateStatus(String message) {
         setErrorMessage(message);

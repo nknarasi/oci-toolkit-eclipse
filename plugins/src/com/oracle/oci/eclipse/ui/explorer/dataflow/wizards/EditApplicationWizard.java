@@ -16,6 +16,7 @@ import org.eclipse.ui.IWorkbenchWizard;
 
 import com.oracle.bmc.dataflow.model.Application;
 import com.oracle.bmc.dataflow.model.ApplicationLanguage;
+import com.oracle.bmc.dataflow.model.CreateRunDetails;
 import com.oracle.bmc.dataflow.model.UpdateApplicationDetails;
 import com.oracle.bmc.dataflow.model.UpdateApplicationDetails.Builder;
 import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
@@ -54,20 +55,24 @@ public class EditApplicationWizard extends Wizard implements INewWizard {
     		valid = false;
     	}
     	
-    	if(firstpage2.getApplicationDescription().length() > 50 )
+    	if(firstpage2.getApplicationDescription().length() > 255 )
     	{
     		warnings += "Application Description should satisfy constraints" + "\n"; 
     		valid = false;
     	}
-    	if(firstpage2.getFileUri() ==null ||firstpage2.getFileUri().equals("") ) {    		
-    		warnings += "File Uri is absent" + "\n"; 
-    		valid = false;    		
+    	
+    	if(application.getExecute() == null) {
+    		if( firstpage2.getFileUri() ==null ||firstpage2.getFileUri().equals("")) {    		
+        		warnings += "File Uri is absent" + "\n"; 
+        		valid = false;    		
+        	}
+        	if(firstpage2.getLanguage() == ApplicationLanguage.Java && 
+        			(firstpage2.getMainClassName() == null || firstpage2.getMainClassName().equals(""))) {
+        		warnings += "Main Class Name is absent" + "\n"; 
+        		valid = false;   
+        	}
     	}
-    	if(firstpage2.getLanguage() == ApplicationLanguage.Java && 
-    			(firstpage2.getMainClassName() == null || firstpage2.getMainClassName().equals(""))) {
-    		warnings += "Main Class Name is absent" + "\n"; 
-    		valid = false;   
-    	}
+    	
     	if(secondpage2.getApplicationLogLocation() != null && !secondpage2.getApplicationLogLocation().equals("") ) {
     		String loglocation = secondpage2.getApplicationLogLocation();
     		if(loglocation.length() < 9) {
@@ -126,7 +131,7 @@ public class EditApplicationWizard extends Wizard implements INewWizard {
 			valid = false;
     	}
     	
-    	if(firstpage2.getArchiveUri() != null && !firstpage2.getArchiveUri().equals("") ) {
+    	if(application.getExecute() == null && firstpage2.getArchiveUri() != null && !firstpage2.getArchiveUri().equals("") ) {
     		String loglocation = firstpage2.getArchiveUri();
     		if(loglocation.length() < 9) {
     			warnings += "Archive Uri format is invalid" + "\n"; 
@@ -220,9 +225,7 @@ public class EditApplicationWizard extends Wizard implements INewWizard {
      */
     
     @Override
-    public boolean performFinish() { 	
-    	
-    	
+    public boolean performFinish() { 	  	
       	warnings = "";
     	if(!validations(firstpage,tagpage,secondpage)) {
     	String title = "Warnings";
@@ -230,79 +233,126 @@ public class EditApplicationWizard extends Wizard implements INewWizard {
    		 MessageDialog.openInformation(getShell(), title, message);    		
     	return false;
     	}
-    	
-    	Builder editApplicationRequestBuilder = 
-        UpdateApplicationDetails.builder()
-		.displayName(firstpage.getDisplayName())
-		.description(firstpage.getApplicationDescription())
-		.sparkVersion(firstpage.getSparkVersion())
-		.driverShape(firstpage.getDriverShape())
-		.executorShape(firstpage.getExecutorShape())
-		.numExecutors(Integer.valueOf(firstpage.getNumofExecutors()))
-		.language(firstpage.getLanguage())
-		.fileUri(firstpage.getFileUri())
-		.archiveUri(firstpage.getArchiveUri())
-		
-		.definedTags(tagpage.getOT())
-		.freeformTags(tagpage.getFT());
-    	
-        
-	   	if(firstpage.getLanguage() == ApplicationLanguage.Java || firstpage.getLanguage()== ApplicationLanguage.Scala){
-	   		editApplicationRequestBuilder = editApplicationRequestBuilder.className(firstpage.getMainClassName())
-    				.arguments(firstpage.getArguments());					
-    	}
-    	else if (firstpage.getLanguage() == ApplicationLanguage.Python) {
-    		editApplicationRequestBuilder = editApplicationRequestBuilder.arguments(firstpage.getArguments());			
-    	}
-    	else if (firstpage.getLanguage() == ApplicationLanguage.Sql) {
-    		editApplicationRequestBuilder = editApplicationRequestBuilder.parameters(firstpage.getParameters());			
-    	}
-		
- 		final UpdateApplicationDetails editApplicationRequest;
-    	
-		final boolean usesAdvancedOptions = secondpage.usesAdvancedOptions();
-		if (usesAdvancedOptions) {
-			editApplicationRequestBuilder = editApplicationRequestBuilder.configuration(secondpage.getSparkProperties())
-					.logsBucketUri(secondpage.getApplicationLogLocation()).warehouseBucketUri(secondpage.getWarehouseUri());
+    
+			Application applicationold = ApplicationClient.getInstance().getApplicationDetails(application.getId());
 			
-			if(secondpage.usesPrivateSubnet()) {
-				editApplicationRequest  = editApplicationRequestBuilder.privateEndpointId(secondpage.getPrivateEndPointId())
-						.build();
-			}
-			else {
-				if(application.getPrivateEndpointId() != null) {
-					editApplicationRequestBuilder.privateEndpointId(null);
-				}
-				editApplicationRequest = editApplicationRequestBuilder.build();
-			}
-					
-		} else {
-			editApplicationRequest = editApplicationRequestBuilder.build();
-					
-		}
+	    	final String compartmentId = applicationold.getCompartmentId();
+	    	
+	    	if(applicationold.getExecute() != null && !applicationold.getExecute().equals("")) {
+	    		//System.out.println("EXECUTE");
+	    		
+	    		CreateRunDetails.Builder createApplicationRequestBuilder =  
+	    				CreateRunDetails.builder()
+	        	        .compartmentId(compartmentId)
+	        			.displayName(firstpage.getDisplayName())
+	        			.sparkVersion(firstpage.getSparkVersion())
+	        			.driverShape(firstpage.getDriverShape())
+	        			.executorShape(firstpage.getExecutorShape())
+	        			.numExecutors(Integer.valueOf(firstpage.getNumofExecutors()))
+	        			.definedTags(tagpage.getOT())
+	        			.freeformTags(tagpage.getFT())   
+	        			.execute(firstpage.getSparkSubmit())
+	        	        .configuration(secondpage.getSparkProperties())
+	        	        .logsBucketUri(secondpage.getApplicationLogLocation())
+	        	        .warehouseBucketUri(secondpage.getWarehouseUri());
+	        			
+	    				final CreateRunDetails createApplicationRequest;	
+	        			createApplicationRequest = createApplicationRequestBuilder.build();		
+	        	        IRunnableWithProgress op = new IRunnableWithProgress() {
+	        	            @Override
+	        	            public void run(IProgressMonitor monitor) throws InvocationTargetException {
+	        	            	ApplicationClient.getInstance().runApplication(createApplicationRequest);
+	        	                monitor.done();
+	        	            }
+	        	        };
+	        	        try {
+	        	            getContainer().run(true, false, op);
+	        	        } catch (InterruptedException e) {
+	        	            return false;
+	        	        } catch (InvocationTargetException e) {
+	        	            Throwable realException = e.getTargetException();
+	        	            MessageDialog.openError(getShell(), "Failed to Run Application ", realException.getMessage());
+	        	            return false;
+	        	        }
+	        	        return true;
+    	}
+    	else {
+    	 	Builder editApplicationRequestBuilder = 
+    	 	        UpdateApplicationDetails.builder()
+    	 			.displayName(firstpage.getDisplayName())
+    	 			.description(firstpage.getApplicationDescription())
+    	 			.sparkVersion(firstpage.getSparkVersion())
+    	 			.driverShape(firstpage.getDriverShape())
+    	 			.executorShape(firstpage.getExecutorShape())
+    	 			.numExecutors(Integer.valueOf(firstpage.getNumofExecutors()))
+    	 			.language(firstpage.getLanguage())
+    	 			.fileUri(firstpage.getFileUri())
+    	 			.archiveUri(firstpage.getArchiveUri())
+    	 			.parameters(firstpage.getParameters())
+    	 			.definedTags(tagpage.getOT())
+    	 			.freeformTags(tagpage.getFT());
+    	 	    	
+    	 	        
+    	 		   	if(firstpage.getLanguage() == ApplicationLanguage.Java || firstpage.getLanguage()== ApplicationLanguage.Scala){
+    	 		   		editApplicationRequestBuilder = editApplicationRequestBuilder.className(firstpage.getMainClassName())
+    	 	    				.arguments(firstpage.getArguments());					
+    	 	    	}
+    	 	    	else if (firstpage.getLanguage() == ApplicationLanguage.Python) {
+    	 	    		editApplicationRequestBuilder = editApplicationRequestBuilder.arguments(firstpage.getArguments());			
+    	 	    	}
+    	 	    	
+    	 		   	editApplicationRequestBuilder = editApplicationRequestBuilder.parameters(firstpage.getParameters());			
+    	 	    	
+    	 			
+    	 	 		final UpdateApplicationDetails editApplicationRequest;
+    	 	    	
+    	 			final boolean usesAdvancedOptions = secondpage.usesAdvancedOptions();
+    	 			if (usesAdvancedOptions) {
+    	 				editApplicationRequestBuilder = editApplicationRequestBuilder.configuration(secondpage.getSparkProperties())
+    	 						.logsBucketUri(secondpage.getApplicationLogLocation()).warehouseBucketUri(secondpage.getWarehouseUri());
+    	 				
+    	 				if(secondpage.usesPrivateSubnet()) {
+    	 					editApplicationRequest  = editApplicationRequestBuilder.privateEndpointId(secondpage.getPrivateEndPointId())
+    	 							.build();
+    	 				}
+    	 				else {
+    	 					
+    	 					if(application.getPrivateEndpointId() != null) {					
+    	 						editApplicationRequestBuilder
+    	 						.privateEndpointId("");
+    	 					}
+    	 					editApplicationRequest = editApplicationRequestBuilder.build();
+    	 				}
+    	 						
+    	 			} else {
+    	 				editApplicationRequest = editApplicationRequestBuilder.build();
+    	 						
+    	 			}
 
 
-		
-	//	editApplicationRequest = editApplicationRequestBuilder.build();
-		
-        IRunnableWithProgress op = new IRunnableWithProgress() {
-            @Override
-            public void run(IProgressMonitor monitor) throws InvocationTargetException {
-                ApplicationClient.getInstance().editApplication(application.getId(),editApplicationRequest);
-                monitor.done();
-            }
-        };
-        try {
-            getContainer().run(true, false, op);
-        } catch (InterruptedException e) {
-            return false;
-        } catch (InvocationTargetException e) {
-            Throwable realException = e.getTargetException();
-            MessageDialog.openError(getShell(), "Failed to Edit Application ", realException.getMessage());
-            return false;
-        }
+    	 			
+    	 		//	editApplicationRequest = editApplicationRequestBuilder.build();
+    	 			
+    	 	        IRunnableWithProgress op = new IRunnableWithProgress() {
+    	 	            @Override
+    	 	            public void run(IProgressMonitor monitor) throws InvocationTargetException {
+    	 	                ApplicationClient.getInstance().editApplication(application.getId(),editApplicationRequest);
+    	 	                monitor.done();
+    	 	            }
+    	 	        };
+    	 	        try {
+    	 	            getContainer().run(true, false, op);
+    	 	        } catch (InterruptedException e) {
+    	 	            return false;
+    	 	        } catch (InvocationTargetException e) {
+    	 	            Throwable realException = e.getTargetException();
+    	 	            MessageDialog.openError(getShell(), "Failed to Edit Application ", realException.getMessage());
+    	 	            return false;
+    	 	        }
 
-        return true;
+    	 	        return true;
+    	}
+   
     }
     
 

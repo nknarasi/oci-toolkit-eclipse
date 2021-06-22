@@ -106,6 +106,7 @@ public class PrivateEndpointTable extends BaseTable {
 
     @Override
     protected void createColumns(TableColumnLayout tableColumnLayout, Table tree) {
+    	
         createColumn(tableColumnLayout,tree, "Name", 15);
         createColumn(tableColumnLayout,tree, "State", 8);
 		createColumn(tableColumnLayout,tree, "Created", 10);
@@ -125,7 +126,7 @@ public class PrivateEndpointTable extends BaseTable {
         if (getSelectedObjects().size() == 1) {
            String pepState=((PrivateEndpointSummary)getSelectedObjects().get(0)).getLifecycleState().toString();
            manager.add(new Separator());
-           manager.add(new DetailsPrivateEndpointAction(PrivateEndpointTable.this));
+           if(!pepState.equals("Creating")) manager.add(new DetailsPrivateEndpointAction(PrivateEndpointTable.this));
            if(!pepState.equals("Creating")) manager.add(new DeletePrivateEndpointAction(PrivateEndpointTable.this,(PrivateEndpointSummary)getSelectedObjects().get(0)));
 		   if(pepState.equals("Creating")||pepState.equals("Failed")) {}
 		   else {

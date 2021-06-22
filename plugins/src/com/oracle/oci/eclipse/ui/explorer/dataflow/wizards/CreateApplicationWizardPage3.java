@@ -23,8 +23,12 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+
+import com.oracle.bmc.dataflow.model.Application;
+import com.oracle.bmc.dataflow.model.PrivateEndpoint;
 import com.oracle.bmc.dataflow.model.PrivateEndpointSummary;
 import com.oracle.bmc.identity.model.Compartment;
+import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
 import com.oracle.oci.eclipse.sdkclients.IdentClient;
 import com.oracle.oci.eclipse.sdkclients.ObjStorageClient;
 import com.oracle.oci.eclipse.sdkclients.PrivateEndPointsClient;
@@ -48,6 +52,7 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 	private Text compartmentText;
 	private Compartment selectedApplicationCompartment;
 	public Combo PrivateEndpointsCombo;
+	private Label compartmentLabel;
 	private Label PrivateEndpointsLabel;
 	private List<PrivateEndpointSummary> PrivateEndpoints;	
     private Set<SparkProperty> CreatedPropertiesSet=new HashSet<SparkProperty>();    
@@ -57,15 +62,28 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 	private  DataTransferObject dto; 	
 	private boolean NetworkSectionSelected=false;
 	private boolean UsesAdvancedOptions=false;
+	private int intial = -1; 
 	
 	public CreateApplicationWizardPage3(ISelection selection,DataTransferObject dto) {
 		super("Page 3");
 		setTitle("Create DataFlow Application Page 3");
 		setDescription("Advanced Options");
 		this.selection = selection;		
-		this.dto=dto;		
+		this.dto=dto;
 		Compartment rootCompartment = IdentClient.getInstance().getRootCompartment();
 		this.selectedApplicationCompartment = rootCompartment;
+		if(dto.getApplicationId() != null)
+		{
+			Application application = ApplicationClient.getInstance().getApplicationDetails(dto.getApplicationId());
+			String compartmentId = application.getCompartmentId();	
+			List<Compartment> Allcompartments = IdentClient.getInstance().getCompartmentList(rootCompartment);
+			for(Compartment compartment : Allcompartments) {
+				if(compartment.getId().equals(compartmentId)) {
+					this.selectedApplicationCompartment= compartment;
+					break;
+				}
+			}
+		}		
 	}
 	
 	@Override
@@ -209,7 +227,7 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 	}
 	
 	private void choosePrivateSubnet(Composite currentcontainer) {		
-		Label compartmentLabel = new Label(currentcontainer, SWT.NULL);
+		compartmentLabel = new Label(currentcontainer, SWT.NULL);
 		compartmentLabel.setText("&Choose a compartment:");
 		innerTopContainer = new Composite(currentcontainer, SWT.NONE);
         GridLayout innerTopLayout = new GridLayout();
@@ -255,6 +273,8 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 		PrivateEndpointsCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
 		PrivateEndpointsCombo.setLayoutData(gd4);		 
 		PrivateEndpointsCombo.setItems(PrivateEndpointsList);
+		if(intial != -1)
+			PrivateEndpointsCombo.select(intial);
         currentcontainer.layout(true,true);
         AdvancedOptionsComposite.layout(true,true);
         container.layout(true,true);
@@ -312,4 +332,92 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 	 public boolean usesPrivateSubnet(){
 		 return NetworkSectionSelected;		 
 	 }	
+	 
+
+		void onEnterPage()
+		{
+		    final DataTransferObject dto = ((LocalFileSelectWizard) getWizard()).dto;
+		    String applicationId = dto.applicationId;
+		    
+		    if(applicationId != null) {
+		    		Application application = ApplicationClient.getInstance().getApplicationDetails(applicationId);
+		    	   if(application.getConfiguration() != null) {        	
+		          	 for (Map.Entry<String,String> property : application.getConfiguration().entrySet()) {
+		          		 SparkProperty propertypresent = new SparkProperty(PropertiesSection,AdvancedOptionsComposite,scrolledcomposite,CreatedPropertiesSet,application.getSparkVersion());
+		          		 CreatedPropertiesSet.add(propertypresent);
+		          		 propertypresent.TagKey.setText(property.getKey());
+		  				 propertypresent.TagValue.setText(property.getValue());
+		          	 }         	
+		      		 container.layout(true,true);
+		           	 scrolledcomposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );		          	
+		          } 
+		    	   
+		    	   LogLocationText.setText(application.getLogsBucketUri());
+		    	   
+		    	   if(application.getWarehouseBucketUri() != null) {
+		   			WarehouseLocationText.setText(application.getWarehouseBucketUri());
+		   		}
+		    	
+		    	
+		    	   if(NetworkSectionSelected)
+	            	{	            		
+	            		NetworkSectionSelected= false;	            		
+	            		compartmentLabel.dispose();
+	            		compartmentText.dispose();
+	            		compartmentButton.dispose();
+	            		PrivateEndpointsCombo.dispose();
+	            		innerTopContainer.dispose();            		
+	            		PrivateEndpointSection.dispose();	
+	            	} 
+		    	   
+		    	NetworkGroupInternetAccessRadioButton.setSelection(false);
+		   		if(application.getPrivateEndpointId() != null && !application.getPrivateEndpointId().equals("")) {
+					NetworkGroupPrivateSubnetRadioButton.setSelection(true);
+					NetworkSectionSelected= true;
+					
+					PrivateEndpointSection= new Composite(NetworkSection, SWT.NONE);
+		            GridLayout innerTopLayout = new GridLayout();
+		            innerTopLayout.numColumns = 1;
+		            PrivateEndpointSection.setLayout(innerTopLayout);
+		            PrivateEndpointSection.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		            PrivateEndPointsClient oci = PrivateEndPointsClient.getInstance();
+		            PrivateEndpoint current = oci.getPrivateEndpointDetails(application.getPrivateEndpointId());
+		    		Compartment rootCompartment = IdentClient.getInstance().getRootCompartment();
+		    		List<Compartment> Allcompartments = IdentClient.getInstance().getCompartmentList(rootCompartment);
+		    		for(Compartment compartment : Allcompartments) {
+		    			if(compartment.getId().equals(current.getCompartmentId())) {
+		    				 selectedApplicationCompartment = compartment;   			
+		    				 break;
+		    			}
+		    		}
+		    		
+		    		PrivateEndpoints = oci.getPrivateEndPointsinCompartment(selectedApplicationCompartment.getId());		
+		    		int sizeoflist= PrivateEndpoints.size();
+		    		String[] PrivateEndpointsList = new String[sizeoflist];
+		    		for(int i = 0; i < PrivateEndpoints.size(); i++)
+		    		{  
+		    			PrivateEndpointsList[i]= PrivateEndpoints.get(i).getDisplayName();
+		    			if(PrivateEndpoints.get(i).getId().equals(application.getPrivateEndpointId())) {
+		    				intial = i;
+		    				break;
+		    			}
+		    		}
+		    		
+		            choosePrivateSubnet(PrivateEndpointSection);     								
+
+				}
+				else {
+					NetworkGroupInternetAccessRadioButton.setSelection(true);
+					NetworkSectionSelected= false;
+				}
+
+		    	   
+		    }
+		    
+		    container.pack();
+		    container.layout(true,true);
+		    scrolledcomposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
+		}
+	 
+	 
 }

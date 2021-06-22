@@ -59,6 +59,17 @@ public class EditApplicationWizardPage1  extends WizardPage {
 	private Button LanguageGroupPythonRadioButton;
 	private Button LanguageGroupSQLRadioButton;
 	private Button LanguageGroupScalaRadioButton;
+
+	private boolean UsesSparkSubmit=false;
+	private Composite LanguageComposite ;
+	private Button FileSelectButton;
+	private Label FileUrilabel;
+	private Label Languagelabel;
+	private Label ArchiveUrilabel;
+	private Composite FileUriContainer ;
+	Button usesparksubmitButton;
+	private Label SparkSubmitlabel;
+	private Text SparkSubmitText;
 	
 	private ApplicationLanguage LanguageUsed;
 
@@ -148,41 +159,63 @@ public class EditApplicationWizardPage1  extends WizardPage {
 		Label NumofExecutorslabel = new Label(container, SWT.NULL);
 		NumofExecutorslabel.setText("&Number of Executors:");
 		createNumofExecutorsSpinner(container);
-					
-		Label LanguageLabel = new Label(container, SWT.NULL);
-		LanguageLabel.setText("&Language:");
+			
+		if(application.getExecute() != null && !application.getExecute().equals("")) {
+			withSparkSubmit(container);	 
+		}
+		else
+		{
+			withoutSparkSubmit(container);
+		}
+
+		 setControl(sc);
+	}
+	
+	private void withSparkSubmit(Composite container) {		
+		 SparkSubmitlabel = new Label(container, SWT.NULL);
+		 SparkSubmitlabel.setText("&Spark Submit Command:");
+		 SparkSubmitText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		 SparkSubmitText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));    
+		 SparkSubmitText.setText(application.getExecute());
+	}
+	
+	private void withoutSparkSubmit(Composite container){
+		Languagelabel = new Label(container, SWT.NULL);
+		Languagelabel.setText("&Language:");
 		createLanguageCombo(container);
 		
-		Label FileUriLabel = new Label(container, SWT.NULL);
-		FileUriLabel.setText("&Choose a File:");
-		Composite FileUriContainer = new Composite(container, SWT.NONE);
-        GridLayout FileUriLayout = new GridLayout();
-        FileUriLayout.numColumns = 2;
-        FileUriContainer.setLayout(FileUriLayout);
-        FileUriContainer.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		FileUrilabel = new Label(container, SWT.NULL);
+		FileUrilabel.setText("&Choose a File:");
+		FileUriContainer = new Composite(container, SWT.NONE);
+       GridLayout FileUriLayout = new GridLayout();
+       FileUriLayout.numColumns = 2;
+       FileUriContainer.setLayout(FileUriLayout);
+       FileUriContainer.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-        FileUriText = new Text(FileUriContainer, SWT.BORDER | SWT.SINGLE);
-        FileUriText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        FileUriText.setEditable(false);
-        FileUriText.setText(application.getFileUri());
+       FileUriText = new Text(FileUriContainer, SWT.BORDER | SWT.SINGLE);
+       FileUriText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+       FileUriText.setEditable(false);
+       FileSelectButton = new Button(FileUriContainer, SWT.PUSH);
+       FileSelectButton.setText("Choose");
+       
+       FileSelectButton.addSelectionListener(new SelectionAdapter() {
+           @Override
+           public void widgetSelected(SelectionEvent e) {
+           	handleSelectObjectEvent();
+           }
+       });        
 
-        Button compartmentButton2 = new Button(FileUriContainer, SWT.PUSH);
-        compartmentButton2.setText("Choose...");
-        compartmentButton2.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-            	handleSelectObjectEvent();
-            }
-        });
-        
-		 Label ArchiveUrilabel = new Label(container, SWT.NULL);
+		 ArchiveUrilabel = new Label(container, SWT.NULL);
 		 ArchiveUrilabel.setText("&Archive URL:");
 		 ArchiveUriText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		 GridData gd10 = new GridData(GridData.FILL_HORIZONTAL);
-		 ArchiveUriText.setLayoutData(gd10);		 
-		 if(application.getArchiveUri()!=null)
+		 ArchiveUriText.setLayoutData(gd10);   
+		 
+		 FileUriText.setText(application.getFileUri());
+		 if(application.getArchiveUri() != null) {
 			 ArchiveUriText.setText(application.getArchiveUri());
-
+		 }
+		 
 		 LanguageUsed  = application.getLanguage();    		
 		 
 		 if(LanguageUsed == ApplicationLanguage.Java) {
@@ -201,15 +234,17 @@ public class EditApplicationWizardPage1  extends WizardPage {
 		 
 		 if(LanguageUsed == ApplicationLanguage.Java ||LanguageUsed == ApplicationLanguage.Scala ) {
 			 JavaLanguageSelected(container);
+			 SQLLanguageSelected(container);
 		 }
 		 else if(LanguageUsed == ApplicationLanguage.Python ) {
 			 PythonLanguageSelected(container);
+			 SQLLanguageSelected(container);
 		 } 
 		 else {
 			 SQLLanguageSelected(container);
 		 }
 		 
-		 setControl(sc);
+		 
 	}
 	
 	private void createDriverShapeCombo(Composite container) {		
@@ -267,7 +302,17 @@ public class EditApplicationWizardPage1  extends WizardPage {
             		FileUriText.setText("");
             		disposePrevious();
             		LanguageUsed  = ApplicationLanguage.Java;            		
-            		JavaLanguageSelected(container);            		
+            		JavaLanguageSelected(container);   
+            		SQLLanguageSelected(container);
+            		 if(application.getParameters() != null)
+     		        {
+     		        	 for (ApplicationParameter parameter : application.getParameters()) {
+     		             	Parameters newparameter = new Parameters(basesqlcontainer,container,sc, sqlset);
+     		             	sqlset.add(newparameter);
+     		        		 	newparameter.TagKey.setText(parameter.getName());
+     		     			newparameter.TagValue.setText(parameter.getValue());
+     		        	 		}         	
+     		        }       
             	}
             	currentcontainer.layout(true,true);
             	container.layout(true,true);
@@ -285,7 +330,17 @@ public class EditApplicationWizardPage1  extends WizardPage {
             		disposePrevious();
             		FileUriText.setText("");
             		LanguageUsed  = ApplicationLanguage.Python;            		
-            		PythonLanguageSelected(container);            		
+            		PythonLanguageSelected(container); 
+            		SQLLanguageSelected(container);
+            		 if(application.getParameters() != null)
+     		        {
+     		        	 for (ApplicationParameter parameter : application.getParameters()) {
+     		             	Parameters newparameter = new Parameters(basesqlcontainer,container,sc, sqlset);
+     		             	sqlset.add(newparameter);
+     		        		 	newparameter.TagKey.setText(parameter.getName());
+     		     			newparameter.TagValue.setText(parameter.getValue());
+     		        	 		}         	
+     		        }       
             	}
             	currentcontainer.layout(true,true);
             	currentcontainer.pack();
@@ -323,7 +378,17 @@ public class EditApplicationWizardPage1  extends WizardPage {
             		disposePrevious();
             		FileUriText.setText("");
             		LanguageUsed  = ApplicationLanguage.Scala;            		
-            		JavaLanguageSelected(container);            		
+            		JavaLanguageSelected(container);   
+            		SQLLanguageSelected(container);
+            		 if(application.getParameters() != null)
+     		        {
+     		        	 for (ApplicationParameter parameter : application.getParameters()) {
+     		             	Parameters newparameter = new Parameters(basesqlcontainer,container,sc, sqlset);
+     		             	sqlset.add(newparameter);
+     		        		 	newparameter.TagKey.setText(parameter.getName());
+     		     			newparameter.TagValue.setText(parameter.getValue());
+     		        	 		}         	
+     		        }       
             	}
             	
             	currentcontainer.layout(true,true);
@@ -347,12 +412,9 @@ public class EditApplicationWizardPage1  extends WizardPage {
 			MainClassNamelabel.dispose();
 		}
 		
-
 		for(Parameters item : sqlset) {
 			item.composite.dispose();
 		}
-
-
 		
 		if(basesqlcontainer != null) {
 			basesqlcontainer.dispose();
@@ -374,9 +436,11 @@ public class EditApplicationWizardPage1  extends WizardPage {
 		if(application.getArguments() != null) {
 			String arguments= "";
 			for(String i : application.getArguments()) {
-				arguments += "\"" + i + "\"" +" ";
+				arguments +=i  +" ";
 			}
 			ArgumentsText.setText(arguments);
+			
+			
 		}
 	}
 	
@@ -389,9 +453,10 @@ public class EditApplicationWizardPage1  extends WizardPage {
 		if(application.getArguments() != null) {
 			String arguments= "";
 			for(String i : application.getArguments()) {
-				arguments += "\"" + i + "\"" +" ";
+				arguments +=   i  +" ";
 			}
 			ArgumentsText.setText(arguments);
+			
 		}
 	}
 	
@@ -499,6 +564,14 @@ public class EditApplicationWizardPage1  extends WizardPage {
 	
 	public String getMainClassName() {		
 		return MainClassNameText.getText();
+	}
+	
+	public boolean usesSparkSubmit() {
+		return UsesSparkSubmit;
+	}
+	
+	public String getSparkSubmit() {
+		return SparkSubmitText.getText();
 	}
 	
 	public  List<ApplicationParameter> getParameters(){

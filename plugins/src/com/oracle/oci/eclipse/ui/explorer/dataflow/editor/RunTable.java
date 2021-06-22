@@ -1,5 +1,6 @@
 package com.oracle.oci.eclipse.ui.explorer.dataflow.editor;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,15 +16,19 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
 import com.oracle.bmc.dataflow.model.RunSummary;
+import com.oracle.bmc.dataflow.requests.ListRunsRequest;
 import com.oracle.bmc.identity.model.Compartment;
 import com.oracle.oci.eclipse.ErrorHandler;
 //import com.oracle.oci.eclipse.sdkclients.BlockStorageClient;
@@ -36,6 +41,8 @@ import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DeleteRunAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DetailsRunAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RefreshRunAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RunAction;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.wizards.ProjectSelectWizard;
+import com.oracle.oci.eclipse.ui.explorer.objectstorage.actions.MakeJarAndZip;
 
 public class RunTable extends BaseTable {
     private int tableDataSize = 0;
@@ -46,11 +53,13 @@ public class RunTable extends BaseTable {
 	private static final int CREATED_COL = 4;
 	private static final int DURATION_COL = 5;
 	private static final int TOTAL_OCPU_COL = 6;
-	private static final int DATA_READ_COL = 7;
-	private static final int DATA_WRITTEN_COL = 8;
+	private static final int DATA_READ_COL = 8;
+	private static final int DATA_WRITTEN_COL = 7;
 	private static String compid;
 	private static String compname;
 	public HashMap<String,String> actionMap = createActionMap();
+	ListRunsRequest.SortBy s=ListRunsRequest.SortBy.TimeCreated;
+	ListRunsRequest.SortOrder so=ListRunsRequest.SortOrder.Desc;
 
     public RunTable(Composite parent, int style) {
         super(parent, style);
@@ -58,6 +67,8 @@ public class RunTable extends BaseTable {
         viewer.setLabelProvider(new TableLabelProvider());
         viewer.setInput(getTableData());
         viewer.setItemCount(getTableDataSize());
+        s=ListRunsRequest.SortBy.TimeCreated;
+        so=ListRunsRequest.SortOrder.Desc;
     }
     List<RunSummary> runSummaryList = new ArrayList<RunSummary>();
     @Override
@@ -66,8 +77,8 @@ public class RunTable extends BaseTable {
             @Override
             protected IStatus run(IProgressMonitor monitor) {
                 try {
-                    if(compid!=null) runSummaryList = RunClient.getInstance().getRunsinCompartment(compid);
-                    else runSummaryList = RunClient.getInstance().getRuns();
+                    if(compid!=null) runSummaryList = RunClient.getInstance().getRunsinCompartment(compid,s,so);
+                    else runSummaryList = RunClient.getInstance().getRuns(s,so);
                     tableDataSize = runSummaryList.size();
                 } catch (Exception e) {
                     return ErrorHandler.reportException(e.getMessage(), e);
@@ -125,15 +136,82 @@ public class RunTable extends BaseTable {
 
     @Override
     protected void createColumns(TableColumnLayout tableColumnLayout, Table tree) {
-        createColumn(tableColumnLayout,tree, "Name", 15);
-        createColumn(tableColumnLayout,tree, "Language", 6);
-        createColumn(tableColumnLayout,tree, "State)", 8);
+    	
+    	tree.setSortDirection(SWT.UP);
+        TableColumn tc;
+        tc=createColumn(tableColumnLayout,tree, "Name", 15);
+        tc.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e) {
+                s=ListRunsRequest.SortBy.DisplayName;
+                if(so==ListRunsRequest.SortOrder.Desc) so=ListRunsRequest.SortOrder.Asc;
+                else so=ListRunsRequest.SortOrder.Desc;
+                refresh(true);
+              }
+            });
+        tc=createColumn(tableColumnLayout,tree, "Language", 6);
+        tc.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e) {
+                s=ListRunsRequest.SortBy.Language;
+                if(so==ListRunsRequest.SortOrder.Desc) so=ListRunsRequest.SortOrder.Asc;
+                else so=ListRunsRequest.SortOrder.Desc;
+                refresh(true);
+              }
+            });
+        tc=createColumn(tableColumnLayout,tree, "State", 8);
+        tc.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e) {
+                s=ListRunsRequest.SortBy.LifecycleState;
+                if(so==ListRunsRequest.SortOrder.Desc) so=ListRunsRequest.SortOrder.Asc;
+                else so=ListRunsRequest.SortOrder.Desc;
+                refresh(true);
+              }
+            });
         createColumn(tableColumnLayout,tree, "Owner", 15);
-		createColumn(tableColumnLayout,tree, "Created", 10);
-		createColumn(tableColumnLayout,tree, "Duration", 5);
-		createColumn(tableColumnLayout,tree, "Total OCPU", 5);
-		createColumn(tableColumnLayout,tree, "Data Written", 10);
-		createColumn(tableColumnLayout,tree, "Data Read", 10);
+        tc=createColumn(tableColumnLayout,tree, "Created", 10);
+        tc.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e) {
+                s=ListRunsRequest.SortBy.TimeCreated;
+                if(so==ListRunsRequest.SortOrder.Desc) so=ListRunsRequest.SortOrder.Asc;
+                else so=ListRunsRequest.SortOrder.Desc;
+                refresh(true);
+              }
+            });
+        tc=createColumn(tableColumnLayout,tree, "Duration", 5);
+        tc.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e) {
+                s=ListRunsRequest.SortBy.RunDurationInMilliseconds;
+                if(so==ListRunsRequest.SortOrder.Desc) so=ListRunsRequest.SortOrder.Asc;
+                else so=ListRunsRequest.SortOrder.Desc;
+                refresh(true);
+              }
+            });
+        tc=createColumn(tableColumnLayout,tree, "Total OCPU", 5);
+        tc.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e) {
+                s=ListRunsRequest.SortBy.TotalOCpu;
+                if(so==ListRunsRequest.SortOrder.Desc) so=ListRunsRequest.SortOrder.Asc;
+                else so=ListRunsRequest.SortOrder.Desc;
+                refresh(true);
+              }
+            });
+        tc=createColumn(tableColumnLayout,tree, "Data Written", 10);
+        tc.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e) {
+                s=ListRunsRequest.SortBy.DataWrittenInBytes;
+                if(so==ListRunsRequest.SortOrder.Desc) so=ListRunsRequest.SortOrder.Asc;
+                else so=ListRunsRequest.SortOrder.Desc;
+                refresh(true);
+              }
+            });
+        tc=createColumn(tableColumnLayout,tree, "Data Read", 10);
+        tc.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e) {
+                s=ListRunsRequest.SortBy.DataReadInBytes;
+                if(so==ListRunsRequest.SortOrder.Desc) so=ListRunsRequest.SortOrder.Asc;
+                else so=ListRunsRequest.SortOrder.Desc;
+                refresh(true);
+              }
+            });
     }
 
     @Override
@@ -185,6 +263,29 @@ public class RunTable extends BaseTable {
             @Override
             public void widgetDefaultSelected(SelectionEvent e) {}
         });
+        //
+        
+        Button b=new Button(right,SWT.PUSH);b.setLayoutData(new GridData());
+        b.addSelectionListener(new SelectionListener() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+            	try {
+            		MakeJarAndZip.jarUri=null;MakeJarAndZip.zipUri=null;
+            		CustomWizardDialog dialog = new CustomWizardDialog(Display.getDefault().getActiveShell(),
+    	        			new ProjectSelectWizard());dialog.open();
+    	        	System.out.println(MakeJarAndZip.jarUri+","+MakeJarAndZip.zipUri);
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+            }
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent arg0) {
+			}
+        });
+        
+        //
     }
 
 	

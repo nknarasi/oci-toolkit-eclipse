@@ -41,8 +41,8 @@ public class EditPrivateEndpointPage extends WizardPage {
 
     public EditPrivateEndpointPage(ISelection selection,PrivateEndpointSummary pepSum) {
         super("wizardPage");
-        setTitle("Re Run Wizard");
-        setDescription("This wizard creates a re-run request. Please enter the following details.");
+        setTitle("Edit Private Endpoint Wizard");
+        setDescription("This wizard creates a edit private endpoint request. Please enter the following details.");
         this.selection = selection;
 		try {
 			this.pep=PrivateEndPointsClient.getInstance().getPrivateEndpointDetails(pepSum.getId());

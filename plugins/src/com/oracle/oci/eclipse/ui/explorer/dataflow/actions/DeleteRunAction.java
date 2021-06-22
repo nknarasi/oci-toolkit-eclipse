@@ -23,7 +23,7 @@ public class DeleteRunAction extends BaseAction {
     @Override
     protected void runAction() {
     	
-    	boolean result = MessageDialog.openConfirm(runTable.getShell(), "Confirm", "Please confirm");
+    	boolean result = MessageDialog.openConfirm(runTable.getShell(), "Please Confirm", "Are you sure you want to cancel running of "+rs.getDisplayName()+".");
 		if (result){
 			try{
 			DataFlowClient client = RunClient.getInstance().getDataFlowClient();
