@@ -75,9 +75,14 @@ public class DetailsApplicationAction extends BaseAction {
 	        data.add(new TablePair("Driver Shape", application.getDriverShape()));
 	        data.add(new TablePair("Executor Shape", application.getExecutorShape()));
 	        data.add(new TablePair("Number of Executors", application.getNumExecutors().toString()));
+	        
+	        
+	        if(application.getExecute() != null && !application.getExecute().equals(""))
+	        	data.add(new TablePair("Spark Submit ", application.getExecute()));
+	        
 	        data.add(new TablePair("File URL", application.getFileUri()));
 	        
-	        if(application.getArchiveUri().equals(null) || application.getArchiveUri().equals("") )
+	        if(application.getArchiveUri() == null || application.getArchiveUri().equals("") )
 	        	data.add(new TablePair("Archive URL", "NO VALUE"));
 	        else
 	        	data.add(new TablePair("Archive URL", application.getArchiveUri()));

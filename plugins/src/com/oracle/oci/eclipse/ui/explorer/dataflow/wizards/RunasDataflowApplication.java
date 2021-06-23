@@ -27,8 +27,7 @@ public class RunasDataflowApplication extends AbstractHandler implements IElemen
         if ( eventWidget.widget instanceof ToolItem )  {
         	
         	MakeJarAndZip.jarUri=null;MakeJarAndZip.zipUri=null;
-        
-        	
+                	
         	CustomWizardDialog dialog = new CustomWizardDialog(Display.getDefault().getActiveShell(),
         			new LocalFileSelectWizard());
         	dialog.setFinishButtonText("Run");

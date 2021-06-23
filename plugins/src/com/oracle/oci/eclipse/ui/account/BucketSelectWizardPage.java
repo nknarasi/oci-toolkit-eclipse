@@ -80,14 +80,14 @@ public class BucketSelectWizardPage extends WizardPage {
         GridLayout layout = new GridLayout();
         container.setLayout(layout);
         
-		Label compartmentLabel = new Label(container, SWT.NULL);
-		compartmentLabel.setText("&Choose a compartment:");
 		Composite innerTopContainer = new Composite(container, SWT.NONE);
         GridLayout innerTopLayout = new GridLayout();
-        innerTopLayout.numColumns = 2;
+        innerTopLayout.numColumns = 3;
         innerTopContainer.setLayout(innerTopLayout);
         innerTopContainer.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
+		Label compartmentLabel = new Label(innerTopContainer, SWT.NULL);
+		compartmentLabel.setText("&Choose a compartment:");
         compartmentText = new Text(innerTopContainer, SWT.BORDER | SWT.SINGLE);
         compartmentText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         compartmentText.setEditable(false);

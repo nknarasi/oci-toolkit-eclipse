@@ -23,6 +23,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
@@ -64,12 +65,14 @@ public class JarSelectPage extends WizardPage{
 	    String jarUri,zipUri;
 	    DataTransferObject dto;
 	    private ProjectSelectWizardPage page;
+	    boolean fileCreated = false;
+	    Job job2;
 	    
 
 	    public JarSelectPage(ISelection selection,ProjectSelectWizardPage page,DataTransferObject dto) {
 	        super("wizardPage");
-	        setTitle("Select Project");
-	            setDescription("Choose the Project");
+	        setTitle("Add Dependencies to Application");
+	            setDescription("Choose the the external dependencies you want to include in the application.");
 	        IMAGE = Activator.getImage(Icons.COMPARTMENT.getPath());
 	        this.page=page;
 	        this.dto= dto;
@@ -82,7 +85,7 @@ public class JarSelectPage extends WizardPage{
 	        GridLayout layout = new GridLayout();
 	        container.setLayout(layout);
 	        
-	        Job job2 = new Job("Get Projects") {
+	        job2 = new Job("Get External Jars") {
 	            @Override
 	            protected IStatus run(IProgressMonitor monitor) {
 	                // update tree node using UI thread
@@ -159,19 +162,23 @@ public class JarSelectPage extends WizardPage{
 	        tree2 = new Tree(container, SWT.CHECK | SWT.BORDER);
 	        tree2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 	        
-	        Composite dComp=new Composite(container,SWT.NONE);dComp.setLayout(new GridLayout());dComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	        Composite dComp=new Composite(container,SWT.NONE);GridLayout gl2=new GridLayout();gl2.numColumns=2;dComp.setLayout(gl2);dComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 	        Button b=new Button(dComp,SWT.PUSH);b.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-	        b.setText("Create Files");
+	        Button b2=new Button(dComp,SWT.PUSH);b.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+	        b.setText("Create Jar");b2.setText("Create External Jar Zip");b2.setEnabled(false);
 	        b.addSelectionListener(new SelectionListener() {
 	            @Override
 	            public void widgetSelected(SelectionEvent e) {
 	            	try {
-	            		setLabel("Creating.......");
+	            		setLabel("Creating .jar.......");
 	            		IJavaProject p=page.getSelectedProject();if(p==null) throw new Exception("Improper Selection of Project");
-	            		setJars();
 	            		page.start(p);
-	            		setLabel("Created.");
-	            		b.setVisible(false);
+	            		setLabel("Created .jar");
+	            		b.setEnabled(false);
+	            		b2.setEnabled(true);
+	            		fileCreated = true;
+	            		canFlipToNextPage();
+	            		getWizard().getContainer().updateButtons();
 						
 					} catch (Exception e1) {
 						setLabel("Failed: "+e1.getMessage());
@@ -182,7 +189,46 @@ public class JarSelectPage extends WizardPage{
 				public void widgetDefaultSelected(SelectionEvent arg0) {
 				}
 	        });
-	        progress=new Label(container,SWT.NONE);progress.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));progress.setText("Status Here");
+	        
+	        b2.addSelectionListener(new SelectionListener() {
+	            @Override
+	            public void widgetSelected(SelectionEvent e) {
+	            		Job job = new Job( "Import Data" ) {
+	            			  @Override
+	            			  protected IStatus run( IProgressMonitor monitor ) {
+	            				  Display.getDefault().asyncExec(new Runnable() {
+	            	                    @Override
+	            	                    public void run() {
+	            	                    	SubMonitor subMonitor = SubMonitor.convert(monitor);
+	            	                    	subMonitor.beginTask("Creating Zip...", SubMonitor.UNKNOWN);
+	            			   // monitor.beginTask( "Creating Zip...", IProgressMonitor.UNKNOWN );
+	            			    try {
+	            			    setLabel("Creating .zip.......");
+	            			    IJavaProject p=page.getSelectedProject();if(p==null) throw new Exception("Improper Selection of Project");
+	            			    setJars();
+	            			    page.createJarZip(MakeJarAndZip.jarList);
+	            			    b2.setEnabled(false);
+	            			    setLabel("Created .zip");
+	            			    fileCreated = true;}
+	            			    catch (Exception e1) {
+	        						setLabel("Failed: "+e1.getMessage());
+	        					}
+	            			    finally {
+	            			      subMonitor.done();}
+	            			    }
+	            			    });
+	            			    return Status.OK_STATUS;
+	            			  }
+	            			};
+	            			job.schedule();
+						
+	            }
+
+				@Override
+				public void widgetDefaultSelected(SelectionEvent arg0) {
+				}
+	        });
+	        progress=new Label(container,SWT.NONE);progress.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));progress.setText("Status Here");
 	        setControl(container);
 	    }
 	    
@@ -198,6 +244,11 @@ public class JarSelectPage extends WizardPage{
 			   }
 			   return MakeJarAndZip.jarList;
 		   }
+		 
+			@Override
+			public boolean canFlipToNextPage() {
+			return fileCreated;
+			}
 		   
 			 @Override
 			    public IWizardPage getNextPage() { 

@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 
 import com.oracle.bmc.dataflow.model.ApplicationSummary;
+import com.oracle.bmc.dataflow.requests.ListApplicationsRequest;
 import com.oracle.bmc.identity.model.Compartment;
 import com.oracle.oci.eclipse.Activator;
 import com.oracle.oci.eclipse.Icons;
@@ -52,6 +53,9 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 	private Compartment selectedApplicationCompartment;
 	Map<ApplicationSummary, TreeItem> ApplicationTreeMap;
 	String ApplicationIdSelected = null;
+    ListApplicationsRequest.SortBy s=ListApplicationsRequest.SortBy.TimeCreated;
+	ListApplicationsRequest.SortOrder so=ListApplicationsRequest.SortOrder.Desc;
+	boolean allow = false;
 	
 	   public LocalFileSelectWizardPage3(ISelection selection, DataTransferObject dto, String COMPARTMENT_ID) {
 	        super("wizardPage");
@@ -122,7 +126,7 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 	        	}
 	    	}
 	    	try {
-	    		applications =ApplicationClient.getInstance().getApplicationsbyCompartmentId(selectedApplicationCompartment.getId());
+	    		applications =ApplicationClient.getInstance().getApplicationsbyCompartmentId(selectedApplicationCompartment.getId(),s,so);
 			} catch (Exception e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -165,7 +169,10 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 		       	            TreeItem selectedItem = items[0];
 		       	            ApplicationSummary application = (ApplicationSummary)selectedItem.getData(APPLICATION_KEY);	      
 		       	            ApplicationIdSelected= application.getId();
-		     
+		       	            allow = true;
+		       	            isPageComplete();
+		       	            getWizard().getContainer().updateButtons();
+		       	            
 		       	        }
 	            }
 	        });	        
@@ -204,14 +211,28 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 	        return null;
 	    }
 	    
+	    @Override
+	    public boolean isPageComplete() {
+	    return allow;
+	    }
+	    
+		@Override
+		public boolean canFlipToNextPage() {
+			return true;
+		}
+	    
 		 @Override
 		    public IWizardPage getNextPage() { 
-			 
+			 	
+			 	allow = true;
+			 	isPageComplete();
+			 	getWizard().getContainer().updateButtons();
 			   dto.setApplicationId(ApplicationIdSelected); 			   
 			   CreateApplicationWizardPage page = ((LocalFileSelectWizard)getWizard()).firstpage;
 			   page.onEnterPage();
 			   CreateApplicationWizardPage3 advpage = ((LocalFileSelectWizard)getWizard()).thirdpage;
 			   advpage.onEnterPage();
+			   
 			   return page;       
 		    }
 

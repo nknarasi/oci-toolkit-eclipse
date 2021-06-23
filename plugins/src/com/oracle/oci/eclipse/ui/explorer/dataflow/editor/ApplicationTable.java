@@ -23,8 +23,11 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import com.oracle.bmc.dataflow.model.ApplicationSummary;
+import com.oracle.bmc.dataflow.requests.ListApplicationsRequest;
+import com.oracle.bmc.dataflow.requests.ListRunsRequest;
 import com.oracle.bmc.identity.model.Compartment;
 import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.account.AuthProvider;
@@ -45,8 +48,8 @@ public class ApplicationTable extends BaseTable{
    
 	private int tableDataSize = 0;
 	
-    private static final int ID_COL = 0;
-    private static final int NAME_COL = 1;
+    private static final int ID_COL = 1;
+    private static final int NAME_COL = 0;
     private static final int LANGUAGE_COL = 2;
     private static final int OWNER_COL = 3;
     private static final int CREATED_COL = 4;
@@ -55,12 +58,17 @@ public class ApplicationTable extends BaseTable{
     private static String COMPARTMENT_ID;
     private static String COMPARTMENT_NAME;
     
+    ListApplicationsRequest.SortBy s=ListApplicationsRequest.SortBy.TimeCreated;
+	ListApplicationsRequest.SortOrder so=ListApplicationsRequest.SortOrder.Desc;
+	
     public ApplicationTable(Composite parent, int style) {
         super(parent, style);
         COMPARTMENT_ID = AuthProvider.getInstance().getCompartmentId();
         viewer.setLabelProvider(new TableLabelProvider());
         viewer.setInput(getTableData());
         viewer.setItemCount(getTableDataSize());
+        s=ListApplicationsRequest.SortBy.TimeCreated;
+        so=ListApplicationsRequest.SortOrder.Desc;
     }
     
     List<ApplicationSummary> applicationList = new ArrayList<ApplicationSummary>();
@@ -72,7 +80,7 @@ public class ApplicationTable extends BaseTable{
             protected IStatus run(IProgressMonitor monitor) {
                 try {
                     ApplicationClient oci = ApplicationClient.getInstance();
-                    applicationList = oci.getApplicationsbyCompartmentId(COMPARTMENT_ID);
+                    applicationList = oci.getApplicationsbyCompartmentId(COMPARTMENT_ID,s,so);
                     for (Iterator<ApplicationSummary> it = applicationList.iterator(); it.hasNext(); ) {
                         ApplicationSummary instance = it.next();
                         if (instance.getLifecycleState().getValue().equals("TERMINATED")) {
@@ -129,12 +137,45 @@ public class ApplicationTable extends BaseTable{
 
     @Override
     protected void createColumns(TableColumnLayout tableColumnLayout, Table tree) {
-        createColumn(tableColumnLayout,tree, "OCI ID", 10);
-        createColumn(tableColumnLayout,tree, "Name", 10);
-        createColumn(tableColumnLayout,tree, "Language", 6);
-        createColumn(tableColumnLayout,tree, "Owner", 10);
-        createColumn(tableColumnLayout,tree, "Created", 10);
-        createColumn(tableColumnLayout,tree, "Updated", 10);
+       	
+    	tree.setSortDirection(SWT.UP);
+        TableColumn tc;        
+        tc = createColumn(tableColumnLayout,tree, "Name", 10);
+        tc.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e) {
+                s=ListApplicationsRequest.SortBy.DisplayName;
+                if(so==ListApplicationsRequest.SortOrder.Desc) so=ListApplicationsRequest.SortOrder.Asc;
+                else so=ListApplicationsRequest.SortOrder.Desc;
+                refresh(true);
+              }
+            });
+        
+        tc = createColumn(tableColumnLayout,tree, "OCI ID", 10);
+        
+        tc = createColumn(tableColumnLayout,tree, "Language", 6);
+        tc.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e) {
+                s=ListApplicationsRequest.SortBy.Language;
+                if(so==ListApplicationsRequest.SortOrder.Desc) so=ListApplicationsRequest.SortOrder.Asc;
+                else so=ListApplicationsRequest.SortOrder.Desc;
+                refresh(true);
+              }
+            });
+        
+        tc = createColumn(tableColumnLayout,tree, "Owner", 10);
+        
+        tc = createColumn(tableColumnLayout,tree, "Created", 10);
+        tc.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e) {
+                s=ListApplicationsRequest.SortBy.TimeCreated;
+                if(so==ListApplicationsRequest.SortOrder.Desc) so=ListApplicationsRequest.SortOrder.Asc;
+                else so=ListApplicationsRequest.SortOrder.Desc;
+                refresh(true);
+              }
+            });
+        
+        tc = createColumn(tableColumnLayout,tree, "Updated", 10);
+
     }
 
     @Override
@@ -195,44 +236,7 @@ public class ApplicationTable extends BaseTable{
             public void widgetDefaultSelected(SelectionEvent e) {}
         });	
         
-        
-        //
-        
-        
-        
-        
-    	//OLD CODE
-    	/*
-        Button compartmentButton = toolkit.createButton(right,"Choose Compartment", SWT.PUSH);
-        compartmentButton.setText("Choose Compartment");
-        compartmentButton.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-            	handleSelectApplicationCompartmentEvent();            	
-            	refresh(true);            	
-            }
-            public void widgetDefaultSelected(SelectionEvent e) {}
-        });	
-        */
     }
     
-    /*
-	private void handleSelectApplicationCompartmentEvent() {
-    	Consumer<Compartment> consumer=new Consumer<Compartment>() {
-			@Override
-			public void accept(Compartment compartment) {
-				if (compartment != null) {
-					Compartment selectedApplicationCompartment = compartment;
-					setCompartmentName(selectedApplicationCompartment.getName());
-					COMPARTMENT_ID = selectedApplicationCompartment.getId();				
-				}
-			}
-		};
-    	CustomWizardDialog dialog = new CustomWizardDialog(Display.getDefault().getActiveShell(),
-				new CompartmentSelectWizard(consumer, false));
-		dialog.setFinishButtonText("Select");
-		if (Window.OK == dialog.open()) {
-		}
-    }	
-    */
+ 
 }

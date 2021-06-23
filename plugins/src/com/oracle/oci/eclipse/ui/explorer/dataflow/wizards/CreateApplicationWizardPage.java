@@ -121,7 +121,7 @@ public class CreateApplicationWizardPage extends WizardPage {
 	@Override
 	public void createControl(Composite parent) {	
 		
-		sc=new ScrolledComposite(parent,SWT.V_SCROLL);
+		sc=new ScrolledComposite(parent,SWT.V_SCROLL | SWT.H_SCROLL);
     	sc.setExpandHorizontal( true );
     	sc.setExpandVertical( true );       
     	sc.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -664,6 +664,8 @@ public class CreateApplicationWizardPage extends WizardPage {
 
 	void onEnterPage()
 	{
+		setPageComplete(true);
+		getWizard().getContainer().updateButtons();
 	    final DataTransferObject dto = ((LocalFileSelectWizard) getWizard()).dto;
 	    String applicationId = dto.applicationId;
 	    if(applicationId != null) {
@@ -732,6 +734,7 @@ public class CreateApplicationWizardPage extends WizardPage {
 	    		 disposePrevious();
 	    		 if(LanguageUsed == ApplicationLanguage.Java ||LanguageUsed == ApplicationLanguage.Scala ) {
 	    			 JavaLanguageSelected(container);
+	    			 SQLLanguageSelected(container);  
 	    			 MainClassNameText.setText(application.getClassName());
 	    			 if(application.getArguments() != null) {
 	    					String arguments= "";
@@ -743,6 +746,7 @@ public class CreateApplicationWizardPage extends WizardPage {
 	    		 }
 	    		 else if(LanguageUsed == ApplicationLanguage.Python ) {
 	    			 PythonLanguageSelected(container);
+	    			 SQLLanguageSelected(container);  
 	    			 if(application.getArguments() != null) {
 	    					String arguments= "";
 	    					for(String i : application.getArguments()) {
@@ -772,7 +776,6 @@ public class CreateApplicationWizardPage extends WizardPage {
 	    container.layout(true,true);
 	    sc.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 	}
-	
 	
 	
 	 @Override

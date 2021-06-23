@@ -50,7 +50,7 @@ public class AdvancedOptionsPage extends WizardPage {
     @Override
     public void createControl(Composite parent) {
     	
-    	sc=new ScrolledComposite(parent,SWT.V_SCROLL);
+    	sc=new ScrolledComposite(parent,SWT.V_SCROLL | SWT.H_SCROLL);
     	sc.setExpandHorizontal( true );
     	sc.setExpandVertical( true );
     	sc.setLayoutData(new GridData());
