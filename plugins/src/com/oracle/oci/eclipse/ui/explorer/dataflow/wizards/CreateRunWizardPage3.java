@@ -41,7 +41,7 @@ public class CreateRunWizardPage3 extends WizardPage  {
 	
 	@Override
 	public void createControl(Composite parent) {
-    	scrolledcomposite=new ScrolledComposite(parent,SWT.V_SCROLL);
+    	scrolledcomposite=new ScrolledComposite(parent,SWT.V_SCROLL| SWT.H_SCROLL);
     	scrolledcomposite.setExpandHorizontal( true );
     	scrolledcomposite.setExpandVertical( true );
     	scrolledcomposite.setLayoutData(new GridData());

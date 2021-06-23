@@ -234,47 +234,66 @@ public class EditApplicationWizard extends Wizard implements INewWizard {
     	return false;
     	}
     
-			Application applicationold = ApplicationClient.getInstance().getApplicationDetails(application.getId());
-			
-	    	final String compartmentId = applicationold.getCompartmentId();
 	    	
-	    	if(applicationold.getExecute() != null && !applicationold.getExecute().equals("")) {
+	    	if(application.getExecute() != null && !application.getExecute().equals("")) {
 	    		//System.out.println("EXECUTE");
 	    		
-	    		CreateRunDetails.Builder createApplicationRequestBuilder =  
-	    				CreateRunDetails.builder()
-	        	        .compartmentId(compartmentId)
-	        			.displayName(firstpage.getDisplayName())
-	        			.sparkVersion(firstpage.getSparkVersion())
-	        			.driverShape(firstpage.getDriverShape())
-	        			.executorShape(firstpage.getExecutorShape())
-	        			.numExecutors(Integer.valueOf(firstpage.getNumofExecutors()))
-	        			.definedTags(tagpage.getOT())
-	        			.freeformTags(tagpage.getFT())   
-	        			.execute(firstpage.getSparkSubmit())
-	        	        .configuration(secondpage.getSparkProperties())
-	        	        .logsBucketUri(secondpage.getApplicationLogLocation())
-	        	        .warehouseBucketUri(secondpage.getWarehouseUri());
+	    	 	Builder editApplicationRequestBuilder = 
+	    	 	        UpdateApplicationDetails.builder()
+	    	 			.displayName(firstpage.getDisplayName())
+	    	 			.description(firstpage.getApplicationDescription())
+	    	 			.sparkVersion(firstpage.getSparkVersion())
+	    	 			.driverShape(firstpage.getDriverShape())
+	    	 			.executorShape(firstpage.getExecutorShape())
+	    	 			.numExecutors(Integer.valueOf(firstpage.getNumofExecutors()))
+	    	 			.execute(firstpage.getSparkSubmit())
+	    	 			.definedTags(tagpage.getOT())
+	    	 			.freeformTags(tagpage.getFT());
+	    	 	
+	    	 	 		final UpdateApplicationDetails editApplicationRequest;
+	    	 	    	
+	    	 			final boolean usesAdvancedOptions = secondpage.usesAdvancedOptions();
+	    	 			if (usesAdvancedOptions) {
+	    	 				editApplicationRequestBuilder = editApplicationRequestBuilder.configuration(secondpage.getSparkProperties())
+	    	 						.logsBucketUri(secondpage.getApplicationLogLocation()).warehouseBucketUri(secondpage.getWarehouseUri());
+	    	 				
+	    	 				if(secondpage.usesPrivateSubnet()) {
+	    	 					editApplicationRequest  = editApplicationRequestBuilder.privateEndpointId(secondpage.getPrivateEndPointId())
+	    	 							.build();
+	    	 				}
+	    	 				else {
+	    	 					
+	    	 					if(application.getPrivateEndpointId() != null) {					
+	    	 						editApplicationRequestBuilder
+	    	 						.privateEndpointId("");
+	    	 					}
+	    	 					editApplicationRequest = editApplicationRequestBuilder.build();
+	    	 				}
+	    	 						
+	    	 			} else {
+	    	 				editApplicationRequest = editApplicationRequestBuilder.build();
+	    	 						
+	    	 			}
+	    	 			
 	        			
-	    				final CreateRunDetails createApplicationRequest;	
-	        			createApplicationRequest = createApplicationRequestBuilder.build();		
-	        	        IRunnableWithProgress op = new IRunnableWithProgress() {
-	        	            @Override
-	        	            public void run(IProgressMonitor monitor) throws InvocationTargetException {
-	        	            	ApplicationClient.getInstance().runApplication(createApplicationRequest);
-	        	                monitor.done();
-	        	            }
-	        	        };
-	        	        try {
-	        	            getContainer().run(true, false, op);
-	        	        } catch (InterruptedException e) {
-	        	            return false;
-	        	        } catch (InvocationTargetException e) {
-	        	            Throwable realException = e.getTargetException();
-	        	            MessageDialog.openError(getShell(), "Failed to Run Application ", realException.getMessage());
-	        	            return false;
-	        	        }
-	        	        return true;
+	    	 			 IRunnableWithProgress op = new IRunnableWithProgress() {
+	     	 	            @Override
+	     	 	            public void run(IProgressMonitor monitor) throws InvocationTargetException {
+	     	 	                ApplicationClient.getInstance().editApplication(application.getId(),editApplicationRequest);
+	     	 	                monitor.done();
+	     	 	            }
+	     	 	        };
+	     	 	        try {
+	     	 	            getContainer().run(true, false, op);
+	     	 	        } catch (InterruptedException e) {
+	     	 	            return false;
+	     	 	        } catch (InvocationTargetException e) {
+	     	 	            Throwable realException = e.getTargetException();
+	     	 	            MessageDialog.openError(getShell(), "Failed to Edit Application ", realException.getMessage());
+	     	 	            return false;
+	     	 	        }
+
+	     	 	        return true;
     	}
     	else {
     	 	Builder editApplicationRequestBuilder = 

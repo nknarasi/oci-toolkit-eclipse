@@ -59,6 +59,7 @@ public class EditPrivateEndpointWizard extends Wizard implements INewWizard {
             public void run(IProgressMonitor monitor) throws InvocationTargetException {
             }
         };
+        if(!check()) return false;
         try {
         DataFlowClient client=PrivateEndPointsClient.getInstance().getDataFLowClient();
         
@@ -81,7 +82,16 @@ public class EditPrivateEndpointWizard extends Wizard implements INewWizard {
         }
         return true;
     }
-
+    
+    boolean check() {
+    	if(page.nameText.getText()==null||page.nameText.getText().isEmpty()) {open("Improper Details","Provide proper name for the Private Endpoint");return false;}
+    	if(page.dnsText.getText()==null||page.dnsText.getText().isEmpty()) {open("Improper Details","Provide proper DNS Zones for the Private Endpoint");return false;}    	
+    	return true;
+    }
+    
+    void open(String h,String m) {
+    	MessageDialog.openInformation(getShell(), h, m);
+    }
     /**
      * We will accept the selection in the workbench to see if
      * we can initialize from it.

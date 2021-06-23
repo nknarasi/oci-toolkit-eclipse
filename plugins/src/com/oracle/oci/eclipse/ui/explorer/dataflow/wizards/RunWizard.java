@@ -165,6 +165,7 @@ public class RunWizard extends Wizard implements INewWizard {
     	n=(String)obj[11];
     	boolean b=(n.length()>9)&&(n.substring(0,6).equals("oci://"))&&(n.substring(n.length()-1).equals("/"))
     			&&n.split("@").length==2;
+    	if(page3.ischecked()) {
     	if(!b) {open("Improper Values","Log Bucket Uri of improper format");return false;}
     	
     	//whuri
@@ -172,7 +173,7 @@ public class RunWizard extends Wizard implements INewWizard {
     	b=(n.length()>9)&&(n.substring(0,6).equals("oci://"))&&(n.substring(n.length()-1).equals("/"))
     			&&n.split("@").length==2;
     	if(!b) {open("Improper Values","Warehouse Bucket Uri of improper format");return false;}
-    	
+    	}
     	return true;
     }
     

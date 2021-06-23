@@ -37,7 +37,7 @@ public class EditApplicationAction extends BaseAction{
 	        }
 		 Application application = ApplicationClient.getInstance().getApplicationDetails(applicationID);
 	       CustomWizardDialog dialog = new CustomWizardDialog(Display.getDefault().getActiveShell(), new EditApplicationWizard(application.getId()));
-	        dialog.setFinishButtonText("Create");
+	        dialog.setFinishButtonText("Edit");
 	        if (Window.OK == dialog.open()) {
 	        	table.refresh(true);
 	        }  		 

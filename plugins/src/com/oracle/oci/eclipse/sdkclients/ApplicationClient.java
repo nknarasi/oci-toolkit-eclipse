@@ -16,6 +16,7 @@ import com.oracle.bmc.dataflow.requests.CreateRunRequest;
 import com.oracle.bmc.dataflow.requests.DeleteApplicationRequest;
 import com.oracle.bmc.dataflow.requests.GetApplicationRequest;
 import com.oracle.bmc.dataflow.requests.ListApplicationsRequest;
+import com.oracle.bmc.dataflow.requests.ListRunsRequest;
 import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.account.AuthProvider;
 import com.oracle.bmc.dataflow.requests.ListApplicationsRequest.Builder;
@@ -92,14 +93,14 @@ public class ApplicationClient extends BaseClient {
         return applicationssummary;
     }
     
-    public List<ApplicationSummary> getApplicationsbyCompartmentId(String CompartmentId){    	
+    public List<ApplicationSummary> getApplicationsbyCompartmentId(String CompartmentId,ListApplicationsRequest.SortBy s,ListApplicationsRequest.SortOrder so){    	
         String nextToken = null;
    		List<ApplicationSummary> applicationssummary = new ArrayList<ApplicationSummary>();
    		if(CompartmentId == null){
    			CompartmentId= AuthProvider.getInstance().getCompartmentId();
    		}   		
          Builder listApplicationsBuilder =  ListApplicationsRequest.builder()
-        		 .compartmentId(CompartmentId);
+        		 .compartmentId(CompartmentId).sortBy(s).sortOrder(so);
          do {
              listApplicationsBuilder.page(nextToken);
              try {

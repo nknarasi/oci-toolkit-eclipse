@@ -80,6 +80,7 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	    public IWizardPage getNextPage(IWizardPage page) {
 	    	
 	    	if(page.equals(page1)) {
+	    		page2.job2.schedule();
 	    		return page2;
 	    	}
 	    	if(page.equals(page2)) {

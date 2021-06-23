@@ -30,6 +30,7 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
@@ -46,8 +47,10 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 
+import com.oracle.bmc.objectstorage.model.BucketSummary;
 import com.oracle.oci.eclipse.Activator;
 import com.oracle.oci.eclipse.Icons;
+import com.oracle.oci.eclipse.sdkclients.ObjStorageClient;
 import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
 import com.oracle.oci.eclipse.ui.explorer.objectstorage.actions.MakeJarAndZip;
 
@@ -61,6 +64,8 @@ public class ProjectSelectWizardPage extends WizardPage{
 	    Composite pc,jarComp,container;
 	    ScrolledComposite sc;
 	    String jarUri,zipUri;
+	    boolean projectSelected = false;
+	    File theDir;
 
 	    public ProjectSelectWizardPage(ISelection selection) {
 	        super("wizardPage");
@@ -104,6 +109,19 @@ public class ProjectSelectWizardPage extends WizardPage{
 	        };
 	        job.schedule();
 	        
+	        tree.addSelectionListener(new SelectionAdapter() {
+	            @Override
+	            public void widgetSelected(SelectionEvent e) {
+	            	 TreeItem[] items = tree.getSelection();
+		       	        if(items !=null && items.length>0) {
+		       	            TreeItem selectedItem = items[0];		       	           
+		       	            projectSelected = true;
+		       	            canFlipToNextPage();
+		       	            getWizard().getContainer().updateButtons();
+		       	        }
+	            }
+	        });	
+	        
 	        setControl(container);
 	    }
 	    
@@ -127,14 +145,16 @@ public class ProjectSelectWizardPage extends WizardPage{
 		   {		
 	    		String projectUri=proj.getProject().getLocation().toString();
 	        		String tl=System.getProperty("java.io.tmpdir");
-	        		File theDir = new File(tl+"\\dataflowtempdir");
+	        		theDir = new File(tl+"\\dataflowtempdir");
 	        		if (!theDir.exists()){
 	        		    theDir.mkdirs();
 	        		}
 	        		String dff=File.createTempFile("dataflowtempdir\\dfspark-",".jar",theDir).getAbsolutePath();
 	        	      Manifest manifest = new Manifest();
 	        	      manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
-	        	      if(MakeJarAndZip.jarList.size()>0) manifest.getMainAttributes().put(Attributes.Name.CLASS_PATH,createJarZip(theDir,MakeJarAndZip.jarList));
+	        	      //if(MakeJarAndZip.jarList.size()>0)
+	        	    	  //createJarZip(theDir,MakeJarAndZip.jarList);
+	        	      //if(MakeJarAndZip.jarList.size()>0) manifest.getMainAttributes().put(Attributes.Name.CLASS_PATH,createJarZip(theDir,MakeJarAndZip.jarList));
 	        	      JarOutputStream target = new JarOutputStream(new FileOutputStream(dff), manifest);
 	        	      File inputDirectory = new File(projectUri+File.separator+"bin");
 	        	      for (File nestedFile : inputDirectory.listFiles())
@@ -188,7 +208,8 @@ public class ProjectSelectWizardPage extends WizardPage{
 		      }
 		   }
 		   
-		   private String createJarZip(File theDir,List<String> classPathEntries) throws IOException{
+		   public String createJarZip(List<String> classPathEntries) throws Exception{
+			   if(MakeJarAndZip.jarUri==null) throw new Exception("Create .jar file first");
 			   byte[] buffer = new byte[1024];
 			   File dff=File.createTempFile("dataflowtempdir\\dflib-",".zip",theDir);
 			   ZipOutputStream out = new ZipOutputStream(new FileOutputStream(dff));
@@ -201,11 +222,11 @@ public class ProjectSelectWizardPage extends WizardPage{
 			            File jar = new File(classpathEntry);
 			            String p=jar.getAbsolutePath();
 			            String n=p.substring(p.lastIndexOf('\\')+1),n0=p.substring(0,p.lastIndexOf('\\'));
-			            mcp.append(n+" ");
-			            ZipEntry e = new ZipEntry(n);
+			            mcp.append("java" + "/" + n+" ");
+			            ZipEntry e = new ZipEntry("java" + "/" + n);
 			            out.putNextEntry(e);
 			            try {
-		                    in = new FileInputStream(n0 + File.separator + n);
+		                    in = new FileInputStream(n0 + "/" + n);
 		                    int len;
 		                    while ((len = in.read(buffer)) > 0) {
 		                        out.write(buffer, 0, len);
@@ -239,4 +260,9 @@ public class ProjectSelectWizardPage extends WizardPage{
 			      }
 			      return projectList;
 			   }
+		   
+			@Override
+			public boolean canFlipToNextPage() {
+			return projectSelected;
+			}
 }

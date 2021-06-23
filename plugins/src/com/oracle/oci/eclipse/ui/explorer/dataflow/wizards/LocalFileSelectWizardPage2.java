@@ -53,6 +53,7 @@ public class LocalFileSelectWizardPage2 extends WizardPage {
 	Map<BucketSummary, TreeItem> BucketTreeMap;
 	String fileUriSelected;
 	private Text FileUriText;
+	boolean fileSelected = false;
 	
 	   public LocalFileSelectWizardPage2(ISelection selection, DataTransferObject dto, String COMPARTMENT_ID) {
 	        super("wizardPage");
@@ -181,6 +182,9 @@ public class LocalFileSelectWizardPage2 extends WizardPage {
 		       	            BucketSummary bucket = (BucketSummary)selectedItem.getData(BUCKET_KEY);	      
 		       	            fileUriSelected = "oci://"+ bucket.getName() +"@" + ObjStorageClient.getInstance().getNamespace()+"/"+fileName;
 		       	            FileUriText.setText(fileUriSelected);
+		       	            fileSelected = true;
+		       	            canFlipToNextPage();
+		       	            getWizard().getContainer().updateButtons();
 		       	        }
 	            }
 	        });	        
@@ -232,6 +236,18 @@ public class LocalFileSelectWizardPage2 extends WizardPage {
 		    	this.fileName = filedir.substring(filedir.lastIndexOf('\\')+1);
 		    }
 		}
+		
+		@Override
+		public boolean canFlipToNextPage() {
+			
+		final DataTransferObject dto = ((LocalFileSelectWizard) getWizard()).dto;
+	    if(dto.getArchivedir() == null || (dto.getArchivedir() != null && fileSelected)) {
+	    	return true;
+	    }
+		return false;
+		}
+		
+		
 		
 		 @Override
 		    public IWizardPage getNextPage() { 

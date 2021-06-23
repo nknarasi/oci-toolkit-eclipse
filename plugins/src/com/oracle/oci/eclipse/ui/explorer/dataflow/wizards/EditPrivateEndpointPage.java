@@ -31,8 +31,8 @@ import com.oracle.bmc.dataflow.model.RunSummary;
 
 
 public class EditPrivateEndpointPage extends WizardPage {
-    private Text nameText,dnsText;
-	private Combo dshapeCombo;
+    Text nameText,dnsText;
+	Combo dshapeCombo;
 	private Combo eshapeCombo;
 	private Spinner numExecSpinner;
     private ISelection selection;

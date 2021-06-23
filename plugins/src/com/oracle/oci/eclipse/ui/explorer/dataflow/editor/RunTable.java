@@ -41,7 +41,6 @@ import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DeleteRunAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DetailsRunAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RefreshRunAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RunAction;
-import com.oracle.oci.eclipse.ui.explorer.dataflow.wizards.ProjectSelectWizard;
 import com.oracle.oci.eclipse.ui.explorer.objectstorage.actions.MakeJarAndZip;
 
 public class RunTable extends BaseTable {
@@ -263,28 +262,7 @@ public class RunTable extends BaseTable {
             @Override
             public void widgetDefaultSelected(SelectionEvent e) {}
         });
-        //
-        
-        Button b=new Button(right,SWT.PUSH);b.setLayoutData(new GridData());
-        b.addSelectionListener(new SelectionListener() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-            	try {
-            		MakeJarAndZip.jarUri=null;MakeJarAndZip.zipUri=null;
-            		CustomWizardDialog dialog = new CustomWizardDialog(Display.getDefault().getActiveShell(),
-    	        			new ProjectSelectWizard());dialog.open();
-    	        	System.out.println(MakeJarAndZip.jarUri+","+MakeJarAndZip.zipUri);
-				} catch (Exception e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-            }
-
-			@Override
-			public void widgetDefaultSelected(SelectionEvent arg0) {
-			}
-        });
-        
+        //        
         //
     }
 
