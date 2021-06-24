@@ -3,6 +3,9 @@ build
 features/target
 plugins/target
 plugins/lib
+plugins/.settings
+plugins/.classpath
+plugins/.project
 tests/target
 tests/.settings
 releng/com.oracle.oci.eclipse.update/target
