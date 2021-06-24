@@ -2,9 +2,6 @@ bin
 build
 features/target
 plugins/target
-plugins/.settings
-plugins/.classpath
-plugins/.project
 plugins/lib
 tests/target
 tests/.settings
