@@ -2,18 +2,11 @@ package com.oracle.oci.eclipse.ui.explorer.dataflow;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Display;
 import com.oracle.bmc.dataflow.model.ApplicationSummary;
 import com.oracle.bmc.dataflow.model.PrivateEndpointSummary;
-import com.oracle.oci.eclipse.ErrorHandler;
-import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
-import com.oracle.oci.eclipse.sdkclients.PrivateEndPointsClient;
 import com.oracle.oci.eclipse.ui.explorer.RootElement;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseContentProvider;
 
