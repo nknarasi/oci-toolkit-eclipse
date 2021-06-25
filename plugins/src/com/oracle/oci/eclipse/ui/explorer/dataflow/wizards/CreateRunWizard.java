@@ -13,12 +13,11 @@ import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWizard;
 import com.oracle.bmc.dataflow.model.Application;
-import com.oracle.bmc.dataflow.model.ApplicationLanguage;
 import com.oracle.bmc.dataflow.model.CreateRunDetails;
 import com.oracle.bmc.dataflow.model.CreateRunDetails.Builder;
 import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.DataflowConstants;
-import com.oracle.oci.eclipse.ui.explorer.dataflow.wizards.TagsPage;
+
 
 public class CreateRunWizard  extends Wizard implements INewWizard{	
     private CreateRunWizardPage1 firstpage;
@@ -182,8 +181,8 @@ public class CreateRunWizard  extends Wizard implements INewWizard{
         .compartmentId(application.getCompartmentId())///////
         .applicationId(application.getId())
         .displayName(firstpage.getDisplayName())
-        .archiveUri(application.getArchiveUri())
         .arguments(application.getArguments())
+        .parameters(firstpage.getParameters())
         .driverShape(firstpage.getDriverShape())
         .executorShape(firstpage.getExecutorShape())
         .numExecutors(Integer.valueOf(firstpage.getNumofExecutors()))

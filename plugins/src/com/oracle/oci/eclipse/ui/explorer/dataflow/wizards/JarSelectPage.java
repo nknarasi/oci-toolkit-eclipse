@@ -26,6 +26,8 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.IWizardPage;
@@ -51,6 +53,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import com.oracle.oci.eclipse.Activator;
 import com.oracle.oci.eclipse.Icons;
 import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.CreateFiles;
 import com.oracle.oci.eclipse.ui.explorer.objectstorage.actions.MakeJarAndZip;
 
 public class JarSelectPage extends WizardPage{
@@ -117,6 +120,7 @@ public class JarSelectPage extends WizardPage{
 	        pc=new Composite(container,SWT.NONE);GridLayout gl=new GridLayout();gl.numColumns=2;
 	        pc.setLayout(gl);pc.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 	        
+	        /*
 	       Button showJars=new Button(pc,SWT.PUSH);showJars.setLayoutData(new GridData());
 	        showJars.setText("Show/Refresh External Jar Files");
 	        showJars.addSelectionListener(new SelectionListener() {
@@ -129,7 +133,7 @@ public class JarSelectPage extends WizardPage{
 				public void widgetDefaultSelected(SelectionEvent arg0) {
 				}
 	        });
-	        
+			*/
 	       Button sd=new Button(pc,SWT.PUSH);sd.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 	        sd.setText("Deselect All");
 	        sd.addSelectionListener(new SelectionListener() {
@@ -165,15 +169,15 @@ public class JarSelectPage extends WizardPage{
 	        Composite dComp=new Composite(container,SWT.NONE);GridLayout gl2=new GridLayout();gl2.numColumns=2;dComp.setLayout(gl2);dComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 	        Button b=new Button(dComp,SWT.PUSH);b.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 	        Button b2=new Button(dComp,SWT.PUSH);b.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-	        b.setText("Create Jar");b2.setText("Create External Jar Zip");b2.setEnabled(false);
+	        b.setText("Create Application Jar File");b2.setText("Create Archive Zip File");b2.setEnabled(false);
 	        b.addSelectionListener(new SelectionListener() {
 	            @Override
 	            public void widgetSelected(SelectionEvent e) {
 	            	try {
-	            		setLabel("Creating .jar.......");
+	            		setLabel("Creating Application .jar file.");
 	            		IJavaProject p=page.getSelectedProject();if(p==null) throw new Exception("Improper Selection of Project");
 	            		page.start(p);
-	            		setLabel("Created .jar");
+	            		setLabel("Created Application .jar file");
 	            		b.setEnabled(false);
 	            		b2.setEnabled(true);
 	            		fileCreated = true;
@@ -193,42 +197,20 @@ public class JarSelectPage extends WizardPage{
 	        b2.addSelectionListener(new SelectionListener() {
 	            @Override
 	            public void widgetSelected(SelectionEvent e) {
-	            		Job job = new Job( "Import Data" ) {
-	            			  @Override
-	            			  protected IStatus run( IProgressMonitor monitor ) {
-	            				  Display.getDefault().asyncExec(new Runnable() {
-	            	                    @Override
-	            	                    public void run() {
-	            	                    	SubMonitor subMonitor = SubMonitor.convert(monitor);
-	            	                    	subMonitor.beginTask("Creating Zip...", SubMonitor.UNKNOWN);
-	            			   // monitor.beginTask( "Creating Zip...", IProgressMonitor.UNKNOWN );
-	            			    try {
-	            			    setLabel("Creating .zip.......");
-	            			    IJavaProject p=page.getSelectedProject();if(p==null) throw new Exception("Improper Selection of Project");
-	            			    setJars();
-	            			    page.createJarZip(MakeJarAndZip.jarList);
-	            			    b2.setEnabled(false);
-	            			    setLabel("Created .zip");
-	            			    fileCreated = true;}
-	            			    catch (Exception e1) {
-	        						setLabel("Failed: "+e1.getMessage());
-	        					}
-	            			    finally {
-	            			      subMonitor.done();}
-	            			    }
-	            			    });
-	            			    return Status.OK_STATUS;
-	            			  }
-	            			};
-	            			job.schedule();
+	            	try {
+	            		setJars();
+	            		IRunnableWithProgress op = new CreateFiles(MakeJarAndZip.jarList.size()+1);
+	                    new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
 						
+					} catch (Exception e1) {System.out.println(e1.getMessage());}
+	            	b2.setEnabled(false);
 	            }
 
 				@Override
 				public void widgetDefaultSelected(SelectionEvent arg0) {
 				}
 	        });
-	        progress=new Label(container,SWT.NONE);progress.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));progress.setText("Status Here");
+	        progress=new Label(container,SWT.NONE);progress.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));progress.setText("");
 	        setControl(container);
 	    }
 	    

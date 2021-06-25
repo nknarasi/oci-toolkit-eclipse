@@ -60,8 +60,8 @@ public class LocalFileSelectWizardPage1 extends WizardPage {
 	
 	   public LocalFileSelectWizardPage1(ISelection selection, DataTransferObject dto, String COMPARTMENT_ID) {
 	        super("wizardPage");
-	        setTitle("Select Bucket");     
-	        setDescription("Choose the Bucket");
+	        setTitle("Bucket Selection Wizard for Application Jar");     
+	        setDescription("Choose a Bucket for uploading Application Jar file.");
 	        this.selection = selection;
 	        this.dto = dto;
 	        IMAGE = Activator.getImage(Icons.BUCKET.getPath());

@@ -80,7 +80,7 @@ public class CreatePrivateEndpointWizard extends Wizard implements INewWizard {
         PrivateEndPointsClient.getInstance().getDataFLowClient().createPrivateEndpoint(createPrivateEndpointRequest);
 			
 			
-			MessageDialog.openInformation(getShell(),"Succesful","");
+			MessageDialog.openInformation(getShell(),"Succesful","Private Endpoint created successfully.");
         }
         catch (Exception e) {
         	MessageDialog.openError(getShell(), "Failed to Create Private Endpoint ", e.getMessage());

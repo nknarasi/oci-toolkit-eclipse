@@ -89,8 +89,8 @@ public class EditApplicationWizardPage1  extends WizardPage {
 
 	public EditApplicationWizardPage1(ISelection selection,DataTransferObject dto,String applicationId) {
 		super("Page 1");
-		setTitle("EditDataFlow Application");
-		setDescription("This wizard edits a new DataFlow Application. Please enter the required details.");
+		setTitle("Edit DataFlow Application");
+		setDescription("Edit the fields in the selected Dataflow Application.");
 		this.selection = selection;
 		
 		this.dto=dto;

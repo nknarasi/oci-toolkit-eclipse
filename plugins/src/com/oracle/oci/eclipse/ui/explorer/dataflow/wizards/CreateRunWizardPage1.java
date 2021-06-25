@@ -1,11 +1,15 @@
 package com.oracle.oci.eclipse.ui.explorer.dataflow.wizards;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
@@ -14,10 +18,12 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 import com.oracle.bmc.dataflow.model.Application;
+import com.oracle.bmc.dataflow.model.ApplicationParameter;
 import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.DataflowConstants;
 
 public class CreateRunWizardPage1  extends WizardPage{
+    private ScrolledComposite sc;
 	private ISelection selection;
 	private Application application;
 	private DataTransferObject dto;
@@ -28,7 +34,8 @@ public class CreateRunWizardPage1  extends WizardPage{
 	private Spinner NumofExecutorsSpinner;		
 	private Text ArgumentsText;
 	private Text ArchiveUriText;
-	
+    private Set<Parameters> sqlset=new HashSet<Parameters>();
+    
 	public CreateRunWizardPage1(ISelection selection,DataTransferObject dto, String applicationId) {
 		super("page");
 		setTitle("Schedule Run for Application");
@@ -39,8 +46,15 @@ public class CreateRunWizardPage1  extends WizardPage{
 	}	
 	
 	@Override
-	public void createControl(Composite parent) {		
-		Composite container = new Composite(parent, SWT.NULL);
+	public void createControl(Composite parent) {
+		
+		sc=new ScrolledComposite(parent,SWT.V_SCROLL| SWT.H_SCROLL);
+    	sc.setExpandHorizontal( true );
+    	sc.setExpandVertical( true );       
+    	sc.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
+		Composite container = new Composite(sc, SWT.NULL);
+		sc.setContent(container);
 		GridLayout layout = new GridLayout();
 		container.setLayout(layout);
 		layout.numColumns = 2;
@@ -81,11 +95,32 @@ public class CreateRunWizardPage1  extends WizardPage{
 		Label Argumentslabel = new Label(container, SWT.NULL);
 		Argumentslabel.setText("&Arguments:");
 		ArgumentsText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		ArgumentsText.setText(application.getArguments().toString());
 		ArgumentsText.setEditable(false);
 		GridData gd8 = new GridData(GridData.FILL_HORIZONTAL);
 		ArgumentsText.setLayoutData(gd8);
 		
-		setControl(container);		
+		Composite basesqlcontainer = new Composite(container, SWT.NULL);
+		GridData grid1 = new GridData(GridData.FILL_HORIZONTAL);
+		grid1.horizontalSpan = 2;
+		basesqlcontainer.setLayoutData(grid1);
+        GridLayout layout1 = new GridLayout();
+        basesqlcontainer.setLayout(layout1);
+        layout1.numColumns = 1;
+		
+        if(application.getParameters() != null)
+        {
+        	 for (ApplicationParameter parameter : application.getParameters()) {
+             	Parameters newparameter = new Parameters(basesqlcontainer,container,sc, sqlset);
+             	sqlset.add(newparameter);
+        		newparameter.TagKey.setText(parameter.getName());
+        		newparameter.TagKey.setEditable(false);
+     			newparameter.TagValue.setText(parameter.getValue());
+     			newparameter.CloseButton.setEnabled(false);
+        	 		}         	
+        }          
+      	container.layout(true,true);
+		setControl(sc);
 	}
 	private void createDriverShapeCombo(Composite container) {		
 		DriverShapeCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
@@ -146,46 +181,16 @@ public class CreateRunWizardPage1  extends WizardPage{
 		return ArchiveUriText.getText();
 	}
 	
-	public List<String> getArguments(){		
-	    List<String> arguments = new ArrayList<String>();
-	    String argumentsunseperated = ArgumentsText.getText();
-	   boolean invertedcomma = false;
-	   String currentword = "";
-	   for(int i= 0 ; i < argumentsunseperated.length() ; i++) {
-		   if(Character.isWhitespace(argumentsunseperated.charAt(i)))
-		   {
-			   if(invertedcomma == true)
-				   currentword+= argumentsunseperated.charAt(i);			  
-			   else
-			   {
-				   if(currentword != ""){
-					   arguments.add(currentword);
-					   currentword="";
-				   }
-			   }
-		   }
-		   else if (argumentsunseperated.charAt(i) == '"') {
-			   if(invertedcomma == false) {		   
-				   if(currentword == "") {
-					   invertedcomma=true;
-					   currentword+=argumentsunseperated.charAt(i);
-				   }
-				   else 
-					   currentword+=argumentsunseperated.charAt(i);				   
-			   }
-			   else {
-				   currentword += argumentsunseperated.charAt(i);
-				   invertedcomma=false;
-			   }			  
-		   }
-		   else
-			   currentword += argumentsunseperated.charAt(i);		   		   
-	   }
-	  if(currentword!="")
-		   arguments.add(currentword);	
-	  
-	    return arguments;		
-	}
+	public  List<ApplicationParameter> getParameters(){
+		List<ApplicationParameter> Parameters = new ArrayList<ApplicationParameter>();	 
+		 for(Parameters parameter : sqlset) {	
+			 Parameters.add(ApplicationParameter.builder()
+					 .name(parameter.TagKey.getText())
+					 .value(parameter.TagValue.getText())
+					 .build());
+		 }		 
+		 return Parameters;
+	 }
 	
 	 @Override
 	    public IWizardPage getNextPage() {

@@ -91,19 +91,25 @@ public class DetailsApplicationAction extends BaseAction {
 	        	data.add(new TablePair("Main Class Name", application.getClassName()));
 	        
 	        
-	        if(application.getArguments().size() == 0)
+	        if(application.getArguments().size() == 0) {
 	        	data.add(new TablePair("Arguments", "NO VALUE"));
+	        }
 	        else
 	        	data.add(new TablePair("Arguments", application.getArguments().toString()));
 	        
+        	if(application.getParameters().size() != 0 ) {
+        		data.add(new TablePair("Parameters", application.getParameters().toString()));
+        	}
+	        
 	        data.add(new TablePair("Application Log Location", application.getLogsBucketUri()));
 	        
-	        data.add(new TablePair("Oracle Tags", application.getDefinedTags().toString()));
+	        if(application.getDefinedTags().size() != 0)
+	        	data.add(new TablePair("Oracle Tags", application.getDefinedTags().toString()));
 	        
 	        if(application.getFreeformTags().size() != 0)
 	        	data.add(new TablePair("FreeForm Tags", application.getFreeformTags().toString()));
 	        
-	        if(application.getConfiguration() != null)
+	        if(application.getConfiguration().size() != 0)
 	        	data.add(new TablePair("Configuration", application.getConfiguration().toString()));
 	        
 	        if(application.getLanguage() == ApplicationLanguage.Sql &&  application.getParameters() != null) {

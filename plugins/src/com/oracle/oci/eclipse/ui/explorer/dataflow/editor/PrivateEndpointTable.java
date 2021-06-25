@@ -59,8 +59,8 @@ public class PrivateEndpointTable extends BaseTable {
             @Override
             protected IStatus run(IProgressMonitor monitor) {
                 try {
-                    if(compid==null) privateEndpointSummaryList =PrivateEndPointsClient.getInstance().getPrivateEndPoints();
-					else privateEndpointSummaryList = PrivateEndPointsClient.getPrivateEndPointsinCompartment(compid);
+                    if(compid==null) privateEndpointSummaryList =PrivateEndPointsClient.getInstance().getPrivateEndPoints(AuthProvider.getInstance().getCompartmentId());
+					else privateEndpointSummaryList = PrivateEndPointsClient.getPrivateEndPoints(compid);
                     tableDataSize = privateEndpointSummaryList.size();
                 } catch (Exception e) {
                     return ErrorHandler.reportException(e.getMessage(), e);

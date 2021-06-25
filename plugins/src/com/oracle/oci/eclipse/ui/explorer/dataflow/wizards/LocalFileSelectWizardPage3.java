@@ -126,7 +126,7 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 	        	}
 	    	}
 	    	try {
-	    		applications =ApplicationClient.getInstance().getApplicationsbyCompartmentId(selectedApplicationCompartment.getId(),s,so);
+	    		applications =ApplicationClient.getInstance().getApplications(selectedApplicationCompartment.getId(),s,so);
 			} catch (Exception e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();

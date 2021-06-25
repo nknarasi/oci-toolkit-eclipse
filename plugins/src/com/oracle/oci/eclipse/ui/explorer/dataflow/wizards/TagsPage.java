@@ -81,8 +81,8 @@ public class TagsPage extends WizardPage {
         check.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
             	
-            	if(!check()) MessageDialog.openInformation(getShell(), "Duplicates Found", "");
-            	else MessageDialog.openInformation(getShell(), "No Duplicates", "");
+            	if(!check()) MessageDialog.openInformation(getShell(), "Duplicates Found", "Duplicates are found in the tags used.");
+            	else MessageDialog.openInformation(getShell(), "No Duplicates", "There are no duplicates in the tags used.");
             }
           });
         Button addNsg=new Button(container,SWT.PUSH);
@@ -116,7 +116,7 @@ public class TagsPage extends WizardPage {
 			 
 			 comp=new Composite(container,SWT.NONE);comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			 GridLayout gl=new GridLayout();gl.numColumns=4;comp.setLayout(gl);
-			 c=new Button(comp,SWT.PUSH);c.setText("X");
+			 c=new Button(comp,SWT.PUSH);c.setText("Remove");
 			 tc=new Combo(comp,SWT.READ_ONLY);
 			 tc.setItems(namespacesList);tc.setText("Free Form Tags");
 			 ftk=new Text(comp,SWT.BORDER);ftk.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));ftk.setMessage("key");

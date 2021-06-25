@@ -5,7 +5,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
 
-import javax.swing.JButton;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -27,7 +26,6 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import com.oracle.bmc.dataflow.model.ApplicationSummary;
 import com.oracle.bmc.dataflow.requests.ListApplicationsRequest;
-import com.oracle.bmc.dataflow.requests.ListRunsRequest;
 import com.oracle.bmc.identity.model.Compartment;
 import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.account.AuthProvider;
@@ -36,7 +34,6 @@ import com.oracle.oci.eclipse.ui.account.CompartmentSelectWizard;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseTable;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseTableLabelProvider;
 import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
-import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.CreateApplicationAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DeleteApplicationAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DetailsApplicationAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.EditApplicationAction;
@@ -80,7 +77,7 @@ public class ApplicationTable extends BaseTable{
             protected IStatus run(IProgressMonitor monitor) {
                 try {
                     ApplicationClient oci = ApplicationClient.getInstance();
-                    applicationList = oci.getApplicationsbyCompartmentId(COMPARTMENT_ID,s,so);
+                    applicationList = oci.getApplications(COMPARTMENT_ID,s,so);
                     for (Iterator<ApplicationSummary> it = applicationList.iterator(); it.hasNext(); ) {
                         ApplicationSummary instance = it.next();
                         if (instance.getLifecycleState().getValue().equals("TERMINATED")) {

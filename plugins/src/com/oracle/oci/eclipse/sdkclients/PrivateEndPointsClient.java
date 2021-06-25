@@ -70,27 +70,9 @@ public class PrivateEndPointsClient  extends BaseClient {
             ErrorHandler.logErrorStack(e.getMessage(), e);
         }
     }
-   
-    public List<PrivateEndpointSummary> getPrivateEndPoints() throws Exception {
-        String nextToken = null;
-   		List<PrivateEndpointSummary> privateEndpointsummary = new ArrayList<PrivateEndpointSummary>();  		
-         Builder listPrivateEndpointsBuilder =  ListPrivateEndpointsRequest.builder()
-        		 .compartmentId(AuthProvider.getInstance().getCompartmentId());
-         do {
-             listPrivateEndpointsBuilder.page(nextToken);
-             try {
-                 ListPrivateEndpointsResponse listprivateEndpointresponse =
-                         dataflowClient.listPrivateEndpoints(listPrivateEndpointsBuilder.build());                
-                 privateEndpointsummary.addAll(listprivateEndpointresponse.getPrivateEndpointCollection().getItems());
-                 nextToken = listprivateEndpointresponse.getOpcNextPage();
-             } catch(Throwable e) {
-                 ErrorHandler.logError("Unable to list applications: " + e.getMessage());
-             }
-         } while (nextToken != null);
-        return privateEndpointsummary;
-    }
+
     
-    public static List<PrivateEndpointSummary> getPrivateEndPointsinCompartment(String CompartmentId) {
+    public static List<PrivateEndpointSummary> getPrivateEndPoints(String CompartmentId) {
         String nextToken = null;
    		List<PrivateEndpointSummary> privateEndpointsummary = new ArrayList<PrivateEndpointSummary>();   		
          Builder listPrivateEndpointsBuilder =  ListPrivateEndpointsRequest.builder()
@@ -116,37 +98,4 @@ public class PrivateEndPointsClient  extends BaseClient {
     			.build()).getPrivateEndpoint();   			
     }
 
-    
-    /*
-	public List<PrivateEndpointSummary> getPrivateEndpoints() throws Exception {
-        String nextToken = null;
-        List<PrivateEndpointSummary> pepsList = new ArrayList<PrivateEndpointSummary>();
-		ListPrivateEndpointsRequest.Builder listPrivateEndpointsBuilder =
-                ListPrivateEndpointsRequest.builder()
-                .compartmentId(compid).sortBy(ListPrivateEndpointsRequest.SortBy.TimeCreated);
-
-        do {
-            listPrivateEndpointsBuilder.page(nextToken);
-            try {
-                ListPrivateEndpointsResponse listPrivateEndpointsResponse =
-                        dataflowClient.listPrivateEndpoints(listPrivateEndpointsBuilder.build());
-                pepsList.addAll(listPrivateEndpointsResponse.getPrivateEndpointCollection().getItems());
-                nextToken = listPrivateEndpointsResponse.getOpcNextPage();
-            } catch(Throwable e) {
-                ErrorHandler.logError("Unable to list runs: " + e.getMessage());
-                return pepsList;
-            }
-
-        } while (nextToken != null);
-
-        return pepsList;
-    }
-	
-	public PrivateEndpoint getPrivateEndpoint(String pepid) throws Exception {
-		 
-		 GetPrivateEndpointRequest req = GetPrivateEndpointRequest.builder().privateEndpointId(pepid).build();
-		 return dataflowClient.getPrivateEndpoint(req).getPrivateEndpoint();
-	 }
-	
-*/
 }

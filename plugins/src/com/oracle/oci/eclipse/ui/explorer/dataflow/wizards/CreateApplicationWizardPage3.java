@@ -66,8 +66,8 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 	
 	public CreateApplicationWizardPage3(ISelection selection,DataTransferObject dto) {
 		super("Page 3");
-		setTitle("Create DataFlow Application Page 3");
-		setDescription("Advanced Options");
+		setTitle("Create Application Advanced Options");
+		setDescription("Add Advanced Options for application if required.");
 		this.selection = selection;		
 		this.dto=dto;
 		Compartment rootCompartment = IdentClient.getInstance().getRootCompartment();
@@ -259,7 +259,7 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 	
 	private void chooseSubnet(Composite currentcontainer, String compartmentId) {		     
 		PrivateEndPointsClient oci = PrivateEndPointsClient.getInstance();
-		PrivateEndpoints = oci.getPrivateEndPointsinCompartment(compartmentId);		
+		PrivateEndpoints = oci.getPrivateEndPoints(compartmentId);		
 		int sizeoflist= PrivateEndpoints.size();
 		String[] PrivateEndpointsList = new String[sizeoflist];
 		for(int i = 0; i < PrivateEndpoints.size(); i++){  
@@ -391,7 +391,7 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 		    			}
 		    		}
 		    		
-		    		PrivateEndpoints = oci.getPrivateEndPointsinCompartment(selectedApplicationCompartment.getId());		
+		    		PrivateEndpoints = oci.getPrivateEndPoints(selectedApplicationCompartment.getId());		
 		    		int sizeoflist= PrivateEndpoints.size();
 		    		String[] PrivateEndpointsList = new String[sizeoflist];
 		    		for(int i = 0; i < PrivateEndpoints.size(); i++)

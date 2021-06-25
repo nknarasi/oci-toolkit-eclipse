@@ -152,7 +152,7 @@ public class AdvancedOptionsPage extends WizardPage {
 			 
 			 comp=new Composite(c3,SWT.NONE);comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			 GridLayout glc=new GridLayout();glc.numColumns=3;comp.setLayout(glc);
-			 close=new Button(comp,SWT.PUSH);close.setLayoutData(new GridData());close.setText("X");
+			 close=new Button(comp,SWT.PUSH);close.setLayoutData(new GridData());close.setText("Remove");
 			 k=new Text(comp,SWT.BORDER);k.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));k.setMessage("key");
 			 v=new Text(comp,SWT.BORDER);v.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));v.setMessage("value");
 			 addClose();

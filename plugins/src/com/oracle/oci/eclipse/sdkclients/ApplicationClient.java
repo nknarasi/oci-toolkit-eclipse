@@ -73,27 +73,8 @@ public class ApplicationClient extends BaseClient {
         }
     }
   
-    public List<ApplicationSummary> getApplications() throws Exception {   	
-        String nextToken = null;
-   		List<ApplicationSummary> applicationssummary = new ArrayList<ApplicationSummary>(); 		
-         Builder listApplicationsBuilder =  ListApplicationsRequest.builder()
-        		 .compartmentId(AuthProvider.getInstance().getCompartmentId());
-         do {
-             listApplicationsBuilder.page(nextToken);
-             try {
-                 ListApplicationsResponse listapplicationresponse =
-                         dataflowClient.listApplications(listApplicationsBuilder.build());
-                 
-                 applicationssummary.addAll(listapplicationresponse.getItems());
-                 nextToken = listapplicationresponse.getOpcNextPage();
-             } catch(Throwable e) {
-                 ErrorHandler.logError("Unable to list applications: " + e.getMessage());
-             }
-         } while (nextToken != null);             	
-        return applicationssummary;
-    }
     
-    public List<ApplicationSummary> getApplicationsbyCompartmentId(String CompartmentId,ListApplicationsRequest.SortBy s,ListApplicationsRequest.SortOrder so){    	
+    public List<ApplicationSummary> getApplications(String CompartmentId,ListApplicationsRequest.SortBy s,ListApplicationsRequest.SortOrder so){    	
         String nextToken = null;
    		List<ApplicationSummary> applicationssummary = new ArrayList<ApplicationSummary>();
    		if(CompartmentId == null){
@@ -124,15 +105,7 @@ public class ApplicationClient extends BaseClient {
         		.getApplication();
     }
     
-    public void createApplication(final CreateApplicationDetails request) {
-        CreateApplicationResponse response =
-                dataflowClient.createApplication(
-                        CreateApplicationRequest.builder()
-                        .createApplicationDetails(request)
-                        .build());
-    }
-    
-    public Application createApplicationandgetId(final CreateApplicationDetails request) {
+    public Application createApplication(final CreateApplicationDetails request) {
         CreateApplicationResponse response =
                 dataflowClient.createApplication(
                         CreateApplicationRequest.builder()
@@ -155,24 +128,9 @@ public class ApplicationClient extends BaseClient {
         		.build());   
     }
     
-    public void runEditApplication(String applicationId, final UpdateApplicationDetails request) {    
-    	UpdateApplicationResponse response=	dataflowClient.updateApplication(UpdateApplicationRequest.builder()
-    			.applicationId(applicationId)
-    			.updateApplicationDetails(request)
-    			.build()) ;
-    	
-    	
-    }
+
     
-    public void editApplication(String applicationId,final UpdateApplicationDetails request ) {
-    	UpdateApplicationResponse response=	dataflowClient.updateApplication(UpdateApplicationRequest.builder()
-    			.applicationId(applicationId)
-    			.updateApplicationDetails(request)
-    			.build()) ;
-    }
-    
-    
-    public Application editApplicationandgetId(String applicationId,final UpdateApplicationDetails request ) {
+    public Application editApplication(String applicationId,final UpdateApplicationDetails request ) {
     	UpdateApplicationResponse response=	dataflowClient.updateApplication(UpdateApplicationRequest.builder()
     			.applicationId(applicationId)
     			.updateApplicationDetails(request)

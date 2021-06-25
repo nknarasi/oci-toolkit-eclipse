@@ -70,8 +70,8 @@ public class EditApplicationWizardPage2  extends WizardPage {
 	
 	public EditApplicationWizardPage2(ISelection selection,DataTransferObject dto,String applicationId) {
 		super("Page 2");
-		setTitle("Edit DataFlow Application Page 2");
-		setDescription("Advanced Options");
+		setTitle("Edit Application Advanced Options");
+		setDescription("Change Advanced Options for application if required.");
 		this.selection = selection;
 		
 		this.dto=dto;
@@ -227,7 +227,7 @@ public class EditApplicationWizardPage2  extends WizardPage {
     			}
     		}
     		
-    		PrivateEndpoints = oci.getPrivateEndPointsinCompartment(selectedApplicationCompartment.getId());		
+    		PrivateEndpoints = oci.getPrivateEndPoints(selectedApplicationCompartment.getId());		
     		int sizeoflist= PrivateEndpoints.size();
     		String[] PrivateEndpointsList = new String[sizeoflist];
     		for(int i = 0; i < PrivateEndpoints.size(); i++)
@@ -332,7 +332,7 @@ public class EditApplicationWizardPage2  extends WizardPage {
 	private void chooseSubnet(Composite currentcontainer, String compartmentId) {		
         
 		PrivateEndPointsClient oci = PrivateEndPointsClient.getInstance();
-		PrivateEndpoints = oci.getPrivateEndPointsinCompartment(compartmentId);		
+		PrivateEndpoints = oci.getPrivateEndPoints(compartmentId);		
 
 		int sizeoflist= PrivateEndpoints.size();
 		String[] PrivateEndpointsList = new String[sizeoflist];

@@ -33,8 +33,8 @@ public class CreateRunWizardPage3 extends WizardPage  {
 	
 	public CreateRunWizardPage3(ISelection selection,DataTransferObject dto,String applicationId) {
 		super("Page 3");
-		setTitle("Schedule Application Run Page 3");
-		setDescription("Advanced Options");
+		setTitle("Advanced Options for Runs");
+		setDescription("Set advanced options for run if required.");
 		this.dto = dto;
 		application = ApplicationClient.getInstance().getApplicationDetails(applicationId);
 	}

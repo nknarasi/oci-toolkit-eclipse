@@ -57,8 +57,8 @@ public class LocalFileSelectWizardPage2 extends WizardPage {
 	
 	   public LocalFileSelectWizardPage2(ISelection selection, DataTransferObject dto, String COMPARTMENT_ID) {
 	        super("wizardPage");
-	        setTitle("Select Bucket for External Libraries");     
-	        setDescription("Choose the Bucket for Archive or External Libraries required.");
+	        setTitle("Bucket Selection Wizard for Archive Zip.");     
+	        setDescription("Choose a Bucket for uploading Archive Zip file for adding external dependencies.");
 	        this.selection = selection;
 	        this.dto = dto;
 	        IMAGE = Activator.getImage(Icons.BUCKET.getPath());

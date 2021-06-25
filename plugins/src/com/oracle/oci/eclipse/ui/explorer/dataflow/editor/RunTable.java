@@ -13,13 +13,16 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.layout.TableColumnLayout;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -29,6 +32,7 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 
 import com.oracle.bmc.dataflow.model.RunSummary;
 import com.oracle.bmc.dataflow.requests.ListRunsRequest;
+import com.oracle.bmc.dataflow.responses.ListRunsResponse;
 import com.oracle.bmc.identity.model.Compartment;
 import com.oracle.oci.eclipse.ErrorHandler;
 //import com.oracle.oci.eclipse.sdkclients.BlockStorageClient;
@@ -39,6 +43,7 @@ import com.oracle.oci.eclipse.ui.explorer.common.BaseTableLabelProvider;
 import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DeleteRunAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DetailsRunAction;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetRuns;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RefreshRunAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RunAction;
 import com.oracle.oci.eclipse.ui.explorer.objectstorage.actions.MakeJarAndZip;
@@ -59,7 +64,10 @@ public class RunTable extends BaseTable {
 	public HashMap<String,String> actionMap = createActionMap();
 	ListRunsRequest.SortBy s=ListRunsRequest.SortBy.TimeCreated;
 	ListRunsRequest.SortOrder so=ListRunsRequest.SortOrder.Desc;
-
+	String pagetoshow=null;
+	ListRunsResponse listrunsresponse;
+	Button pp,np;
+	
     public RunTable(Composite parent, int style) {
         super(parent, style);
 
@@ -72,20 +80,15 @@ public class RunTable extends BaseTable {
     List<RunSummary> runSummaryList = new ArrayList<RunSummary>();
     @Override
     public List<RunSummary> getTableData() {
-        new Job("Get Runs") {
-            @Override
-            protected IStatus run(IProgressMonitor monitor) {
                 try {
-                    if(compid!=null) runSummaryList = RunClient.getInstance().getRunsinCompartment(compid,s,so);
-                    else runSummaryList = RunClient.getInstance().getRuns(s,so);
+                	IRunnableWithProgress op = new GetRuns(compid,s,so,pagetoshow);
+                    new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+                    listrunsresponse=((GetRuns)op).listrunsresponse;
+                    runSummaryList=((GetRuns)op).runSummaryList;
                     tableDataSize = runSummaryList.size();
                 } catch (Exception e) {
-                    return ErrorHandler.reportException(e.getMessage(), e);
                 }
                 refresh(false);
-                return Status.OK_STATUS;
-            }
-        }.schedule();
         return runSummaryList;
     }
     @Override
@@ -141,6 +144,7 @@ public class RunTable extends BaseTable {
         tc=createColumn(tableColumnLayout,tree, "Name", 15);
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
+            	pagetoshow=null;
                 s=ListRunsRequest.SortBy.DisplayName;
                 if(so==ListRunsRequest.SortOrder.Desc) so=ListRunsRequest.SortOrder.Asc;
                 else so=ListRunsRequest.SortOrder.Desc;
@@ -150,6 +154,7 @@ public class RunTable extends BaseTable {
         tc=createColumn(tableColumnLayout,tree, "Language", 6);
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
+            	pagetoshow=null;
                 s=ListRunsRequest.SortBy.Language;
                 if(so==ListRunsRequest.SortOrder.Desc) so=ListRunsRequest.SortOrder.Asc;
                 else so=ListRunsRequest.SortOrder.Desc;
@@ -159,6 +164,7 @@ public class RunTable extends BaseTable {
         tc=createColumn(tableColumnLayout,tree, "State", 8);
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
+            	pagetoshow=null;
                 s=ListRunsRequest.SortBy.LifecycleState;
                 if(so==ListRunsRequest.SortOrder.Desc) so=ListRunsRequest.SortOrder.Asc;
                 else so=ListRunsRequest.SortOrder.Desc;
@@ -169,6 +175,7 @@ public class RunTable extends BaseTable {
         tc=createColumn(tableColumnLayout,tree, "Created", 10);
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
+            	pagetoshow=null;
                 s=ListRunsRequest.SortBy.TimeCreated;
                 if(so==ListRunsRequest.SortOrder.Desc) so=ListRunsRequest.SortOrder.Asc;
                 else so=ListRunsRequest.SortOrder.Desc;
@@ -178,6 +185,7 @@ public class RunTable extends BaseTable {
         tc=createColumn(tableColumnLayout,tree, "Duration", 5);
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
+            	pagetoshow=null;
                 s=ListRunsRequest.SortBy.RunDurationInMilliseconds;
                 if(so==ListRunsRequest.SortOrder.Desc) so=ListRunsRequest.SortOrder.Asc;
                 else so=ListRunsRequest.SortOrder.Desc;
@@ -187,6 +195,7 @@ public class RunTable extends BaseTable {
         tc=createColumn(tableColumnLayout,tree, "Total OCPU", 5);
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
+            	pagetoshow=null;
                 s=ListRunsRequest.SortBy.TotalOCpu;
                 if(so==ListRunsRequest.SortOrder.Desc) so=ListRunsRequest.SortOrder.Asc;
                 else so=ListRunsRequest.SortOrder.Desc;
@@ -196,6 +205,7 @@ public class RunTable extends BaseTable {
         tc=createColumn(tableColumnLayout,tree, "Data Written", 10);
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
+            	pagetoshow=null;
                 s=ListRunsRequest.SortBy.DataWrittenInBytes;
                 if(so==ListRunsRequest.SortOrder.Desc) so=ListRunsRequest.SortOrder.Asc;
                 else so=ListRunsRequest.SortOrder.Desc;
@@ -205,6 +215,7 @@ public class RunTable extends BaseTable {
         tc=createColumn(tableColumnLayout,tree, "Data Read", 10);
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
+            	pagetoshow=null;
                 s=ListRunsRequest.SortBy.DataReadInBytes;
                 if(so==ListRunsRequest.SortOrder.Desc) so=ListRunsRequest.SortOrder.Asc;
                 else so=ListRunsRequest.SortOrder.Desc;
@@ -262,8 +273,41 @@ public class RunTable extends BaseTable {
             @Override
             public void widgetDefaultSelected(SelectionEvent e) {}
         });
-        //        
-        //
+        Composite page=new Composite(right,SWT.NONE);GridLayout gl=new GridLayout();gl.numColumns=2;
+        page.setLayout(gl);
+        pp=new Button(page,SWT.TRAVERSE_PAGE_PREVIOUS);np=new Button(page,SWT.TRAVERSE_PAGE_NEXT);
+        pp.setText("<");np.setText(">");
+        pp.setLayoutData(new GridData());np.setLayoutData(new GridData());
+        pp.setEnabled(false);
+        //if(tableDataSize<20) np.setEnabled(false);
+        
+        np.addSelectionListener(new SelectionListener() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                
+				pagetoshow=listrunsresponse.getOpcNextPage();
+				refresh(true);
+				pp.setEnabled(true);
+				//if(pagetoshow.equals(listrunsresponse.getOpcNextPage())) np.setEnabled(false);
+            }
+
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) {}
+        });
+        
+        pp.addSelectionListener(new SelectionListener() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                
+				pagetoshow=listrunsresponse.getOpcPrevPage();
+				refresh(true);
+				//if(pagetoshow.equals(listrunsresponse.getOpcPrevPage())) pp.setEnabled(false);
+            }
+
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) {}
+        });
+        
     }
 
 	

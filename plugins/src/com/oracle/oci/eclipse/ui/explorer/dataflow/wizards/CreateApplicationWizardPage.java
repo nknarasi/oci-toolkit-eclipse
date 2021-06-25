@@ -3,10 +3,8 @@ package com.oracle.oci.eclipse.ui.explorer.dataflow.wizards;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import org.eclipse.jface.viewers.ISelection;
@@ -17,7 +15,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
@@ -84,7 +81,6 @@ public class CreateApplicationWizardPage extends WizardPage {
 	private DataTransferObject dto;
 	
 	private boolean UsesSparkSubmit=false;
-	private Composite LanguageComposite ;
 	private Button FileSelectButton;
 	private Label FileUrilabel;
 	private Label Languagelabel;

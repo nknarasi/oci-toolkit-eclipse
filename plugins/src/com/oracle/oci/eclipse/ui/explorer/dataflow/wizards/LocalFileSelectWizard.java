@@ -422,7 +422,7 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 		        	        IRunnableWithProgress op = new IRunnableWithProgress() {
 		        	            @Override
 		        	            public void run(IProgressMonitor monitor) throws InvocationTargetException {
-		        	               application= ApplicationClient.getInstance().editApplicationandgetId(dto.getApplicationId(),editApplicationRequest);       	               
+		        	               application= ApplicationClient.getInstance().editApplication(dto.getApplicationId(),editApplicationRequest);       	               
 		        	               monitor.done();
 		        	            }
 		        	        };
@@ -569,7 +569,7 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 		        	        IRunnableWithProgress op = new IRunnableWithProgress() {
 		        	            @Override
 		        	            public void run(IProgressMonitor monitor) throws InvocationTargetException {
-		        	               application= ApplicationClient.getInstance().createApplicationandgetId(createApplicationRequest);       	               
+		        	               application= ApplicationClient.getInstance().createApplication(createApplicationRequest);       	               
 		        	               monitor.done();
 		        	            }
 		        	        };

@@ -123,8 +123,8 @@ public class RunWizard extends Wizard implements INewWizard {
         createRunRequest = CreateRunRequest.builder()
         		.createRunDetails(createRunDetails).build();}
         client.createRun(createRunRequest);
-        if(runSum!=null) MessageDialog.openInformation(getShell(),"Re-Run Succesful","Successful");
-        else MessageDialog.openInformation(getShell(),"Run Application Succesful","Successful");
+        if(runSum!=null) MessageDialog.openInformation(getShell(),"Re-Run Succesful","A re-run of application is scheduled.");
+        else MessageDialog.openInformation(getShell(),"Run Application Succesful","A run of application is scheduled.");
 		//DataFlowContentProvider.getInstance().getRunsAndRefresh();
 		runTable.refresh(true);
         }
@@ -169,9 +169,13 @@ public class RunWizard extends Wizard implements INewWizard {
     	if(!b) {open("Improper Values","Log Bucket Uri of improper format");return false;}
     	
     	//whuri
-    	n=(String)obj[15];System.out.print(n+"lollol");
-    	b=(n.length()>9)&&(n.substring(0,6).equals("oci://"))&&(n.substring(n.length()-1).equals("/"))
-    			&&n.split("@").length==2;
+    	n=(String)obj[15];
+    	b= true;
+    	if(n!= null && !n.equals("")) {
+    		b=(n.length()>9)&&(n.substring(0,6).equals("oci://"))&&(n.substring(n.length()-1).equals("/"))
+        			&&n.split("@").length==2;
+    	}
+    	
     	if(!b) {open("Improper Values","Warehouse Bucket Uri of improper format");return false;}
     	}
     	return true;
