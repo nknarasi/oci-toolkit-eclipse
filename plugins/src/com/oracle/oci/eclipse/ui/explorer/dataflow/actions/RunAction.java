@@ -32,7 +32,6 @@ public class RunAction extends BaseAction {
     	WizardDialog dialog;
         if(runSum!=null) dialog = new WizardDialog(Display.getDefault().getActiveShell(), new RunWizard(runSum,runTable));
 		else dialog = new WizardDialog(Display.getDefault().getActiveShell(), new RunWizard(appSum));
-        //runTable.refresh(true);
         if (Window.OK == dialog.open()) {
         }
     }

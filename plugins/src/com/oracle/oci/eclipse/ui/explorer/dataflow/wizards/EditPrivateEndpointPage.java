@@ -1,8 +1,5 @@
 package com.oracle.oci.eclipse.ui.explorer.dataflow.wizards;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -14,27 +11,18 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 
-import com.oracle.oci.eclipse.account.AuthProvider;
 import com.oracle.oci.eclipse.sdkclients.PrivateEndPointsClient;
-import com.oracle.bmc.core.ComputeClient;
-import com.oracle.bmc.core.model.Shape;
-import com.oracle.bmc.core.requests.ListShapesRequest;
 import com.oracle.bmc.dataflow.model.Application;
-import com.oracle.bmc.dataflow.model.ApplicationSummary;
 import com.oracle.bmc.dataflow.model.PrivateEndpoint;
 import com.oracle.bmc.dataflow.model.PrivateEndpointSummary;
-import com.oracle.bmc.dataflow.model.Run;
-import com.oracle.bmc.dataflow.model.RunSummary;
 
 
 public class EditPrivateEndpointPage extends WizardPage {
+	
     Text nameText,dnsText;
 	Combo dshapeCombo;
-	private Combo eshapeCombo;
-	private Spinner numExecSpinner;
     private ISelection selection;
 	private PrivateEndpoint pep;
 	private Application app;

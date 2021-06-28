@@ -9,7 +9,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.swt.widgets.Display;
 
 import com.oracle.oci.eclipse.ui.explorer.objectstorage.actions.MakeJarAndZip;
 
@@ -31,48 +33,46 @@ public class CreateFiles implements IRunnableWithProgress{
         try {
         String tl=System.getProperty("java.io.tmpdir");
 		File theDir = new File(tl+"\\dataflowtempdir");
-		   byte[] buffer = new byte[1024];
-		   File dff=File.createTempFile("dataflowtempdir\\dflib-",".zip",theDir);
-		   ZipOutputStream out = new ZipOutputStream(new FileOutputStream(dff));
+		byte[] buffer = new byte[1024];
+		File dff=File.createTempFile("dataflowtempdir\\dflib-",".zip",theDir);
+		ZipOutputStream out = new ZipOutputStream(new FileOutputStream(dff));
 		   
 		   
-		    StringBuffer mcp=new StringBuffer("");
-		    FileInputStream in=null;
-		    int i=1;
-		   for (String classpathEntry : new HashSet<String>(MakeJarAndZip.jarList)) {
-			   monitor.subTask("Zipping file " + (i++) + " of "+ (workload-1) + "...");
-		        if (classpathEntry.endsWith(".jar")) {
-		            File jar = new File(classpathEntry);
-		            String p=jar.getAbsolutePath();
-		            String n=p.substring(p.lastIndexOf('\\')+1),n0=p.substring(0,p.lastIndexOf('\\'));
-		            mcp.append("java" + "/" + n+" ");
-		            ZipEntry e = new ZipEntry("java" + "/" + n);
-		            out.putNextEntry(e);
-		            try {
-	                    in = new FileInputStream(n0 + "/" + n);
-	                    int len;
-	                    while ((len = in.read(buffer)) > 0) {
-	                        out.write(buffer, 0, len);
-	                    }
-	                } finally {
-	                	if(in!=null)
-	                    in.close();
-	                }
-		            out.closeEntry();
-		        }
-		        monitor.worked(1);
-                if(monitor.isCanceled())
-                {
-                    monitor.done();
-                    return;
-                }
+		StringBuffer mcp=new StringBuffer("");
+		FileInputStream in=null;
+		
+		int i=1;
+		for (String classpathEntry : new HashSet<String>(MakeJarAndZip.jarList)) {
+			monitor.subTask("Zipping file " + (i++) + " of "+ (workload-1) + "...");
+		    if (classpathEntry.endsWith(".jar")) {
+		    	File jar = new File(classpathEntry);
+		        String p=jar.getAbsolutePath();
+		        String n=p.substring(p.lastIndexOf('\\')+1),n0=p.substring(0,p.lastIndexOf('\\'));
+		        mcp.append("java" + "/" + n+" ");
+		        ZipEntry e = new ZipEntry("java" + "/" + n);
+		        out.putNextEntry(e);
+		        in = new FileInputStream(n0 + "/" + n);
+	            int len;
+	            while ((len = in.read(buffer)) > 0) {
+	                out.write(buffer, 0, len);
+	            }
+		        if(in!=null) in.close();
+		        out.closeEntry();
 		    }
-		   out.close();
-		   MakeJarAndZip.zipUri=dff.getAbsolutePath();
-		   monitor.worked(1);
-		   monitor.done();
+		    monitor.worked(1);
+            if(monitor.isCanceled()){
+            	monitor.done();
+                return;
+            }
+		}
+		out.close();
+		MakeJarAndZip.zipUri=dff.getAbsolutePath();
+		monitor.worked(1);
+		monitor.done();
         }
-        catch (Exception e) {System.out.println(e.getMessage());}
+        catch (Exception e) {
+        	MessageDialog.openError(Display.getDefault().getActiveShell(), "Error generating archive zip", e.getMessage());
+        }
 
         // You are done
         monitor.done();

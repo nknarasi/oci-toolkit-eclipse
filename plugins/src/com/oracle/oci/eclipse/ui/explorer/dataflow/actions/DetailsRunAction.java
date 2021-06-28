@@ -29,7 +29,6 @@ public class DetailsRunAction extends BaseAction {
 
     private final RunTable table;
     private final List<RunSummary> runSelectionList;
-    //private String instanceName;
     private String runID;
     private String title = "Run Details";
 	private Run runObject;
@@ -51,11 +50,12 @@ public class DetailsRunAction extends BaseAction {
     protected void runAction() {
         if (runSelectionList.size() > 0) {
             RunSummary object = runSelectionList.get(0);
-            //instanceName = object.getDisplayName();
             runID = object.getId();
+            
 			try {
 				runObject=RunClient.getInstance().getRunDetails(runID);
-			} catch (Exception e) {
+			} 
+			catch (Exception e) {
 				MessageDialog.openError(Display.getDefault().getActiveShell(),"Unable to get Run details: ",e.getMessage());
 			}
         }
@@ -64,8 +64,6 @@ public class DetailsRunAction extends BaseAction {
             protected IStatus run(IProgressMonitor monitor) {
 
                 try {
-                    //InstanceWrapper instance = ComputeInstanceClient.getInstance().getInstanceDetails(instanceID);
-
                     Display.getDefault().asyncExec(new Runnable() {
                         @Override
                         public void run() {
@@ -113,22 +111,6 @@ public class DetailsRunAction extends BaseAction {
 		data.add(new TablePair("Executor Shape:", obj.getExecutorShape()));
 		data.add(new TablePair("Number of Executors:", obj.getNumExecutors().toString()));
 		data.add(new TablePair("", ""));
-        /*data.add(new TablePair("Instance OCID", instance.getInstance().getId()));
-
-        List<VolumeAttachment> volAttachIterable = instance.getVolumeAttachments();
-        for (VolumeAttachment volumeAttachment : volAttachIterable) {
-            data.add(new TablePair("Attached Volume", volumeAttachment.getDisplayName()));
-        }
-        try {
-            Vnic vnic = instance.getVnic();
-            if(vnic != null) {
-                data.add(new TablePair("Public IP", vnic.getPublicIp()));
-                data.add(new TablePair("Private IP", vnic.getPrivateIp()));
-            }
-        }
-        catch (Exception e) {
-            ErrorHandler.logErrorStack(e.getMessage(), e);;
-        }*/
         return data;
     }
 

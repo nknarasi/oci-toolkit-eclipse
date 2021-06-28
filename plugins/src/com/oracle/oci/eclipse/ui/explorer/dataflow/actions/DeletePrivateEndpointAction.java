@@ -34,11 +34,8 @@ public class DeletePrivateEndpointAction extends BaseAction {
 			DataFlowClient client = PrivateEndPointsClient.getInstance().getDataFLowClient();
 			DeletePrivateEndpointRequest deletePrivateEndpointRequest = DeletePrivateEndpointRequest.builder()
 			.privateEndpointId(pep.getId())
-			//.opcRequestId("MEEDOLYEF22O81LNWRUD/OpcRequestIdExample/<unique_ID>")
-			//.ifMatch("EXAMPLE-ifMatch-Value")
 			.build();
-			/* Send request to the Client */
-			//DeletePrivateEndpointResponse response = 
+
 			client.deletePrivateEndpoint(deletePrivateEndpointRequest);
 			MessageDialog.openInformation(pepTable.getShell(), "Successful", "Private Endpoint Deleting...");
 			pepTable.refresh(true);

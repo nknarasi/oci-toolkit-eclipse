@@ -1,18 +1,13 @@
 package com.oracle.oci.eclipse.ui.explorer.dataflow.editor;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -34,9 +29,6 @@ import com.oracle.bmc.dataflow.model.RunSummary;
 import com.oracle.bmc.dataflow.requests.ListRunsRequest;
 import com.oracle.bmc.dataflow.responses.ListRunsResponse;
 import com.oracle.bmc.identity.model.Compartment;
-import com.oracle.oci.eclipse.ErrorHandler;
-//import com.oracle.oci.eclipse.sdkclients.BlockStorageClient;
-import com.oracle.oci.eclipse.sdkclients.RunClient;
 import com.oracle.oci.eclipse.ui.account.CompartmentSelectWizard;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseTable;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseTableLabelProvider;
@@ -46,7 +38,6 @@ import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DetailsRunAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetRuns;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RefreshRunAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RunAction;
-import com.oracle.oci.eclipse.ui.explorer.objectstorage.actions.MakeJarAndZip;
 
 public class RunTable extends BaseTable {
     private int tableDataSize = 0;
@@ -61,12 +52,12 @@ public class RunTable extends BaseTable {
 	private static final int DATA_WRITTEN_COL = 7;
 	private static String compid;
 	private static String compname;
-	public HashMap<String,String> actionMap = createActionMap();
+	List<RunSummary> runSummaryList = new ArrayList<RunSummary>();
 	ListRunsRequest.SortBy s=ListRunsRequest.SortBy.TimeCreated;
 	ListRunsRequest.SortOrder so=ListRunsRequest.SortOrder.Desc;
 	String pagetoshow=null;
 	ListRunsResponse listrunsresponse;
-	Button pp,np;
+	Button previousPage,nextPage;
 	
     public RunTable(Composite parent, int style) {
         super(parent, style);
@@ -77,7 +68,7 @@ public class RunTable extends BaseTable {
         s=ListRunsRequest.SortBy.TimeCreated;
         so=ListRunsRequest.SortOrder.Desc;
     }
-    List<RunSummary> runSummaryList = new ArrayList<RunSummary>();
+
     @Override
     public List<RunSummary> getTableData() {
                 try {
@@ -87,6 +78,7 @@ public class RunTable extends BaseTable {
                     runSummaryList=((GetRuns)op).runSummaryList;
                     tableDataSize = runSummaryList.size();
                 } catch (Exception e) {
+                	MessageDialog.openError(getShell(), "Unable to get Runs list", e.getMessage());
                 }
                 refresh(false);
         return runSummaryList;
@@ -130,7 +122,7 @@ public class RunTable extends BaseTable {
                     return s.getDataReadInBytes().toString();
                 }
             } catch (Exception ex) {
-                ex.printStackTrace();
+                MessageDialog.openError(getShell(), "Unable to form table", ex.getMessage());
             }
             return "";
         }
@@ -140,8 +132,11 @@ public class RunTable extends BaseTable {
     protected void createColumns(TableColumnLayout tableColumnLayout, Table tree) {
     	
     	tree.setSortDirection(SWT.UP);
+    	
         TableColumn tc;
+        
         tc=createColumn(tableColumnLayout,tree, "Name", 15);
+        
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
             	pagetoshow=null;
@@ -151,7 +146,10 @@ public class RunTable extends BaseTable {
                 refresh(true);
               }
             });
+        
+        
         tc=createColumn(tableColumnLayout,tree, "Language", 6);
+        
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
             	pagetoshow=null;
@@ -161,7 +159,10 @@ public class RunTable extends BaseTable {
                 refresh(true);
               }
             });
+        
+        
         tc=createColumn(tableColumnLayout,tree, "State", 8);
+        
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
             	pagetoshow=null;
@@ -171,8 +172,13 @@ public class RunTable extends BaseTable {
                 refresh(true);
               }
             });
+        
+        
         createColumn(tableColumnLayout,tree, "Owner", 15);
+        
+        
         tc=createColumn(tableColumnLayout,tree, "Created", 10);
+        
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
             	pagetoshow=null;
@@ -182,7 +188,10 @@ public class RunTable extends BaseTable {
                 refresh(true);
               }
             });
+        
+        
         tc=createColumn(tableColumnLayout,tree, "Duration", 5);
+        
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
             	pagetoshow=null;
@@ -192,7 +201,10 @@ public class RunTable extends BaseTable {
                 refresh(true);
               }
             });
+        
+        
         tc=createColumn(tableColumnLayout,tree, "Total OCPU", 5);
+        
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
             	pagetoshow=null;
@@ -202,7 +214,10 @@ public class RunTable extends BaseTable {
                 refresh(true);
               }
             });
+        
+        
         tc=createColumn(tableColumnLayout,tree, "Data Written", 10);
+        
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
             	pagetoshow=null;
@@ -212,7 +227,10 @@ public class RunTable extends BaseTable {
                 refresh(true);
               }
             });
+        
+        
         tc=createColumn(tableColumnLayout,tree, "Data Read", 10);
+        
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
             	pagetoshow=null;
@@ -229,11 +247,6 @@ public class RunTable extends BaseTable {
         manager.add(new RefreshRunAction(RunTable.this));
         manager.add(new Separator());
 
-        /*if (getSelectedObjects().size() > 0) {
-            for (String action: actionMap.keySet()) {
-                manager.add(new InstanceAction(InstanceTable.this, action));
-            }
-        }*/
         if (getSelectedObjects().size() == 1) {
             manager.add(new Separator());
             manager.add(new DetailsRunAction(RunTable.this));
@@ -275,33 +288,33 @@ public class RunTable extends BaseTable {
         });
         Composite page=new Composite(right,SWT.NONE);GridLayout gl=new GridLayout();gl.numColumns=2;
         page.setLayout(gl);
-        pp=new Button(page,SWT.TRAVERSE_PAGE_PREVIOUS);np=new Button(page,SWT.TRAVERSE_PAGE_NEXT);
-        pp.setText("<");np.setText(">");
-        pp.setLayoutData(new GridData());np.setLayoutData(new GridData());
-        pp.setEnabled(false);
-        //if(tableDataSize<20) np.setEnabled(false);
+        previousPage=new Button(page,SWT.TRAVERSE_PAGE_PREVIOUS);
+        nextPage=new Button(page,SWT.TRAVERSE_PAGE_NEXT);
+        previousPage.setText("<");
+        nextPage.setText(">");
+        previousPage.setLayoutData(new GridData());
+        nextPage.setLayoutData(new GridData());
+        previousPage.setEnabled(false);
         
-        np.addSelectionListener(new SelectionListener() {
+        nextPage.addSelectionListener(new SelectionListener() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 
 				pagetoshow=listrunsresponse.getOpcNextPage();
 				refresh(true);
-				pp.setEnabled(true);
-				//if(pagetoshow.equals(listrunsresponse.getOpcNextPage())) np.setEnabled(false);
+				previousPage.setEnabled(true);
             }
 
             @Override
             public void widgetDefaultSelected(SelectionEvent e) {}
         });
         
-        pp.addSelectionListener(new SelectionListener() {
+        previousPage.addSelectionListener(new SelectionListener() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 
 				pagetoshow=listrunsresponse.getOpcPrevPage();
 				refresh(true);
-				//if(pagetoshow.equals(listrunsresponse.getOpcPrevPage())) pp.setEnabled(false);
             }
 
             @Override
@@ -311,11 +324,5 @@ public class RunTable extends BaseTable {
     }
 
 	
-	protected HashMap<String,String> createActionMap() {
-        actionMap = new HashMap<String,String>();
-        actionMap.put("View Details","VIEW_DETAILS");
-        actionMap.put("Re-run","RE_RUN");
-        actionMap.put("Spark UI","SPARK_UI");
-        return actionMap;
-    }
+
 }

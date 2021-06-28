@@ -1,10 +1,6 @@
 package com.oracle.oci.eclipse.ui.explorer.dataflow.wizards;
 
-import java.lang.reflect.InvocationTargetException;
-
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
@@ -13,19 +9,16 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWizard;
 
 import com.oracle.bmc.dataflow.DataFlowClient;
-import com.oracle.bmc.dataflow.model.ApplicationSummary;
 import com.oracle.bmc.dataflow.model.PrivateEndpointSummary;
 import com.oracle.bmc.dataflow.model.UpdatePrivateEndpointDetails;
 import com.oracle.bmc.dataflow.requests.UpdatePrivateEndpointRequest;
 import com.oracle.oci.eclipse.sdkclients.PrivateEndPointsClient;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.editor.PrivateEndpointTable;
 
-//import com.oracle.oci.eclipse.sdkclients.ObjStorageClient;
 
 public class EditPrivateEndpointWizard extends Wizard implements INewWizard {
     private EditPrivateEndpointPage page;
     private TagsPage page2;
-    private AdvancedOptionsPage page3;
     private ISelection selection;
 	private PrivateEndpointSummary pepSum;
 	private PrivateEndpointTable pepTable;
@@ -54,11 +47,6 @@ public class EditPrivateEndpointWizard extends Wizard implements INewWizard {
      */
     @Override
     public boolean performFinish() {
-        IRunnableWithProgress op = new IRunnableWithProgress() {
-            @Override
-            public void run(IProgressMonitor monitor) throws InvocationTargetException {
-            }
-        };
         if(!check()) return false;
         try {
         DataFlowClient client=PrivateEndPointsClient.getInstance().getDataFLowClient();

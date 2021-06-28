@@ -21,7 +21,6 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Text;
 
 import com.oracle.bmc.core.VirtualNetworkClient;
 import com.oracle.bmc.core.model.NetworkSecurityGroup;
@@ -34,10 +33,6 @@ import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
 
 
 public class NsgPage extends WizardPage {
-    private Text nameText;
-	private Combo vcnCombo;
-	private Combo subnetCombo;
-	private Text dnszText;
     private ISelection selection;
     private String compid;
     private Composite container,p;
@@ -69,8 +64,8 @@ public class NsgPage extends WizardPage {
         
         sc.addListener( SWT.Resize, event -> {
   		  int width = sc.getClientArea().width;
-  		  sc.setMinSize( container.computeSize( width, SWT.DEFAULT ) );
-  		} );
+  		  sc.setMinSize( container.computeSize( width, SWT.DEFAULT ));
+  		});
 		
         Button addNsg=new Button(container,SWT.PUSH);
         addNsg.setText("Another Network Security Group");
@@ -78,10 +73,9 @@ public class NsgPage extends WizardPage {
         
         addNsg.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
-            	
             	set.add(new Nsg());
             }
-          });
+        });
         
         setControl(sc);
     }
@@ -94,15 +88,21 @@ public class NsgPage extends WizardPage {
 	 class Nsg{
 
 		 Button close;
-		 Button cc;
+		 Button selComp;
 		 Combo combo;
 		 String compid2,compName2,nsgid;
 		 Map<String,String> m;
 		 
 		 Nsg(){
-			 close=new Button(container,SWT.PUSH);close.setText("X");
-			 cc=new Button(container,SWT.PUSH);cc.setText("Select Compartment");cc.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			 combo=new Combo(container,SWT.READ_ONLY);combo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			 close=new Button(container,SWT.PUSH);
+			 close.setText("X");
+			 selComp=new Button(container,SWT.PUSH);
+			 selComp.setText("Select Compartment");
+			 selComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			 
+			 combo=new Combo(container,SWT.READ_ONLY);
+			 combo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			 
 			 refresh();
 			 addClose();
 			 addSelectComp();
@@ -111,22 +111,22 @@ public class NsgPage extends WizardPage {
 		 
 		 void refresh() {
 			 container.layout(true,true);
-         	 sc.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
+         	 sc.setMinSize(container.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		 }
 		 
 		 void addComboListener() {
 			 combo.addSelectionListener(new SelectionAdapter() {
 			      public void widgetSelected(SelectionEvent e) {
 			          nsgid=m.get(combo.getText());
-			        }
-			      });
+			       }
+			 });
 		 }
 		 
 		 void addClose() {
 			 
 			 close.addSelectionListener(new SelectionAdapter() {
 				 public void widgetSelected(SelectionEvent e) {
-					 cc.dispose();
+					 selComp.dispose();
 					 combo.dispose();
 					 close.dispose();
 					 set.remove(Nsg.this);
@@ -137,8 +137,8 @@ public class NsgPage extends WizardPage {
 		 
 		 void addSelectComp() {
 			 
-			 cc.addSelectionListener(new SelectionAdapter() {
-				 @Override
+			 selComp.addSelectionListener(new SelectionAdapter() {
+				    @Override
 		            public void widgetSelected(SelectionEvent e) {
 		                
 						Consumer<Compartment> consumer=new Consumer<Compartment>() {
@@ -146,28 +146,28 @@ public class NsgPage extends WizardPage {
 						@Override
 						public void accept(Compartment comp) {
 							
-							cc.setText(comp.getName());
+							selComp.setText(comp.getName());
 							VirtualNetworkClient client = new VirtualNetworkClient(AuthProvider.getInstance().getProvider());
-							ListNetworkSecurityGroupsRequest listNetworkSecurityGroupsRequest = ListNetworkSecurityGroupsRequest.builder()
-							.compartmentId(comp.getId()).build();
+							ListNetworkSecurityGroupsRequest listNetworkSecurityGroupsRequest = ListNetworkSecurityGroupsRequest.builder().compartmentId(comp.getId()).build();
 
-					        /* Send request to the Client */
 					        ListNetworkSecurityGroupsResponse response = client.listNetworkSecurityGroups(listNetworkSecurityGroupsRequest);
-					        l=new ArrayList<String>();List<NetworkSecurityGroup> nsgl=response.getItems();m=new HashMap<String,String>();
+					        l=new ArrayList<String>();
+					        List<NetworkSecurityGroup> nsgl=response.getItems();
+					        m=new HashMap<String,String>();
+					        
 					        String[] sl=new String[0];
 					        if(nsgl!=null&&nsgl.size()>0) {
-					        sl=new String[nsgl.size()];int i=0;
-					        for(NetworkSecurityGroup e:nsgl) {
-					        	sl[i]=e.getDisplayName();m.put(e.getDisplayName(),e.getId());i++;
-					        }}
+					        	sl=new String[nsgl.size()];int i=0;
+					        	for(NetworkSecurityGroup e:nsgl) {
+					        		sl[i]=e.getDisplayName();m.put(e.getDisplayName(),e.getId());i++;
+					        	}
+					        }
 					        combo.setItems(sl);
 						}
 						};
-						CustomWizardDialog dialog = new CustomWizardDialog(Display.getDefault().getActiveShell(),
-								new CompartmentSelectWizard(consumer, false));
+						CustomWizardDialog dialog = new CustomWizardDialog(Display.getDefault().getActiveShell(),new CompartmentSelectWizard(consumer, false));
 						dialog.setFinishButtonText("Select");
-						if (Window.OK == dialog.open()) {
-						}
+						if (Window.OK == dialog.open()) {}
 		            }
 			 });
 		 }
