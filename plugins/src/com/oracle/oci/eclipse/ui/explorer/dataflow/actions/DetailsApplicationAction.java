@@ -25,7 +25,6 @@ public class DetailsApplicationAction extends BaseAction {
 	    private String applicationID;
 	    private String title = "Application Details";
 
-	    @SuppressWarnings("unchecked")
 		public DetailsApplicationAction (ApplicationTable table){
 	        applicationSelectionList = (List<ApplicationSummary>) table.getSelectedObjects();
 	    }
@@ -91,30 +90,27 @@ public class DetailsApplicationAction extends BaseAction {
 	        	data.add(new TablePair("Main Class Name", application.getClassName()));
 	        
 	        
-	        if(application.getArguments().size() == 0) {
+	        if(application.getArguments() == null || application.getArguments().size() == 0) {
 	        	data.add(new TablePair("Arguments", "NO VALUE"));
 	        }
 	        else
 	        	data.add(new TablePair("Arguments", application.getArguments().toString()));
 	        
-        	if(application.getParameters().size() != 0 ) {
+        	if(application.getParameters() != null && application.getParameters().size() != 0 ) {
         		data.add(new TablePair("Parameters", application.getParameters().toString()));
         	}
 	        
 	        data.add(new TablePair("Application Log Location", application.getLogsBucketUri()));
 	        
-	        if(application.getDefinedTags().size() != 0)
+	        if(application.getDefinedTags() != null && application.getDefinedTags().size() != 0)
 	        	data.add(new TablePair("Oracle Tags", application.getDefinedTags().toString()));
 	        
-	        if(application.getFreeformTags().size() != 0)
+	        if(application.getFreeformTags() != null && application.getFreeformTags().size() != 0)
 	        	data.add(new TablePair("FreeForm Tags", application.getFreeformTags().toString()));
 	        
-	        if(application.getConfiguration().size() != 0)
+	        if(application.getConfiguration() != null && application.getConfiguration().size() != 0)
 	        	data.add(new TablePair("Configuration", application.getConfiguration().toString()));
-	        
-	        if(application.getLanguage() == ApplicationLanguage.Sql &&  application.getParameters() != null) {
-	        	data.add(new TablePair("Parameters", application.getParameters().toString()));
-	        }
+
 	        if(application.getPrivateEndpointId() != null) {
 	        	data.add(new TablePair("Private Endpoints", application.getPrivateEndpointId()));
 	        }

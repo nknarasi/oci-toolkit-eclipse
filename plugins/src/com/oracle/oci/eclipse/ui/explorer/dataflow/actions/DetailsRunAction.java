@@ -74,7 +74,7 @@ public class DetailsRunAction extends BaseAction {
                     });
 
                 } catch (Exception e) {
-                    return ErrorHandler.reportException("Unable to get Run details: " + e.getMessage(), e);
+                	MessageDialog.openError(Display.getDefault().getActiveShell(),"Unable to get Run details: ",e.getMessage());
                 }
                 return Status.OK_STATUS;
             }

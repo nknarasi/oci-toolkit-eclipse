@@ -3,20 +3,17 @@ package com.oracle.oci.eclipse.sdkclients;
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.List;
-
 import com.oracle.bmc.dataflow.DataFlowClient;
 import com.oracle.bmc.dataflow.model.Application;
 import com.oracle.bmc.dataflow.model.ApplicationSummary;
 import com.oracle.bmc.dataflow.model.CreateApplicationDetails;
 import com.oracle.bmc.dataflow.model.CreateRunDetails;
 import com.oracle.bmc.dataflow.model.UpdateApplicationDetails;
-import com.oracle.bmc.dataflow.model.UpdateRunDetails;
 import com.oracle.bmc.dataflow.requests.CreateApplicationRequest;
 import com.oracle.bmc.dataflow.requests.CreateRunRequest;
 import com.oracle.bmc.dataflow.requests.DeleteApplicationRequest;
 import com.oracle.bmc.dataflow.requests.GetApplicationRequest;
 import com.oracle.bmc.dataflow.requests.ListApplicationsRequest;
-import com.oracle.bmc.dataflow.requests.ListRunsRequest;
 import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.account.AuthProvider;
 import com.oracle.bmc.dataflow.requests.ListApplicationsRequest.Builder;
@@ -25,7 +22,6 @@ import com.oracle.bmc.dataflow.responses.CreateApplicationResponse;
 import com.oracle.bmc.dataflow.responses.CreateRunResponse;
 import com.oracle.bmc.dataflow.responses.ListApplicationsResponse;
 import com.oracle.bmc.dataflow.responses.UpdateApplicationResponse;
-import com.oracle.bmc.dataflow.responses.UpdateRunResponse;
 
 public class ApplicationClient extends BaseClient {
 
@@ -56,12 +52,17 @@ public class ApplicationClient extends BaseClient {
         dataflowClient.setRegion(evt.getNewValue().toString());
     }
 
+    
     @Override
     public void updateClient() {
         close();
         createApplicationClient();
     }
    
+    public DataFlowClient getDataFlowClient() {
+        return dataflowClient;
+    }
+    
     @Override
     public void close() {
         try {
@@ -127,9 +128,7 @@ public class ApplicationClient extends BaseClient {
         		.createRunDetails(request)
         		.build());   
     }
-    
-
-    
+        
     public Application editApplication(String applicationId,final UpdateApplicationDetails request ) {
     	UpdateApplicationResponse response=	dataflowClient.updateApplication(UpdateApplicationRequest.builder()
     			.applicationId(applicationId)

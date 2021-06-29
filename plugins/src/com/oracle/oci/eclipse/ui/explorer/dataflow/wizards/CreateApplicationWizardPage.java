@@ -41,54 +41,43 @@ import com.oracle.oci.eclipse.ui.explorer.dataflow.DataflowConstants;
 
 public class CreateApplicationWizardPage extends WizardPage {
 	
-	private Composite container;
-	
-	private Text displayNameText;
-	private Text ApplicationDescriptionText;
-	private Text compartmentText;
-	
-    private ScrolledComposite sc;
-    
 	private ISelection selection;
-	
+	private Composite container;	
+	private Text displayNameText;
+	private Text applicationDescriptionText;
+	private Text compartmentText;	
+    private ScrolledComposite scrolledComposite;   	
 	private String selectedApplicationCompartmentId= AuthProvider.getInstance().getCompartmentId();
-	private String selectedApplicationCompartmentName= AuthProvider.getInstance().getCompartmentName();
-	
-	
-	private Combo SparkVersionCombo;
-	private Combo DriverShapeCombo;
-	private Combo ExecutorShapeCombo;
-	private Spinner NumofExecutorsSpinner;
-	Button usesparksubmitButton;
-	private Group LanguageGroup;
-	private Button LanguageGroupJavaRadioButton;
-	private Button LanguageGroupPythonRadioButton;
-	private Button LanguageGroupSQLRadioButton;
-	private Button LanguageGroupScalaRadioButton;
-	
-	private ApplicationLanguage LanguageUsed;
-
-    private Composite basesqlcontainer;
-
-    private Set<Parameters> sqlset=new HashSet<Parameters>();
-		
-	private Label MainClassNamelabel;
-	private Label Argumentslabel;
-	private Text MainClassNameText;
-	private Text ArgumentsText;
-	private Text ArchiveUriText;
-	Text FileUriText;
-	private DataTransferObject dto;
-	
-	private boolean UsesSparkSubmit=false;
-	private Button FileSelectButton;
-	private Label FileUrilabel;
-	private Label Languagelabel;
-	private Label ArchiveUrilabel;
-	private Composite FileUriContainer ;
-	
-	private Label SparkSubmitlabel;
-	private Text SparkSubmitText;
+	private String selectedApplicationCompartmentName= AuthProvider.getInstance().getCompartmentName();	
+	private Combo sparkVersionCombo;
+	private Combo driverShapeCombo;
+	private Combo executorShapeCombo;
+	private Spinner numofExecutorsSpinner;
+	private Button useSparkSubmitButton;
+	private Group languageGroup;
+	private Button languageGroupJavaRadioButton;
+	private Button languageGroupPythonRadioButton;
+	private Button languageGroupSQLRadioButton;
+	private Button languageGroupScalaRadioButton;	
+	private ApplicationLanguage languageUsed;
+    private Composite parameterContainer;
+    private Set<Parameters> parameterSet=new HashSet<Parameters>();		
+	private Label mainClassNamelabel;
+	private Label argumentsLabel;
+	private Text mainClassNameText;
+	private Text argumentsText;
+	private Text archiveUriText;
+	private Text fileUriText;
+	private DataTransferObject dto;	
+	private boolean usesSparkSubmit=false;
+	private Button fileSelectButton;
+	private Label fileUriLabel;
+	private Label languageLabel;
+	private Label archiveUriLabel;
+	private Composite fileUriContainer ;	
+	private Label sparkSubmitLabel;
+	private Text sparkSubmitText;
+	boolean allow = false;
 	
 	public CreateApplicationWizardPage(ISelection selection,DataTransferObject dto,String COMPARTMENT_ID) {
 		super("page");
@@ -117,13 +106,13 @@ public class CreateApplicationWizardPage extends WizardPage {
 	@Override
 	public void createControl(Composite parent) {	
 		
-		sc=new ScrolledComposite(parent,SWT.V_SCROLL | SWT.H_SCROLL);
-    	sc.setExpandHorizontal( true );
-    	sc.setExpandVertical( true );       
-    	sc.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		scrolledComposite=new ScrolledComposite(parent,SWT.V_SCROLL | SWT.H_SCROLL);
+		scrolledComposite.setExpandHorizontal( true );
+		scrolledComposite.setExpandVertical( true );       
+		scrolledComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
     	
-		container = new Composite(sc, SWT.NULL);
-		sc.setContent(container);
+		container = new Composite(scrolledComposite, SWT.NULL);
+		scrolledComposite.setContent(container);
 		GridLayout layout = new GridLayout();
 		container.setLayout(layout);
 		layout.numColumns = 2;
@@ -160,20 +149,19 @@ public class CreateApplicationWizardPage extends WizardPage {
 		displayNameText.setLayoutData(gd);
 		displayNameText.setText("App " + defaultApplicationName);
 		
-		
 		Label Applicationdescriptionlabel = new Label(container, SWT.NULL);
 		Applicationdescriptionlabel.setText("&Application Description:");
-		ApplicationDescriptionText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		applicationDescriptionText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		GridData gd1 = new GridData(GridData.FILL_HORIZONTAL);
-		ApplicationDescriptionText.setLayoutData(gd1);
+		applicationDescriptionText.setLayoutData(gd1);
 		
 		Label SparkVersionLabel = new Label(container, SWT.NULL);
 		SparkVersionLabel.setText("&Spark Version:");
 		GridData gd2 = new GridData(GridData.FILL_HORIZONTAL);
-		SparkVersionCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
-		SparkVersionCombo.setLayoutData(gd2);		 
-		SparkVersionCombo.setItems(DataflowConstants.Versions);
-		SparkVersionCombo.select(0);		      
+		sparkVersionCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
+		sparkVersionCombo.setLayoutData(gd2);		 
+		sparkVersionCombo.setItems(DataflowConstants.Versions);
+		sparkVersionCombo.select(0);		      
 		
 		Label DriverShapeLabel = new Label(container, SWT.NULL);
 		DriverShapeLabel.setText("&Driver Shape:");
@@ -186,23 +174,21 @@ public class CreateApplicationWizardPage extends WizardPage {
 		Label NumofExecutorslabel = new Label(container, SWT.NULL);
 		NumofExecutorslabel.setText("&Number of Executors:");
 		createNumofExecutorsSpinner(container); 
-		
-
-		
-			usesparksubmitButton =  new Button(container,SWT.CHECK);
-	        usesparksubmitButton.setText("Use Spark Submit");
-	        usesparksubmitButton.addSelectionListener(new SelectionAdapter() {
+				
+		useSparkSubmitButton =  new Button(container,SWT.CHECK);
+		useSparkSubmitButton.setText("Use Spark Submit");
+		useSparkSubmitButton.addSelectionListener(new SelectionAdapter() {
 	     	    @Override
 	     	    public void widgetSelected(SelectionEvent event) {
 	     	    	 Button btn = (Button) event.getSource();
 	     	    	 if(btn.getSelection()) {
-	     	    		UsesSparkSubmit=true; 
+	     	    		usesSparkSubmit=true; 
 	     	    		disposeLanguagesection();
 	     	    		withSparkSubmit(container);
 	     	    	 }
 	     	    	 else
 	     	    	 {
-	     	    		UsesSparkSubmit=false;
+	     	    		usesSparkSubmit=false;
 	     	    		disposeSparkSubmit();
 	     	    		withoutSparkSubmit(container);
 	     	    	 }
@@ -210,147 +196,137 @@ public class CreateApplicationWizardPage extends WizardPage {
 	     	    }
 	     	});
 	        	        
-	     Label dummy = new Label(container, SWT.NULL);
-	   				
-		withoutSparkSubmit(container);	 
-		 setControl(sc);
-		
+	     Label dummy = new Label(container, SWT.NULL);	   				
+	     withoutSparkSubmit(container);	 
+		 setControl(scrolledComposite);		
 	}
 	
 	private void withSparkSubmit(Composite container) {		
-		 SparkSubmitlabel = new Label(container, SWT.NULL);
-		 SparkSubmitlabel.setText("&Spark Submit Command:");
-		 SparkSubmitText = new Text(container, SWT.BORDER | SWT.SINGLE);
-		 SparkSubmitText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));          		        
+		 sparkSubmitLabel = new Label(container, SWT.NULL);
+		 sparkSubmitLabel.setText("&Spark Submit Command:");
+		 sparkSubmitText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		 sparkSubmitText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));          		        
 	}
 	
 	private void withoutSparkSubmit(Composite container){
-		Languagelabel = new Label(container, SWT.NULL);
-		Languagelabel.setText("&Language:");
+		languageLabel = new Label(container, SWT.NULL);
+		languageLabel.setText("&Language:");
 		createLanguageCombo(container);
 		
-		FileUrilabel = new Label(container, SWT.NULL);
-		FileUrilabel.setText("&Choose a File:");
-		FileUriContainer = new Composite(container, SWT.NONE);
+		fileUriLabel = new Label(container, SWT.NULL);
+		fileUriLabel.setText("&Choose a File:");
+		fileUriContainer = new Composite(container, SWT.NONE);
         GridLayout FileUriLayout = new GridLayout();
         FileUriLayout.numColumns = 2;
-        FileUriContainer.setLayout(FileUriLayout);
-        FileUriContainer.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        fileUriContainer.setLayout(FileUriLayout);
+        fileUriContainer.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-        FileUriText = new Text(FileUriContainer, SWT.BORDER | SWT.SINGLE);
-        FileUriText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        FileUriText.setEditable(false);
-        FileSelectButton = new Button(FileUriContainer, SWT.PUSH);
-        FileSelectButton.setText("Choose");
+        fileUriText = new Text(fileUriContainer, SWT.BORDER | SWT.SINGLE);
+        fileUriText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        fileUriText.setEditable(false);
+        fileSelectButton = new Button(fileUriContainer, SWT.PUSH);
+        fileSelectButton.setText("Choose");
         
-        FileSelectButton.addSelectionListener(new SelectionAdapter() {
+        fileSelectButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
             	handleSelectObjectEvent();
             }
         });        
-
-		 ArchiveUrilabel = new Label(container, SWT.NULL);
-		 ArchiveUrilabel.setText("&Archive URL:");
-		 ArchiveUriText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		 archiveUriLabel = new Label(container, SWT.NULL);
+		 archiveUriLabel.setText("&Archive URL:");
+		 archiveUriText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		 GridData gd10 = new GridData(GridData.FILL_HORIZONTAL);
-		 ArchiveUriText.setLayoutData(gd10);   
-		 
-	        if(dto.isLocal()) {
-	        	FileUriText.setText("Not Required");
-	        	ArchiveUriText.setText("Not Required");
-	        	ArchiveUriText.setEditable(false);
-	        	FileSelectButton.setEnabled(false); 
-	        }
-		 LanguageUsed  = ApplicationLanguage.Java;            		
+		 archiveUriText.setLayoutData(gd10);   		 
+		 languageUsed  = ApplicationLanguage.Java;            		
 		 JavaLanguageSelected(container);
 		 SQLLanguageSelected(container);
 	}
 	
 	private void disposeSparkSubmit() {
-		if(SparkSubmitlabel != null) {
-			SparkSubmitlabel.dispose();
-			SparkSubmitText.dispose();
+		if(sparkSubmitLabel != null) {
+			sparkSubmitLabel.dispose();
+			sparkSubmitText.dispose();
 		}
 	}
 	
 	private void disposeLanguagesection() {
 
-		if(Languagelabel != null) 
-			Languagelabel.dispose();
+		if(languageLabel != null) 
+			languageLabel.dispose();
 			
-		if(LanguageGroup != null) {			
-			LanguageGroupJavaRadioButton.dispose();
-			LanguageGroupPythonRadioButton.dispose();
-			LanguageGroupSQLRadioButton.dispose();
-			LanguageGroupScalaRadioButton.dispose();
-			LanguageGroup.dispose();
+		if(languageGroup != null) {			
+			languageGroupJavaRadioButton.dispose();
+			languageGroupPythonRadioButton.dispose();
+			languageGroupSQLRadioButton.dispose();
+			languageGroupScalaRadioButton.dispose();
+			languageGroup.dispose();
 		}
 			
-		if(FileUrilabel != null) {
-			FileUrilabel.dispose();
-			FileUriText.dispose();
-			FileSelectButton.dispose();
-			FileUriContainer.dispose();
+		if(fileUriLabel != null) {
+			fileUriLabel.dispose();
+			fileUriText.dispose();
+			fileSelectButton.dispose();
+			fileUriContainer.dispose();
 		}
 		disposePrevious();
-		if(ArchiveUrilabel != null) {
-			ArchiveUrilabel.dispose();
-			ArchiveUriText.dispose();
+		if(archiveUriLabel != null) {
+			archiveUriLabel.dispose();
+			archiveUriText.dispose();
 		}
 		
 			
 	}
 	private void createDriverShapeCombo(Composite container) {	
-		DriverShapeCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
+		driverShapeCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
 		GridData gd3 = new GridData(GridData.FILL_HORIZONTAL);
-		DriverShapeCombo.setLayoutData(gd3);
-		DriverShapeCombo.setItems(DataflowConstants.Shapes);		
-		DriverShapeCombo.select(0);
+		driverShapeCombo.setLayoutData(gd3);
+		driverShapeCombo.setItems(DataflowConstants.Shapes);		
+		driverShapeCombo.select(0);
 		
 	}
 	
 	private void createExecutorShapeCombo(Composite container) {
-		ExecutorShapeCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
+		executorShapeCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
 		GridData gd4 = new GridData(GridData.FILL_HORIZONTAL);
-		ExecutorShapeCombo.setLayoutData(gd4);	 
-		ExecutorShapeCombo.setItems(DataflowConstants.Shapes);		
-		ExecutorShapeCombo.select(0);
+		executorShapeCombo.setLayoutData(gd4);	 
+		executorShapeCombo.setItems(DataflowConstants.Shapes);		
+		executorShapeCombo.select(0);
 		
 	}
 	
 	private void createNumofExecutorsSpinner(Composite container) {
-		NumofExecutorsSpinner = new Spinner(container, SWT.BORDER | SWT.SINGLE);
+		numofExecutorsSpinner = new Spinner(container, SWT.BORDER | SWT.SINGLE);
 		GridData gd5 = new GridData(GridData.FILL_HORIZONTAL);
-		NumofExecutorsSpinner.setLayoutData(gd5);
-		NumofExecutorsSpinner.setMinimum(DataflowConstants.NUM_OF_EXECUTORS_MIN);
-		NumofExecutorsSpinner.setMaximum(DataflowConstants.NUM_OF_EXECUTORS_MAX);
-		NumofExecutorsSpinner.setIncrement(DataflowConstants.NUM_OF_EXECUTORS_INCREMENT);
+		numofExecutorsSpinner.setLayoutData(gd5);
+		numofExecutorsSpinner.setMinimum(DataflowConstants.NUM_OF_EXECUTORS_MIN);
+		numofExecutorsSpinner.setMaximum(DataflowConstants.NUM_OF_EXECUTORS_MAX);
+		numofExecutorsSpinner.setIncrement(DataflowConstants.NUM_OF_EXECUTORS_INCREMENT);
 		// default value
-		NumofExecutorsSpinner.setSelection(DataflowConstants.NUM_OF_EXECUTORS_DEFAULT);
+		numofExecutorsSpinner.setSelection(DataflowConstants.NUM_OF_EXECUTORS_DEFAULT);
 	}
 	
 	private void createLanguageCombo(Composite currentcontainer) {
 				
 		
-		LanguageGroup = new Group(currentcontainer, SWT.NONE);
+		languageGroup = new Group(currentcontainer, SWT.NONE);
 		RowLayout rowLayout1 = new RowLayout(SWT.HORIZONTAL);
         rowLayout1.spacing = 100;
-		LanguageGroup.setLayout(rowLayout1);
+		languageGroup.setLayout(rowLayout1);
 		GridData gd6 = new GridData(GridData.FILL_HORIZONTAL);
-		LanguageGroup.setLayoutData(gd6);
+		languageGroup.setLayoutData(gd6);
 		
-		LanguageGroupJavaRadioButton = new Button(LanguageGroup, SWT.RADIO);
-		LanguageGroupJavaRadioButton.setText("Java");		
-		LanguageGroupJavaRadioButton.addSelectionListener(new SelectionAdapter() {
+		languageGroupJavaRadioButton = new Button(languageGroup, SWT.RADIO);
+		languageGroupJavaRadioButton.setText("Java");		
+		languageGroupJavaRadioButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-            	if(LanguageUsed != ApplicationLanguage.Java )
+            	if(languageUsed != ApplicationLanguage.Java )
             	{
             		if(!dto.isLocal())
-            			FileUriText.setText("");
+            			fileUriText.setText("");
             		disposePrevious();
-            		LanguageUsed  = ApplicationLanguage.Java;            		
+            		languageUsed  = ApplicationLanguage.Java;            		
             		JavaLanguageSelected(container);
             		SQLLanguageSelected(container);             		
             		
@@ -361,19 +337,19 @@ public class CreateApplicationWizardPage extends WizardPage {
             }
         });
       
-		LanguageGroupJavaRadioButton.setSelection(true); 
+		languageGroupJavaRadioButton.setSelection(true); 
 		
-		LanguageGroupPythonRadioButton = new Button(LanguageGroup, SWT.RADIO);
-		LanguageGroupPythonRadioButton.setText("Python");		
-		LanguageGroupPythonRadioButton.addSelectionListener(new SelectionAdapter() {
+		languageGroupPythonRadioButton = new Button(languageGroup, SWT.RADIO);
+		languageGroupPythonRadioButton.setText("Python");		
+		languageGroupPythonRadioButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-            	if(LanguageUsed != ApplicationLanguage.Python )
+            	if(languageUsed != ApplicationLanguage.Python )
             	{
             		disposePrevious();
             		if(!dto.isLocal())
-            			FileUriText.setText("");
-            		LanguageUsed  = ApplicationLanguage.Python;            		
+            			fileUriText.setText("");
+            		languageUsed  = ApplicationLanguage.Python;            		
             		PythonLanguageSelected(container);  
             		SQLLanguageSelected(container);  
             		
@@ -386,17 +362,17 @@ public class CreateApplicationWizardPage extends WizardPage {
             }
         });	
 		
-		LanguageGroupSQLRadioButton = new Button(LanguageGroup, SWT.RADIO);
-		LanguageGroupSQLRadioButton.setText("SQL");		
-		LanguageGroupSQLRadioButton.addSelectionListener(new SelectionAdapter() {
+		languageGroupSQLRadioButton = new Button(languageGroup, SWT.RADIO);
+		languageGroupSQLRadioButton.setText("SQL");		
+		languageGroupSQLRadioButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-            	if(LanguageUsed != ApplicationLanguage.Sql )
+            	if(languageUsed != ApplicationLanguage.Sql )
             	{
             		disposePrevious();
             		if(!dto.isLocal())
-            			FileUriText.setText("");
-            		LanguageUsed  = ApplicationLanguage.Sql;            		
+            			fileUriText.setText("");
+            		languageUsed  = ApplicationLanguage.Sql;            		
             		SQLLanguageSelected(container);   
             		
             	}
@@ -407,17 +383,17 @@ public class CreateApplicationWizardPage extends WizardPage {
             }
         });	
 		
-		LanguageGroupScalaRadioButton = new Button(LanguageGroup, SWT.RADIO);
-		LanguageGroupScalaRadioButton.setText("Scala");
-		LanguageGroupScalaRadioButton.addSelectionListener(new SelectionAdapter() {
+		languageGroupScalaRadioButton = new Button(languageGroup, SWT.RADIO);
+		languageGroupScalaRadioButton.setText("Scala");
+		languageGroupScalaRadioButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-            	if(LanguageUsed != ApplicationLanguage.Scala )
+            	if(languageUsed != ApplicationLanguage.Scala )
             	{
             		disposePrevious();
             		if(!dto.isLocal())
-            			FileUriText.setText("");
-            		LanguageUsed  = ApplicationLanguage.Scala;            		
+            			fileUriText.setText("");
+            		languageUsed  = ApplicationLanguage.Scala;            		
             		JavaLanguageSelected(container); 
             		SQLLanguageSelected(container);  
             		
@@ -431,72 +407,70 @@ public class CreateApplicationWizardPage extends WizardPage {
 
 	}
 	private void disposePrevious() {
-		if(MainClassNameText != null) {
-			MainClassNameText.dispose();
+		if(mainClassNameText != null) {
+			mainClassNameText.dispose();
 		}
-		if(ArgumentsText != null) {
-			ArgumentsText.dispose();
+		if(argumentsText != null) {
+			argumentsText.dispose();
 		}
-		if(Argumentslabel != null) {
-			Argumentslabel.dispose();
+		if(argumentsLabel != null) {
+			argumentsLabel.dispose();
 		}
-		if(MainClassNamelabel != null) {
-			MainClassNamelabel.dispose();
+		if(mainClassNamelabel != null) {
+			mainClassNamelabel.dispose();
 		}
 		
-		for(Parameters item : sqlset) {
+		for(Parameters item : parameterSet) {
 			item.composite.dispose();
 		}
 		
-		if(basesqlcontainer != null) {
-			basesqlcontainer.dispose();
+		if(parameterContainer != null) {
+			parameterContainer.dispose();
 		}
 	
 	}
 	private void JavaLanguageSelected(Composite container) {	
-		MainClassNamelabel = new Label(container, SWT.NULL);
-		MainClassNamelabel.setText("&Main Class Name:");
-		MainClassNameText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		mainClassNamelabel = new Label(container, SWT.NULL);
+		mainClassNamelabel.setText("&Main Class Name:");
+		mainClassNameText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		GridData gd7 = new GridData(GridData.FILL_HORIZONTAL);
-		MainClassNameText.setLayoutData(gd7);		
-		Argumentslabel = new Label(container, SWT.NULL);
-		Argumentslabel.setText("&Arguments:");
-		ArgumentsText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		mainClassNameText.setLayoutData(gd7);		
+		argumentsLabel = new Label(container, SWT.NULL);
+		argumentsLabel.setText("&Arguments:");
+		argumentsText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		GridData gd8 = new GridData(GridData.FILL_HORIZONTAL);
-		ArgumentsText.setLayoutData(gd8);
+		argumentsText.setLayoutData(gd8);
 		
 		
 	}
 	
 	private void PythonLanguageSelected(Composite container) {		
-		Argumentslabel = new Label(container, SWT.NULL);
-		Argumentslabel.setText("&Arguments:");
-		ArgumentsText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		argumentsLabel = new Label(container, SWT.NULL);
+		argumentsLabel.setText("&Arguments:");
+		argumentsText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		GridData gd8 = new GridData(GridData.FILL_HORIZONTAL);
-		ArgumentsText.setLayoutData(gd8);
-		
-		
+		argumentsText.setLayoutData(gd8);		
 	}
 	
 	private void SQLLanguageSelected(Composite parent) {
 		
-		basesqlcontainer = new Composite(parent, SWT.NULL);
+		parameterContainer = new Composite(parent, SWT.NULL);
 		GridData grid1 = new GridData(GridData.FILL_HORIZONTAL);
 		grid1.horizontalSpan = 2;
-		basesqlcontainer.setLayoutData(grid1);
+		parameterContainer.setLayoutData(grid1);
         GridLayout layout1 = new GridLayout();
-        basesqlcontainer.setLayout(layout1);
+        parameterContainer.setLayout(layout1);
         layout1.numColumns = 1;
 		
 
         
-        Button addParameter = new Button(basesqlcontainer,SWT.PUSH);
+        Button addParameter = new Button(parameterContainer,SWT.PUSH);
         addParameter.setLayoutData(new GridData());
         addParameter.setText("Add a Parameter");        
         addParameter.addSelectionListener(new SelectionAdapter() {        	
             public void widgetSelected(SelectionEvent e) {          	
-            	Parameters newtag= new Parameters(basesqlcontainer,container,sc, sqlset);
-            	sqlset.add(newtag);
+            	Parameters newtag= new Parameters(parameterContainer,container,scrolledComposite, parameterSet);
+            	parameterSet.add(newtag);
             }
           });        
 
@@ -525,12 +499,12 @@ public class CreateApplicationWizardPage extends WizardPage {
 			@Override
 			public void accept(String object) {
 				if (object != null) {
-					FileUriText.setText(object);
+					fileUriText.setText(object);
 				}
 			}
 		};
     	CustomWizardDialog dialog = new CustomWizardDialog(Display.getDefault().getActiveShell(),
-				new BucketSelectWizard(consumer,selectedApplicationCompartmentId,LanguageUsed));
+				new BucketSelectWizard(consumer,selectedApplicationCompartmentId,languageUsed));
 		dialog.setFinishButtonText("Select");
 		if (Window.OK == dialog.open()) {
 		}
@@ -550,33 +524,33 @@ public class CreateApplicationWizardPage extends WizardPage {
 	}
 	
 	public String getApplicationDescription() {
-		return ApplicationDescriptionText.getText();
+		return applicationDescriptionText.getText();
 	}
 	
 	public String getSparkVersion() {		
-		return SparkVersionCombo.getText();
+		return sparkVersionCombo.getText();
 	}
 	
 	public String getDriverShape() {		
-		return DriverShapeCombo.getText();
+		return driverShapeCombo.getText();
 	}
 	
 	public String getExecutorShape() {		
-		return ExecutorShapeCombo.getText();
+		return executorShapeCombo.getText();
 	}
 	
 	public String getNumofExecutors() {		
-		return NumofExecutorsSpinner.getText();
+		return numofExecutorsSpinner.getText();
 	}
 	
 	public ApplicationLanguage getLanguage() {		
-		if(LanguageGroupJavaRadioButton.getSelection()) {
+		if(languageGroupJavaRadioButton.getSelection()) {
 			return ApplicationLanguage.Java;
 		}
-		else if(LanguageGroupPythonRadioButton.getSelection()) {
+		else if(languageGroupPythonRadioButton.getSelection()) {
 			return ApplicationLanguage.Python;
 		}
-		else if(LanguageGroupSQLRadioButton.getSelection()) {
+		else if(languageGroupSQLRadioButton.getSelection()) {
 			return ApplicationLanguage.Sql;
 		}
 		else{
@@ -585,31 +559,31 @@ public class CreateApplicationWizardPage extends WizardPage {
 	}
 	
 	public String getFileUri() {		
-		return FileUriText.getText();
+		return fileUriText.getText();
 	}
 	
 	public String getArchiveUri() {		
-		return ArchiveUriText.getText().trim();
+		return archiveUriText.getText().trim();
 	}
 	
 	public String getMainClassName() {		
-		return MainClassNameText.getText();
+		return mainClassNameText.getText();
 	}	
 	
 	public boolean usesSparkSubmit() {
-		return UsesSparkSubmit;
+		return usesSparkSubmit;
 	}
 	
 	public String getSparkSubmit() {
-		return SparkSubmitText.getText();
+		return sparkSubmitText.getText();
 	}
 	
 	public  List<ApplicationParameter> getParameters(){
 		List<ApplicationParameter> Parameters = new ArrayList<ApplicationParameter>();	 
-		 for(Parameters parameter : sqlset) {	
+		 for(Parameters parameter : parameterSet) {	
 			 Parameters.add(ApplicationParameter.builder()
-					 .name(parameter.TagKey.getText())
-					 .value(parameter.TagValue.getText())
+					 .name(parameter.tagKey.getText())
+					 .value(parameter.tagValue.getText())
 					 .build());
 		 }		 
 		 return Parameters;
@@ -617,7 +591,7 @@ public class CreateApplicationWizardPage extends WizardPage {
 	
 	public List<String> getArguments(){		
 	    List<String> arguments = new ArrayList<String>();
-	    String argumentsunseperated = ArgumentsText.getText();
+	    String argumentsunseperated = argumentsText.getText();
 	   boolean invertedcomma = false;
 	   String currentword = "";
 	   for(int i= 0 ; i < argumentsunseperated.length() ; i++) {
@@ -670,77 +644,80 @@ public class CreateApplicationWizardPage extends WizardPage {
 	    	displayNameText.setText(application.getDisplayName());
 	    	
 	    	if(application.getDescription()!= null)
-	    		ApplicationDescriptionText.setText(application.getDescription());
+	    		applicationDescriptionText.setText(application.getDescription());
 	    	
 	    	if(application.getSparkVersion().equals(DataflowConstants.Versions[0])) {
-				SparkVersionCombo.select(0);
+	    		sparkVersionCombo.select(0);
 			}
 			else {
-				SparkVersionCombo.select(1);
+				sparkVersionCombo.select(1);
 			}		
 	    	
 	    	for(int i=0; i<DataflowConstants.Shapes.length ; i++) {
 				if(application.getDriverShape().equals(DataflowConstants.Shapes[i])) {
-					DriverShapeCombo.select(i);
+					driverShapeCombo.select(i);
 				}
 			}	
 	    	
 	    	for(int i=0; i<DataflowConstants.Shapes.length ; i++) {
 				if(application.getExecutorShape().equals(DataflowConstants.Shapes[i])) {
-					ExecutorShapeCombo.select(i);
+					executorShapeCombo.select(i);
 				}
-			}	
-	    	
-	    	NumofExecutorsSpinner.setSelection(application.getNumExecutors());
-	    	
-	    	if(UsesSparkSubmit) {
+			}		    	
+	    	numofExecutorsSpinner.setSelection(application.getNumExecutors());	    	
+	    	if(usesSparkSubmit){
 	    		disposeSparkSubmit();
 	    	}
-	    	else
-	    	{
+	    	else{
 	    		disposeLanguagesection();
-	    	}
-	    	
-	    	 if(application.getExecute() != null && !application.getExecute().equals("")) {
-	    		UsesSparkSubmit=true; 
+	    	}	    	
+	    	 if(application.getExecute() != null && !application.getExecute().equals("")){
+	    		usesSparkSubmit=true; 
 	    		withSparkSubmit(container);
-	    		usesparksubmitButton.setSelection(true);
-	    		SparkSubmitText.setText(application.getExecute());
-	    		
+	    		useSparkSubmitButton.setSelection(true);
+	    		sparkSubmitText.setText(application.getExecute());    		
 	    	 }
 	    	 else {
-	    		 UsesSparkSubmit=false; 	    		 
-	    		 usesparksubmitButton.setSelection(false);
-	    		 withoutSparkSubmit(container);	    		 
-	    		 LanguageUsed  = application.getLanguage();    		
-	    		 LanguageGroupJavaRadioButton.setSelection(false);
-	    		 if(LanguageUsed == ApplicationLanguage.Java) {
-	    				LanguageGroupJavaRadioButton.setSelection(true);
+	    		 usesSparkSubmit=false; 	    		 
+	    		 useSparkSubmitButton.setSelection(false);
+	    		 withoutSparkSubmit(container);	 
+	 	        if(dto.isLocal()) {
+	 	        	fileUriLabel.dispose();
+    				fileUriText.dispose();
+    				fileSelectButton.dispose();
+    				fileUriContainer.dispose();
+    				archiveUriLabel.dispose();
+    				archiveUriText.dispose(); 
+		        }
+	    		 languageUsed  = application.getLanguage();    		
+	    		 languageGroupJavaRadioButton.setSelection(false);
+	    		 if(languageUsed == ApplicationLanguage.Java) {
+	    				languageGroupJavaRadioButton.setSelection(true);
 	    		 }
-	    		 else if(LanguageUsed == ApplicationLanguage.Python) {
-	    			 LanguageGroupPythonRadioButton.setSelection(true);
+	    		 else if(languageUsed == ApplicationLanguage.Python) {
+	    			 languageGroupPythonRadioButton.setSelection(true);
 	    		 }
-	    		 else if(LanguageUsed == ApplicationLanguage.Scala) {
-	    			 LanguageGroupScalaRadioButton.setSelection(true);
+	    		 else if(languageUsed == ApplicationLanguage.Scala) {
+	    			 languageGroupScalaRadioButton.setSelection(true);
 	    		 }
 	    		 else  {
-	    			 LanguageGroupSQLRadioButton.setSelection(true);
+	    			 languageGroupSQLRadioButton.setSelection(true);
 	    		 }
 	    		 
 	    		 disposePrevious();
-	    		 if(LanguageUsed == ApplicationLanguage.Java ||LanguageUsed == ApplicationLanguage.Scala ) {
+	    		 if(languageUsed == ApplicationLanguage.Java ||languageUsed == ApplicationLanguage.Scala ) {
 	    			 JavaLanguageSelected(container);
 	    			 SQLLanguageSelected(container);  
-	    			 MainClassNameText.setText(application.getClassName());
+	    			 mainClassNameText.setText(application.getClassName());
 	    			 if(application.getArguments() != null) {
 	    					String arguments= "";
 	    					for(String i : application.getArguments()) {
 	    						arguments +=  i  +" ";
 	    					}
-	    					ArgumentsText.setText(arguments);
+	    					argumentsText.setText(arguments);
 	    				}
 	    		 }
-	    		 else if(LanguageUsed == ApplicationLanguage.Python ) {
+	    		 else if(languageUsed == ApplicationLanguage.Python ) {
 	    			 PythonLanguageSelected(container);
 	    			 SQLLanguageSelected(container);  
 	    			 if(application.getArguments() != null) {
@@ -748,35 +725,44 @@ public class CreateApplicationWizardPage extends WizardPage {
 	    					for(String i : application.getArguments()) {
 	    						arguments +=   i  +" ";
 	    					}
-	    					ArgumentsText.setText(arguments);
+	    					argumentsText.setText(arguments);
 	    				}
 	    		 } 
 	    		 else {
-	    			 SQLLanguageSelected(container);
-	    			
+	    			 SQLLanguageSelected(container);	    			
 	    		 }
 	    		 
 	    		 if(application.getParameters() != null)
  		        {
  		        	 for (ApplicationParameter parameter : application.getParameters()) {
- 		             	Parameters newparameter = new Parameters(basesqlcontainer,container,sc, sqlset);
- 		             	sqlset.add(newparameter);
- 		        		 	newparameter.TagKey.setText(parameter.getName());
- 		     			newparameter.TagValue.setText(parameter.getValue());
- 		        	 		}         	
+ 		             	Parameters newparameter = new Parameters(parameterContainer,container,scrolledComposite, parameterSet);
+ 		             	parameterSet.add(newparameter);
+ 		        		newparameter.tagKey.setText(parameter.getName());
+ 		     			newparameter.tagValue.setText(parameter.getValue());
+ 		        	 }         	
  		        }       
 	    	 }    	
-	    }
-	   
+	    }	   
 	    container.pack();
 	    container.layout(true,true);
-	    sc.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
+	    scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 	}
-	
-	
+		
 	 @Override
-	    public IWizardPage getNextPage() {
-	        dto.setData(this.SparkVersionCombo.getText().toString());           
+	    public IWizardPage getNextPage() {		
+	        dto.setData(this.sparkVersionCombo.getText().toString());           
 	        return super.getNextPage();
 	    }
+	 
+	 @Override
+	    public IWizardPage getPreviousPage() {
+		 	if(dto.applicationId != null) {
+			 	LocalFileSelectWizardPage3 page = ((LocalFileSelectWizard)getWizard()).thirdbpage;
+			 	page.allow= false;
+			 	page.isPageComplete();		      
+		 	}
+		 	  return super.getPreviousPage();
+	    }
+	 
+
 }

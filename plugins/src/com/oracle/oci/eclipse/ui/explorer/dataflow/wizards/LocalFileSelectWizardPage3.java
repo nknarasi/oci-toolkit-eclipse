@@ -5,11 +5,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.IWizardPage;
@@ -17,28 +18,28 @@ import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
-
 import com.oracle.bmc.dataflow.model.ApplicationSummary;
 import com.oracle.bmc.dataflow.requests.ListApplicationsRequest;
+import com.oracle.bmc.dataflow.responses.ListApplicationsResponse;
 import com.oracle.bmc.identity.model.Compartment;
 import com.oracle.oci.eclipse.Activator;
+import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.Icons;
-import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
 import com.oracle.oci.eclipse.sdkclients.IdentClient;
 import com.oracle.oci.eclipse.ui.account.CompartmentSelectWizard;
 import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetApplications;
 
 public class LocalFileSelectWizardPage3  extends WizardPage{
 	
@@ -49,13 +50,15 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
     private Image IMAGE;
     private List<ApplicationSummary> applications;
     private DataTransferObject dto;
-    ApplicationSummary application;
 	private Compartment selectedApplicationCompartment;
-	Map<ApplicationSummary, TreeItem> ApplicationTreeMap;
-	String ApplicationIdSelected = null;
-    ListApplicationsRequest.SortBy s=ListApplicationsRequest.SortBy.TimeCreated;
-	ListApplicationsRequest.SortOrder so=ListApplicationsRequest.SortOrder.Desc;
+	private Map<ApplicationSummary, TreeItem> applicationTreeMap;
+	private String applicationIdSelected = null;
+    private ListApplicationsRequest.SortBy sortBy=ListApplicationsRequest.SortBy.TimeCreated;
+	private ListApplicationsRequest.SortOrder sortOrder=ListApplicationsRequest.SortOrder.Desc;
 	boolean allow = false;
+	private ListApplicationsResponse listapplicationsresponse;
+	private String pagetoshow= null;
+	private Button previouspage,nextpage;
 	
 	   public LocalFileSelectWizardPage3(ISelection selection, DataTransferObject dto, String COMPARTMENT_ID) {
 	        super("wizardPage");
@@ -84,8 +87,6 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 	        Composite container = new Composite(parent, SWT.NULL);
 	        GridLayout layout = new GridLayout();
 	        container.setLayout(layout);
-	        
-
 			Composite innerTopContainer = new Composite(container, SWT.NONE);
 	        GridLayout innerTopLayout = new GridLayout();
 	        innerTopLayout.numColumns = 3;
@@ -108,47 +109,79 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 	            }
 	        });
 
+	        
 	        tree = new Tree(container, SWT.RADIO | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
 	        tree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 	                
-	        createApplicationSection();    
+	        createApplicationSection();  
+	        
+	        Composite page=new Composite(container,SWT.NONE);GridLayout gl=new GridLayout();gl.numColumns=2;
+	        page.setLayout(gl);
+	        previouspage=new Button(page,SWT.TRAVERSE_PAGE_PREVIOUS);
+	        nextpage=new Button(page,SWT.TRAVERSE_PAGE_NEXT);
+	        previouspage.setText("<");
+	        nextpage.setText(">");
+	        previouspage.setLayoutData(new GridData());
+	        nextpage.setLayoutData(new GridData());
+	        
+	        nextpage.addSelectionListener(new SelectionListener() {
+	            @Override
+	            public void widgetSelected(SelectionEvent e) {	                
+					pagetoshow=listapplicationsresponse.getOpcNextPage();
+					createApplicationSection();
+	            }
+
+	            @Override
+	            public void widgetDefaultSelected(SelectionEvent e) {}
+	        });
+	        
+	        previouspage.addSelectionListener(new SelectionListener() {
+	            @Override
+	            public void widgetSelected(SelectionEvent e) {
+	                
+					pagetoshow=listapplicationsresponse.getOpcPrevPage();
+					createApplicationSection();
+	            }
+
+	            @Override
+	            public void widgetDefaultSelected(SelectionEvent e) {}
+	        });
 	        setControl(container);
 	    }
 	    
 	    private void createApplicationSection() {
-
-	    	if(ApplicationTreeMap != null)
+	    	
+	    	if(applicationTreeMap != null)
 	    	{
-	        	for(Entry<ApplicationSummary,TreeItem> item: ApplicationTreeMap.entrySet() ) {        		
+	        	for(Entry<ApplicationSummary,TreeItem> item: applicationTreeMap.entrySet() ) {        		
 	        		item.getValue().removeAll();
-	        		item.getValue().dispose();
-	        		//BucketTreeMap.remove(item.getKey());       		
+	        		item.getValue().dispose();      		
 	        	}
 	    	}
-	    	try {
-	    		applications =ApplicationClient.getInstance().getApplications(selectedApplicationCompartment.getId(),s,so);
+	    	try {	    		
+	    		IRunnableWithProgress op = new GetApplications(selectedApplicationCompartment.getId(),sortBy,sortOrder,pagetoshow);
+                new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+                listapplicationsresponse=((GetApplications)op).listApplicationsResponse;
+                applications=((GetApplications)op).applicationSummaryList;
+                
 			} catch (Exception e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				 ErrorHandler.logError("Unable to list applications: " + e1.getMessage());
 			}
 
 	   	 Job job = new Job("Get Applications in User Compartment") {
 	            @Override
 	            protected IStatus run(IProgressMonitor monitor) {
-	            	// update tree node using UI thread
 	                Display.getDefault().asyncExec(new Runnable() {
 	                    @Override
 	                    public void run() {
 	                        try {
-	                            // add root compartment node to tree
-	                        	ApplicationTreeMap= new HashMap<ApplicationSummary,TreeItem>();
+	                        	applicationTreeMap= new HashMap<ApplicationSummary,TreeItem>();
 	                        	for(ApplicationSummary application : applications) {                       		
-	                        		ApplicationTreeMap.put(application, new TreeItem(tree,0));
-	                        		ApplicationTreeMap.get(application).setText(application.getDisplayName());
-	                        		ApplicationTreeMap.get(application).setImage(IMAGE);
-	                        		ApplicationTreeMap.get(application).setData(APPLICATION_KEY,application);
-	                        	}
-	                         
+	                        		applicationTreeMap.put(application, new TreeItem(tree,0));
+	                        		applicationTreeMap.get(application).setText(application.getDisplayName());
+	                        		applicationTreeMap.get(application).setImage(IMAGE);
+	                        		applicationTreeMap.get(application).setData(APPLICATION_KEY,application);
+	                        	}	                         
 	                        } catch(Exception ex) {}
 	                    }
 	                });
@@ -156,11 +189,7 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 	            }
 	        };
 	        job.schedule();  
-	        
-	        tree.addListener (SWT.MeasureItem, new Listener() {
-	            @Override
-	            public void handleEvent(Event event) {}
-	        });
+	       
 	        tree.addSelectionListener(new SelectionAdapter() {
 	            @Override
 	            public void widgetSelected(SelectionEvent e) {
@@ -168,11 +197,7 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 		       	        if(items !=null && items.length>0) {
 		       	            TreeItem selectedItem = items[0];
 		       	            ApplicationSummary application = (ApplicationSummary)selectedItem.getData(APPLICATION_KEY);	      
-		       	            ApplicationIdSelected= application.getId();
-		       	            allow = true;
-		       	            isPageComplete();
-		       	            getWizard().getContainer().updateButtons();
-		       	            
+		       	            applicationIdSelected= application.getId();		       	            
 		       	        }
 	            }
 	        });	        
@@ -184,6 +209,7 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 					if (compartment != null) {
 						selectedApplicationCompartment = compartment;
 						compartmentText.setText(selectedApplicationCompartment.getName());
+						pagetoshow= null;
 						createApplicationSection();
 					}
 				}
@@ -222,18 +248,16 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 		}
 	    
 		 @Override
-		    public IWizardPage getNextPage() { 
-			 	
+		    public IWizardPage getNextPage() { 			 	
 			 	allow = true;
 			 	isPageComplete();
 			 	getWizard().getContainer().updateButtons();
-			   dto.setApplicationId(ApplicationIdSelected); 			   
-			   CreateApplicationWizardPage page = ((LocalFileSelectWizard)getWizard()).firstpage;
-			   page.onEnterPage();
-			   CreateApplicationWizardPage3 advpage = ((LocalFileSelectWizard)getWizard()).thirdpage;
-			   advpage.onEnterPage();
-			   
-			   return page;       
+			    dto.setApplicationId(applicationIdSelected); 			   
+			    CreateApplicationWizardPage page = ((LocalFileSelectWizard)getWizard()).firstpage;
+			    page.onEnterPage();
+			    CreateApplicationWizardPage3 advpage = ((LocalFileSelectWizard)getWizard()).thirdpage;
+			    advpage.onEnterPage();			   
+			    return page;       
 		    }
 
 }

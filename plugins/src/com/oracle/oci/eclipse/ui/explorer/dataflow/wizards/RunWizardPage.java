@@ -28,7 +28,7 @@ public class RunWizardPage extends WizardPage {
 	private Spinner numExecSpinner;
     private ISelection selection;
 	private Run run;
-	private Application app;
+	private Application application;
 
     public RunWizardPage(ISelection selection,RunSummary runSum) {
         super("wizardPage");
@@ -49,7 +49,7 @@ public class RunWizardPage extends WizardPage {
         setDescription("This wizard creates a run application request. Please enter the following details.");
         this.selection = selection;
 		try {
-			this.app=ApplicationClient.getInstance().getApplicationDetails(appSum.getId());
+			this.application=ApplicationClient.getInstance().getApplicationDetails(appSum.getId());
 		} 
 		catch (Exception e) {
 			MessageDialog.openError(getShell(), "Error", e.getMessage());
@@ -67,8 +67,10 @@ public class RunWizardPage extends WizardPage {
         Label nameLabel = new Label(container, SWT.NULL);
         nameLabel.setText("&Name:");
         nameText = new Text(container, SWT.BORDER | SWT.SINGLE);
-        if(run!=null) nameText.setText(run.getDisplayName());
-		else nameText.setText(app.getDisplayName());
+        if(run!=null) 
+        	nameText.setText(run.getDisplayName());
+		else 
+			nameText.setText(application.getDisplayName());
         GridData gd = new GridData(GridData.FILL_HORIZONTAL);
         nameText.setLayoutData(gd);
 		
@@ -84,8 +86,10 @@ public class RunWizardPage extends WizardPage {
 			MessageDialog.openError(getShell(), "Error", e.getMessage());
 		}
 		
-		if(run!=null) dshapeCombo.setText(run.getDriverShape());
-		else dshapeCombo.setText(app.getDriverShape());
+		if(run!=null) 
+			dshapeCombo.setText(run.getDriverShape());
+		else 
+			dshapeCombo.setText(application.getDriverShape());
 		
 		Label eshapeLabel = new Label(container, SWT.NULL);
         eshapeLabel.setText("&Executor Shape:");
@@ -99,8 +103,10 @@ public class RunWizardPage extends WizardPage {
 			MessageDialog.openError(getShell(), "Error", e.getMessage());
 		}
 		
-		if(run!=null) eshapeCombo.setText(run.getExecutorShape());
-		else eshapeCombo.setText(app.getExecutorShape());
+		if(run!=null) 
+			eshapeCombo.setText(run.getExecutorShape());
+		else 
+			eshapeCombo.setText(application.getExecutorShape());
 		
 		Label numExecLabel = new Label(container, SWT.NULL);
         numExecLabel.setText("&Number of Executors:");
@@ -108,8 +114,10 @@ public class RunWizardPage extends WizardPage {
 		numExecSpinner.setMinimum(1);
 		numExecSpinner.setMaximum(128);
 		
-		if(run!=null) numExecSpinner.setSelection(run.getNumExecutors());
-		else numExecSpinner.setSelection(app.getNumExecutors());
+		if(run!=null) 
+			numExecSpinner.setSelection(run.getNumExecutors());
+		else 
+			numExecSpinner.setSelection(application.getNumExecutors());
 		
 		numExecSpinner.setIncrement(1);
 		
@@ -117,8 +125,10 @@ public class RunWizardPage extends WizardPage {
         argLabel.setText("&Arguments:");
         Text argText = new Text(container, SWT.BORDER | SWT.SINGLE | SWT.READ_ONLY);
         
-        if(run!=null) argText.setText(run.getArguments().toString());
-		else argText.setText(app.getArguments().toString());
+        if(run!=null) 
+        	argText.setText(run.getArguments().toString());
+		else 
+			argText.setText(application.getArguments().toString());
         
         argText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
@@ -141,10 +151,10 @@ public class RunWizardPage extends WizardPage {
 	
 	public Object[] getDetails_app() {
         
-		return (new Object[]{app.getId(),app.getArchiveUri(),null,app.getCompartmentId(),null,null,
-				nameText.getText().trim(),dshapeCombo.getText(),app.getExecute(),eshapeCombo.getText(),null,
-				app.getLogsBucketUri(),numExecSpinner.getSelection(),app.getParameters(),app.getSparkVersion(),
-				app.getWarehouseBucketUri()
+		return (new Object[]{application.getId(),application.getArchiveUri(),null,application.getCompartmentId(),null,null,
+				nameText.getText().trim(),dshapeCombo.getText(),application.getExecute(),eshapeCombo.getText(),null,
+				application.getLogsBucketUri(),numExecSpinner.getSelection(),application.getParameters(),application.getSparkVersion(),
+				application.getWarehouseBucketUri()
 				});
     }
 }

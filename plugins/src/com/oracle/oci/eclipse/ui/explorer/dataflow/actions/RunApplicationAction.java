@@ -17,7 +17,7 @@ public class RunApplicationAction extends BaseAction{
 	    private String applicationID;
 	    private String title = "Run Application";
 	    
-	    @SuppressWarnings("unchecked")
+
 		public RunApplicationAction (ApplicationTable table){
 	        this.table = table;
 	        applicationSelectionList = (List<ApplicationSummary>) table.getSelectedObjects();
@@ -39,7 +39,7 @@ public class RunApplicationAction extends BaseAction{
 	        }
 		 Application application = ApplicationClient.getInstance().getApplicationDetails(applicationID);
 	       CustomWizardDialog dialog = new CustomWizardDialog(Display.getDefault().getActiveShell(), new CreateRunWizard(application.getId()));
-	        dialog.setFinishButtonText("Schedule Run");
+	        dialog.setFinishButtonText("Start Run");
 	        if (Window.OK == dialog.open()) {
 	        	table.refresh(true);
 	        }

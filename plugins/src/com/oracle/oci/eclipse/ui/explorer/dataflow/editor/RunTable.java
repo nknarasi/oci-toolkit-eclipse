@@ -52,12 +52,12 @@ public class RunTable extends BaseTable {
 	private static final int DATA_WRITTEN_COL = 7;
 	private static String compid;
 	private static String compname;
-	List<RunSummary> runSummaryList = new ArrayList<RunSummary>();
-	ListRunsRequest.SortBy s=ListRunsRequest.SortBy.TimeCreated;
-	ListRunsRequest.SortOrder so=ListRunsRequest.SortOrder.Desc;
-	String pagetoshow=null;
-	ListRunsResponse listrunsresponse;
-	Button previousPage,nextPage;
+	private List<RunSummary> runSummaryList = new ArrayList<RunSummary>();
+	private ListRunsRequest.SortBy sortBy=ListRunsRequest.SortBy.TimeCreated;
+	private ListRunsRequest.SortOrder sortOrder=ListRunsRequest.SortOrder.Desc;
+	private String pagetoshow=null;
+	private ListRunsResponse listrunsresponse;
+	private Button previousPage,nextPage;
 	
     public RunTable(Composite parent, int style) {
         super(parent, style);
@@ -65,14 +65,14 @@ public class RunTable extends BaseTable {
         viewer.setLabelProvider(new TableLabelProvider());
         viewer.setInput(getTableData());
         viewer.setItemCount(getTableDataSize());
-        s=ListRunsRequest.SortBy.TimeCreated;
-        so=ListRunsRequest.SortOrder.Desc;
+        sortBy=ListRunsRequest.SortBy.TimeCreated;
+        sortOrder=ListRunsRequest.SortOrder.Desc;
     }
 
     @Override
     public List<RunSummary> getTableData() {
                 try {
-                	IRunnableWithProgress op = new GetRuns(compid,s,so,pagetoshow);
+                	IRunnableWithProgress op = new GetRuns(compid,sortBy,sortOrder,pagetoshow);
                     new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
                     listrunsresponse=((GetRuns)op).listrunsresponse;
                     runSummaryList=((GetRuns)op).runSummaryList;
@@ -140,9 +140,11 @@ public class RunTable extends BaseTable {
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
             	pagetoshow=null;
-                s=ListRunsRequest.SortBy.DisplayName;
-                if(so==ListRunsRequest.SortOrder.Desc) so=ListRunsRequest.SortOrder.Asc;
-                else so=ListRunsRequest.SortOrder.Desc;
+                sortBy=ListRunsRequest.SortBy.DisplayName;
+                if(sortOrder==ListRunsRequest.SortOrder.Desc) 
+                	sortOrder=ListRunsRequest.SortOrder.Asc;
+                else 
+                	sortOrder=ListRunsRequest.SortOrder.Desc;
                 refresh(true);
               }
             });
@@ -153,9 +155,11 @@ public class RunTable extends BaseTable {
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
             	pagetoshow=null;
-                s=ListRunsRequest.SortBy.Language;
-                if(so==ListRunsRequest.SortOrder.Desc) so=ListRunsRequest.SortOrder.Asc;
-                else so=ListRunsRequest.SortOrder.Desc;
+            	sortBy=ListRunsRequest.SortBy.Language;
+                if(sortOrder==ListRunsRequest.SortOrder.Desc) 
+                	sortOrder=ListRunsRequest.SortOrder.Asc;
+                else 
+                	sortOrder=ListRunsRequest.SortOrder.Desc;
                 refresh(true);
               }
             });
@@ -166,9 +170,11 @@ public class RunTable extends BaseTable {
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
             	pagetoshow=null;
-                s=ListRunsRequest.SortBy.LifecycleState;
-                if(so==ListRunsRequest.SortOrder.Desc) so=ListRunsRequest.SortOrder.Asc;
-                else so=ListRunsRequest.SortOrder.Desc;
+            	sortBy=ListRunsRequest.SortBy.LifecycleState;
+                if(sortOrder==ListRunsRequest.SortOrder.Desc) 
+                	sortOrder=ListRunsRequest.SortOrder.Asc;
+                else 
+                	sortOrder=ListRunsRequest.SortOrder.Desc;
                 refresh(true);
               }
             });
@@ -182,9 +188,11 @@ public class RunTable extends BaseTable {
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
             	pagetoshow=null;
-                s=ListRunsRequest.SortBy.TimeCreated;
-                if(so==ListRunsRequest.SortOrder.Desc) so=ListRunsRequest.SortOrder.Asc;
-                else so=ListRunsRequest.SortOrder.Desc;
+            	sortBy=ListRunsRequest.SortBy.TimeCreated;
+                if(sortOrder==ListRunsRequest.SortOrder.Desc) 
+                	sortOrder=ListRunsRequest.SortOrder.Asc;
+                else 
+                	sortOrder=ListRunsRequest.SortOrder.Desc;
                 refresh(true);
               }
             });
@@ -195,9 +203,11 @@ public class RunTable extends BaseTable {
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
             	pagetoshow=null;
-                s=ListRunsRequest.SortBy.RunDurationInMilliseconds;
-                if(so==ListRunsRequest.SortOrder.Desc) so=ListRunsRequest.SortOrder.Asc;
-                else so=ListRunsRequest.SortOrder.Desc;
+            	sortBy=ListRunsRequest.SortBy.RunDurationInMilliseconds;
+                if(sortOrder==ListRunsRequest.SortOrder.Desc) 
+                	sortOrder=ListRunsRequest.SortOrder.Asc;
+                else 
+                	sortOrder=ListRunsRequest.SortOrder.Desc;
                 refresh(true);
               }
             });
@@ -208,9 +218,11 @@ public class RunTable extends BaseTable {
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
             	pagetoshow=null;
-                s=ListRunsRequest.SortBy.TotalOCpu;
-                if(so==ListRunsRequest.SortOrder.Desc) so=ListRunsRequest.SortOrder.Asc;
-                else so=ListRunsRequest.SortOrder.Desc;
+            	sortBy=ListRunsRequest.SortBy.TotalOCpu;
+                if(sortOrder==ListRunsRequest.SortOrder.Desc) 
+                	sortOrder=ListRunsRequest.SortOrder.Asc;
+                else 
+                	sortOrder=ListRunsRequest.SortOrder.Desc;
                 refresh(true);
               }
             });
@@ -221,9 +233,11 @@ public class RunTable extends BaseTable {
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
             	pagetoshow=null;
-                s=ListRunsRequest.SortBy.DataWrittenInBytes;
-                if(so==ListRunsRequest.SortOrder.Desc) so=ListRunsRequest.SortOrder.Asc;
-                else so=ListRunsRequest.SortOrder.Desc;
+            	sortBy=ListRunsRequest.SortBy.DataWrittenInBytes;
+                if(sortOrder==ListRunsRequest.SortOrder.Desc) 
+                	sortOrder=ListRunsRequest.SortOrder.Asc;
+                else 
+                	sortOrder=ListRunsRequest.SortOrder.Desc;
                 refresh(true);
               }
             });
@@ -234,9 +248,11 @@ public class RunTable extends BaseTable {
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
             	pagetoshow=null;
-                s=ListRunsRequest.SortBy.DataReadInBytes;
-                if(so==ListRunsRequest.SortOrder.Desc) so=ListRunsRequest.SortOrder.Asc;
-                else so=ListRunsRequest.SortOrder.Desc;
+            	sortBy=ListRunsRequest.SortBy.DataReadInBytes;
+                if(sortOrder==ListRunsRequest.SortOrder.Desc) 
+                	sortOrder=ListRunsRequest.SortOrder.Asc;
+                else 
+                	sortOrder=ListRunsRequest.SortOrder.Desc;
                 refresh(true);
               }
             });
@@ -261,8 +277,9 @@ public class RunTable extends BaseTable {
 	@Override
     protected void addTableLabels(FormToolkit toolkit, Composite left, Composite right) {
 
-		ccb.setText("Change Compartment");ccb.setVisible(true);
-        ccb.addSelectionListener(new SelectionListener() {
+		changeCompartmentButton.setText("Change Compartment");
+		changeCompartmentButton.setVisible(true);
+		changeCompartmentButton.addSelectionListener(new SelectionListener() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 
@@ -286,7 +303,10 @@ public class RunTable extends BaseTable {
             @Override
             public void widgetDefaultSelected(SelectionEvent e) {}
         });
-        Composite page=new Composite(right,SWT.NONE);GridLayout gl=new GridLayout();gl.numColumns=2;
+		
+        Composite page=new Composite(right,SWT.NONE);
+        GridLayout gl=new GridLayout();
+        gl.numColumns=2;
         page.setLayout(gl);
         previousPage=new Button(page,SWT.TRAVERSE_PAGE_PREVIOUS);
         nextPage=new Button(page,SWT.TRAVERSE_PAGE_NEXT);

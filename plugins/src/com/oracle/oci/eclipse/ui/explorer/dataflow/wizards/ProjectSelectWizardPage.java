@@ -51,13 +51,9 @@ public class ProjectSelectWizardPage extends WizardPage{
 	    private ISelection selection;
 	    private Tree tree;
 	    private Image IMAGE;
-	    Button doZip;
-	    Label progress;
-	    Composite pc,jarComp,container;
-	    ScrolledComposite sc;
-	    String jarUri,zipUri;
+	    private Composite container;
 	    boolean projectSelected = false;
-	    File theDir;
+	    private File theDir;
 
 	    public ProjectSelectWizardPage(ISelection selection) {
 	        super("wizardPage");
@@ -105,8 +101,7 @@ public class ProjectSelectWizardPage extends WizardPage{
 	            @Override
 	            public void widgetSelected(SelectionEvent e) {
 	            	 TreeItem[] items = tree.getSelection();
-		       	        if(items !=null && items.length>0) {
-		       	            TreeItem selectedItem = items[0];		       	           
+		       	        if(items !=null && items.length>0) {       	           
 		       	            projectSelected = true;
 		       	            canFlipToNextPage();
 		       	            getWizard().getContainer().updateButtons();
@@ -127,16 +122,10 @@ public class ProjectSelectWizardPage extends WizardPage{
 
 	        return null;
 	    }
-
-	    public void setLabel(String t) {
-	    	progress.setText(t);
-	    	pc.layout(true,true);
-	    }
 	    
 	    public void start(IJavaProject proj) throws Exception {		
 	    		String projectUri=proj.getProject().getLocation().toString();
-	        	String tl=System.getProperty("java.io.tmpdir");
-	        	theDir = new File(tl+"\\dataflowtempdir");
+	        	theDir = new File(System.getProperty("java.io.tmpdir")+"\\dataflowtempdir");
 	        	if (!theDir.exists()){
 	        		theDir.mkdirs();
 	        	}
@@ -199,46 +188,6 @@ public class ProjectSelectWizardPage extends WizardPage{
 		            in.close();
 		      }
 		   }
-		   
-		   public String createJarZip(List<String> classPathEntries) throws Exception {
-			   
-			   if(MakeJarAndZip.jarUri==null) throw new Exception("Create .jar file first");
-			   byte[] buffer = new byte[1024];
-			   File dff=File.createTempFile("dataflowtempdir\\dflib-",".zip",theDir);
-			   ZipOutputStream out = new ZipOutputStream(new FileOutputStream(dff));
-			   
-			   
-			   StringBuffer mcp=new StringBuffer("");
-			   FileInputStream in=null;
-			   for (String classpathEntry : new HashSet<String>(classPathEntries)) {
-			        if (classpathEntry.endsWith(".jar")) {
-			            File jar = new File(classpathEntry);
-			            String p=jar.getAbsolutePath();
-			            String n=p.substring(p.lastIndexOf('\\')+1),n0=p.substring(0,p.lastIndexOf('\\'));
-			            mcp.append("java" + "/" + n+" ");
-			            ZipEntry e = new ZipEntry("java" + "/" + n);
-			            out.putNextEntry(e);
-			            try {
-		                    in = new FileInputStream(n0 + "/" + n);
-		                    int len;
-		                    while ((len = in.read(buffer)) > 0) {
-		                        out.write(buffer, 0, len);
-		                    }
-		                }
-			            catch (Exception e1) {
-			            	MessageDialog.openError(getShell(), "Error", e1.getMessage());
-			            }
-			            finally {
-		                	if(in!=null)
-		                    in.close();
-		                }
-			            out.closeEntry();
-			        }
-			    }
-			   out.close();
-			   MakeJarAndZip.zipUri=dff.getAbsolutePath();
-			   return mcp.toString();
-			}
 		   
 		   public List<IJavaProject> getProjects() {
 			      List<IJavaProject> projectList = new LinkedList<IJavaProject>();

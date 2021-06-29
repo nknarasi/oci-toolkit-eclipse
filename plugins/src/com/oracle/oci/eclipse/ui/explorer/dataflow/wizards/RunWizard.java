@@ -66,11 +66,20 @@ public class RunWizard extends Wizard implements INewWizard {
         	else obj=page.getDetails_app();
         	if(page3.ischecked()) {obj[11]=page3.loguri();obj[15]=page3.buckuri();}
         	
-        	String d="";
-        	if(!page3.ischecked()) d="!";
-        	Object[] validObjects=new Object[] {obj[6],obj[11],obj[15],page3.getconfig().keySet()};
-        	String[] objType=new String[] {"name",d+"loguri",d+"warehouseuri",d+"sparkprop"+((String)obj[14]).charAt(0)};
-        	String message=Validations.check(validObjects, objType);
+        	Object[] validObjects;
+        	String[] objectType;
+        	
+        	if(page3.ischecked()) {
+        		validObjects=new Object[] {obj[6],obj[11],obj[15],page3.getconfig().keySet()};
+        		objectType=new String[] {"name","loguri","warehouseuri","sparkprop"+((String)obj[14]).charAt(0)};
+        	}
+        	else {
+        		validObjects=new Object[] {obj[6]};
+        		objectType=new String[] {"name"};
+        	}
+        	
+        	String message=Validations.check(validObjects, objectType);
+        	
         	if(!message.isEmpty()) {
         		open("Improper Entries",message);
         		return false;

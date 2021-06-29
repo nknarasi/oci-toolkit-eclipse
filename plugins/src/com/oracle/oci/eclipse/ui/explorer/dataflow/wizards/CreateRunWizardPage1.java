@@ -23,38 +23,39 @@ import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.DataflowConstants;
 
 public class CreateRunWizardPage1  extends WizardPage{
-    private ScrolledComposite sc;
+    private ScrolledComposite scrolledComposite;
 	private ISelection selection;
 	private Application application;
 	private DataTransferObject dto;
 	private Text displayNameText;
-	private Combo SparkVersionCombo;
-	private Combo DriverShapeCombo;
-	private Combo ExecutorShapeCombo;
-	private Spinner NumofExecutorsSpinner;		
-	private Text ArgumentsText;
-	private Text ArchiveUriText;
-    private Set<Parameters> sqlset=new HashSet<Parameters>();
+	private Combo sparkVersionCombo;
+	private Combo driverShapeCombo;
+	private Combo executorShapeCombo;
+	private Spinner numofExecutorsSpinner;		
+	private Text argumentsText;
+	private Text archiveUriText;
+    private Set<Parameters> parameterset;
     
 	public CreateRunWizardPage1(ISelection selection,DataTransferObject dto, String applicationId) {
 		super("page");
-		setTitle("Schedule Run for Application");
-		setDescription("This wizard run for a DataFlow Application. Please enter the required details.");
+		setTitle("Start Run for Application");
+		setDescription("This wizard starts a run for the DataFlow Application. Please enter the required details.");
 		this.selection = selection;
 		this.dto = dto;
+		this.parameterset = new HashSet<Parameters>();
 		application = ApplicationClient.getInstance().getApplicationDetails(applicationId);
 	}	
 	
 	@Override
 	public void createControl(Composite parent) {
 		
-		sc=new ScrolledComposite(parent,SWT.V_SCROLL| SWT.H_SCROLL);
-    	sc.setExpandHorizontal( true );
-    	sc.setExpandVertical( true );       
-    	sc.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		scrolledComposite=new ScrolledComposite(parent,SWT.V_SCROLL| SWT.H_SCROLL);
+		scrolledComposite.setExpandHorizontal( true );
+		scrolledComposite.setExpandVertical( true );       
+		scrolledComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
-		Composite container = new Composite(sc, SWT.NULL);
-		sc.setContent(container);
+		Composite container = new Composite(scrolledComposite, SWT.NULL);
+		scrolledComposite.setContent(container);
 		GridLayout layout = new GridLayout();
 		container.setLayout(layout);
 		layout.numColumns = 2;
@@ -71,19 +72,19 @@ public class CreateRunWizardPage1  extends WizardPage{
 		Label SparkVersionLabel = new Label(container, SWT.NULL);
 		SparkVersionLabel.setText("&Spark Version:");
 		GridData gd2 = new GridData(GridData.FILL_HORIZONTAL);
-		SparkVersionCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
-		SparkVersionCombo.setLayoutData(gd2);		 
-		SparkVersionCombo.setItems(DataflowConstants.Versions);
+		sparkVersionCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
+		sparkVersionCombo.setLayoutData(gd2);		 
+		sparkVersionCombo.setItems(DataflowConstants.Versions);
 		for(int i=0; i<DataflowConstants.Versions.length ; i++) {
 			if(application.getSparkVersion().equals(DataflowConstants.Versions[i])) {
-				SparkVersionCombo.select(i);
+				sparkVersionCombo.select(i);
 			}
 		}
 		
 		Label DriverShapeLabel = new Label(container, SWT.NULL);
 		DriverShapeLabel.setText("&Driver Shape:");
-		createDriverShapeCombo(container);
-		
+		createDriverShapeCombo(container);		
+
 		Label ExecutorShapeLabel = new Label(container, SWT.NULL);
 		ExecutorShapeLabel.setText("&Executor Shape:");
 		createExecutorShapeCombo(container);
@@ -94,67 +95,67 @@ public class CreateRunWizardPage1  extends WizardPage{
 		
 		Label Argumentslabel = new Label(container, SWT.NULL);
 		Argumentslabel.setText("&Arguments:");
-		ArgumentsText = new Text(container, SWT.BORDER | SWT.SINGLE);
-		ArgumentsText.setText(application.getArguments().toString());
-		ArgumentsText.setEditable(false);
+		argumentsText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		argumentsText.setText(application.getArguments().toString());
+		argumentsText.setEditable(false);
 		GridData gd8 = new GridData(GridData.FILL_HORIZONTAL);
-		ArgumentsText.setLayoutData(gd8);
+		argumentsText.setLayoutData(gd8);
 		
-		Composite basesqlcontainer = new Composite(container, SWT.NULL);
+		Composite parametercontainer = new Composite(container, SWT.NULL);
 		GridData grid1 = new GridData(GridData.FILL_HORIZONTAL);
 		grid1.horizontalSpan = 2;
-		basesqlcontainer.setLayoutData(grid1);
+		parametercontainer.setLayoutData(grid1);
         GridLayout layout1 = new GridLayout();
-        basesqlcontainer.setLayout(layout1);
+        parametercontainer.setLayout(layout1);
         layout1.numColumns = 1;
 		
         if(application.getParameters() != null)
         {
         	 for (ApplicationParameter parameter : application.getParameters()) {
-             	Parameters newparameter = new Parameters(basesqlcontainer,container,sc, sqlset);
-             	sqlset.add(newparameter);
-        		newparameter.TagKey.setText(parameter.getName());
-        		newparameter.TagKey.setEditable(false);
-     			newparameter.TagValue.setText(parameter.getValue());
-     			newparameter.CloseButton.setEnabled(false);
-        	 		}         	
+             	Parameters newparameter = new Parameters(parametercontainer,container,scrolledComposite, parameterset);
+             	parameterset.add(newparameter);
+        		newparameter.tagKey.setText(parameter.getName());
+        		newparameter.tagKey.setEditable(false);
+     			newparameter.tagValue.setText(parameter.getValue());
+     			newparameter.closeButton.setEnabled(false);
+        	 	}         	
         }          
       	container.layout(true,true);
-		setControl(sc);
+		setControl(scrolledComposite);
 	}
 	private void createDriverShapeCombo(Composite container) {		
-		DriverShapeCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
+		driverShapeCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
 		GridData gd3 = new GridData(GridData.FILL_HORIZONTAL);
-		DriverShapeCombo.setLayoutData(gd3);		 
-		DriverShapeCombo.setItems(DataflowConstants.Shapes);
+		driverShapeCombo.setLayoutData(gd3);		 
+		driverShapeCombo.setItems(DataflowConstants.Shapes);
 		for(int i=0; i<DataflowConstants.Shapes.length ; i++) {
 			if(application.getDriverShape().equals(DataflowConstants.Shapes[i])) {
-				DriverShapeCombo.select(i);
+				driverShapeCombo.select(i);
 			}
 		}		
 	}
 	
 	private void createExecutorShapeCombo(Composite container) {		
-		ExecutorShapeCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
+		executorShapeCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
 		GridData gd4 = new GridData(GridData.FILL_HORIZONTAL);
-		ExecutorShapeCombo.setLayoutData(gd4); 
-		ExecutorShapeCombo.setItems(DataflowConstants.Shapes);
+		executorShapeCombo.setLayoutData(gd4); 
+		executorShapeCombo.setItems(DataflowConstants.Shapes);
 		for(int i=0; i<DataflowConstants.Shapes.length ; i++) {
 			if(application.getExecutorShape().equals(DataflowConstants.Shapes[i])) {
-				ExecutorShapeCombo.select(i);
+				executorShapeCombo.select(i);
 			}
 		}		
 	}
 	
 	private void createNumofExecutorsSpinner(Composite container) {
-		NumofExecutorsSpinner = new Spinner(container, SWT.BORDER | SWT.SINGLE);
+		numofExecutorsSpinner = new Spinner(container, SWT.BORDER | SWT.SINGLE);
 		GridData gd5 = new GridData(GridData.FILL_HORIZONTAL);
-		NumofExecutorsSpinner.setLayoutData(gd5);
-		NumofExecutorsSpinner.setMinimum(DataflowConstants.NUM_OF_EXECUTORS_MIN);
-		NumofExecutorsSpinner.setMaximum(DataflowConstants.NUM_OF_EXECUTORS_MAX);
-		NumofExecutorsSpinner.setIncrement(DataflowConstants.NUM_OF_EXECUTORS_INCREMENT);
+		numofExecutorsSpinner.setLayoutData(gd5);
+		numofExecutorsSpinner.setMinimum(DataflowConstants.NUM_OF_EXECUTORS_MIN);
+		numofExecutorsSpinner.setMaximum(DataflowConstants.NUM_OF_EXECUTORS_MAX);
+		numofExecutorsSpinner.setIncrement(DataflowConstants.NUM_OF_EXECUTORS_INCREMENT);
 		// default value
-		NumofExecutorsSpinner.setSelection(application.getNumExecutors());
+		numofExecutorsSpinner.setSelection(application.getNumExecutors());
 	}
 		
 	public String getDisplayName() {
@@ -162,31 +163,31 @@ public class CreateRunWizardPage1  extends WizardPage{
 	}
 	
 	public String getSparkVersion() {		
-		return SparkVersionCombo.getText();
+		return sparkVersionCombo.getText();
 	}
 	
 	public String getDriverShape() {		
-		return DriverShapeCombo.getText();
+		return driverShapeCombo.getText();
 	}
 	
 	public String getExecutorShape() {		
-		return ExecutorShapeCombo.getText();
+		return executorShapeCombo.getText();
 	}
 	
 	public String getNumofExecutors() {		
-		return NumofExecutorsSpinner.getText();
+		return numofExecutorsSpinner.getText();
 	}
 	
 	public String getArchiveUri() {		
-		return ArchiveUriText.getText();
+		return archiveUriText.getText();
 	}
 	
 	public  List<ApplicationParameter> getParameters(){
 		List<ApplicationParameter> Parameters = new ArrayList<ApplicationParameter>();	 
-		 for(Parameters parameter : sqlset) {	
+		 for(Parameters parameter : parameterset) {	
 			 Parameters.add(ApplicationParameter.builder()
-					 .name(parameter.TagKey.getText())
-					 .value(parameter.TagValue.getText())
+					 .name(parameter.tagKey.getText())
+					 .value(parameter.tagValue.getText())
 					 .build());
 		 }		 
 		 return Parameters;
@@ -194,7 +195,7 @@ public class CreateRunWizardPage1  extends WizardPage{
 	
 	 @Override
 	    public IWizardPage getNextPage() {
-	        dto.setData(this.SparkVersionCombo.getText().toString());	        
+	        dto.setData(this.sparkVersionCombo.getText().toString());	        
 	        return super.getNextPage();
 	    }
 	 

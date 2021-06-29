@@ -38,30 +38,30 @@ import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
 public class CreateApplicationWizardPage3   extends WizardPage {
 
     private Composite container;
-    private ScrolledComposite scrolledcomposite;
+    private ScrolledComposite scrolledComposite;
 	private ISelection selection;
-	private Text LogLocationText;
-	private Text WarehouseLocationText;
-	private Group NetworkGroup;
-	private Button NetworkGroupInternetAccessRadioButton;
-	private Button NetworkGroupPrivateSubnetRadioButton;	
-	private Composite NetworkSection;
-	private Composite PrivateEndpointSection;
+	private Text logLocationText;
+	private Text warehouseLocationText;
+	private Group networkGroup;
+	private Button networkGroupInternetAccessRadioButton;
+	private Button networkGroupPrivateSubnetRadioButton;	
+	private Composite networkSection;
+	private Composite privateEndpointSection;
 	private Composite innerTopContainer;
 	private Button compartmentButton;
 	private Text compartmentText;
 	private Compartment selectedApplicationCompartment;
-	public Combo PrivateEndpointsCombo;
+	public Combo privateEndpointsCombo;
 	private Label compartmentLabel;
-	private Label PrivateEndpointsLabel;
-	private List<PrivateEndpointSummary> PrivateEndpoints;	
-    private Set<SparkProperty> CreatedPropertiesSet=new HashSet<SparkProperty>();    
-	private Composite PropertiesSection;
-	private Composite ButtonComposite;
-	private Composite AdvancedOptionsComposite;
+	private Label privateEndpointsLabel;
+	private List<PrivateEndpointSummary> privateEndpoints;	
+    private Set<SparkProperty> createdPropertiesSet=new HashSet<SparkProperty>();    
+	private Composite propertiesSection;
+	private Composite buttonComposite;
+	private Composite advancedOptionsComposite;
 	private  DataTransferObject dto; 	
-	private boolean NetworkSectionSelected=false;
-	private boolean UsesAdvancedOptions=false;
+	private boolean networkSectionSelected=false;
+	private boolean usesAdvancedOptions=false;
 	private int intial = -1; 
 	
 	public CreateApplicationWizardPage3(ISelection selection,DataTransferObject dto) {
@@ -88,141 +88,141 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 	
 	@Override
 	public void createControl(Composite parent) {    	
-    	scrolledcomposite=new ScrolledComposite(parent,SWT.V_SCROLL| SWT.H_SCROLL);
-    	scrolledcomposite.setExpandHorizontal( true );
-    	scrolledcomposite.setExpandVertical( true );
-    	scrolledcomposite.setLayoutData(new GridData());    	
+		scrolledComposite = new ScrolledComposite(parent,SWT.V_SCROLL| SWT.H_SCROLL);
+		scrolledComposite.setExpandHorizontal( true );
+    	scrolledComposite.setExpandVertical( true );
+    	scrolledComposite.setLayoutData(new GridData());    	
      	
-        container = new Composite(scrolledcomposite,SWT.NULL);
-        scrolledcomposite.setContent(container);
+        container = new Composite(scrolledComposite,SWT.NULL);
+        scrolledComposite.setContent(container);
         GridLayout layout = new GridLayout();
         container.setLayout(layout);
         layout.numColumns = 1;					
 
-        ButtonComposite = new Composite(container, SWT.NONE);
+        buttonComposite = new Composite(container, SWT.NONE);
         GridLayout innerTopLayout1 = new GridLayout();
         innerTopLayout1.numColumns = 1;
-        ButtonComposite.setLayout(innerTopLayout1);
-        ButtonComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        buttonComposite.setLayout(innerTopLayout1);
+        buttonComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         
-        AdvancedOptionsComposite = new Composite(container, SWT.NONE);
+        advancedOptionsComposite = new Composite(container, SWT.NONE);
         GridLayout innerTopLayout2 = new GridLayout();
         innerTopLayout2.numColumns = 1;
-        AdvancedOptionsComposite.setLayout(innerTopLayout2);
-        AdvancedOptionsComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));      
+        advancedOptionsComposite.setLayout(innerTopLayout2);
+        advancedOptionsComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));      
  
-        Button useadvancedoptionsButton =  new Button(ButtonComposite,SWT.CHECK);
+        Button useadvancedoptionsButton =  new Button(buttonComposite,SWT.CHECK);
      	useadvancedoptionsButton.setText("Show Advanced Options");
      	useadvancedoptionsButton.addSelectionListener(new SelectionAdapter() {
      	    @Override
      	    public void widgetSelected(SelectionEvent event) {
      	    	 Button btn = (Button) event.getSource();
      	    	 if(btn.getSelection()) {
-     	    		UsesAdvancedOptions=true;
-     	    		AdvancedOptionsComposite.setVisible(UsesAdvancedOptions);
+     	    		usesAdvancedOptions=true;
+     	    		advancedOptionsComposite.setVisible(usesAdvancedOptions);
      	    	 }
      	    	 else
      	    	 {
-     	    		 UsesAdvancedOptions=false;
-     	    		AdvancedOptionsComposite.setVisible(UsesAdvancedOptions); 
+     	    		usesAdvancedOptions=false;
+     	    		advancedOptionsComposite.setVisible(usesAdvancedOptions); 
      	    	 }
      	    }
      	});
 		
-        PropertiesSection = new Composite(AdvancedOptionsComposite, SWT.NONE);
+        propertiesSection = new Composite(advancedOptionsComposite, SWT.NONE);
         GridLayout innerTopLayout3 = new GridLayout();
         innerTopLayout3.numColumns = 1;
-        PropertiesSection.setLayout(innerTopLayout3);
-        PropertiesSection.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        propertiesSection.setLayout(innerTopLayout3);
+        propertiesSection.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         
-        Button addProperty = new Button(PropertiesSection,SWT.PUSH);
+        Button addProperty = new Button(propertiesSection,SWT.PUSH);
         addProperty.setText("Add a Spark Property");       
         addProperty.addSelectionListener(new SelectionAdapter() {      	
             public void widgetSelected(SelectionEvent e) {
-            CreatedPropertiesSet.add(new SparkProperty(PropertiesSection,AdvancedOptionsComposite,scrolledcomposite,CreatedPropertiesSet,dto.getData()));
+            createdPropertiesSet.add(new SparkProperty(propertiesSection,advancedOptionsComposite,scrolledComposite,createdPropertiesSet,dto.getData()));
     		 container.layout(true,true);
-         	 scrolledcomposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
+         	 scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
             }
           });
 
-		Label LogLocationlabel = new Label(AdvancedOptionsComposite, SWT.NULL);
-		LogLocationlabel.setText("&Application Log Location:");
-		LogLocationText = new Text(AdvancedOptionsComposite, SWT.BORDER | SWT.SINGLE);
+		Label logLocationlabel = new Label(advancedOptionsComposite, SWT.NULL);
+		logLocationlabel.setText("&Application Log Location:");
+		logLocationText = new Text(advancedOptionsComposite, SWT.BORDER | SWT.SINGLE);
 		GridData gd1 = new GridData(GridData.FILL_HORIZONTAL);
-		LogLocationText.setLayoutData(gd1);
-		LogLocationText.setMessage("oci://dataflow-logs@" + ObjStorageClient.getInstance().getNamespace()+"/");
+		logLocationText.setLayoutData(gd1);
+		logLocationText.setMessage("oci://dataflow-logs@" + ObjStorageClient.getInstance().getNamespace()+"/");
 		
-		Label WarehouseLocationlabel = new Label(AdvancedOptionsComposite, SWT.NULL);
-		WarehouseLocationlabel.setText("&Warehouse Bucket Uri:");
-		WarehouseLocationText = new Text(AdvancedOptionsComposite, SWT.BORDER | SWT.SINGLE);
+		Label warehouseLocationlabel = new Label(advancedOptionsComposite, SWT.NULL);
+		warehouseLocationlabel.setText("&Warehouse Bucket Uri:");
+		warehouseLocationText = new Text(advancedOptionsComposite, SWT.BORDER | SWT.SINGLE);
 		GridData gd2 = new GridData(GridData.FILL_HORIZONTAL);
-		WarehouseLocationText.setLayoutData(gd2);	
-		Label NetworkAccesslabel = new Label(AdvancedOptionsComposite, SWT.NULL);
-		NetworkAccesslabel.setText("&Choose Network Access:");
+		warehouseLocationText.setLayoutData(gd2);	
+		Label networkAccesslabel = new Label(advancedOptionsComposite, SWT.NULL);
+		networkAccesslabel.setText("&Choose Network Access:");
 
-		NetworkSection = new Composite(AdvancedOptionsComposite, SWT.NONE);
+		networkSection = new Composite(advancedOptionsComposite, SWT.NONE);
         GridLayout innerTopLayout4 = new GridLayout();
         innerTopLayout4.numColumns = 1;
-        NetworkSection.setLayout(innerTopLayout4);
-        NetworkSection.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		createNetworkSection(NetworkSection);
+        networkSection.setLayout(innerTopLayout4);
+        networkSection.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		createNetworkSection(networkSection);
 
-		AdvancedOptionsComposite.setVisible(UsesAdvancedOptions);
+		advancedOptionsComposite.setVisible(usesAdvancedOptions);
 		container.layout(true,true);
 		
-		setControl(scrolledcomposite);
+		setControl(scrolledComposite);
 	}
 	
 	private void createNetworkSection(Composite currentcontainer) {		
-		NetworkGroup = new Group(currentcontainer, SWT.NULL);
+		networkGroup = new Group(currentcontainer, SWT.NULL);
 		RowLayout rowLayout1 = new RowLayout(SWT.HORIZONTAL);
         rowLayout1.spacing = 100;
-        NetworkGroup.setLayout(rowLayout1);
+        networkGroup.setLayout(rowLayout1);
 		GridData gd3 = new GridData(GridData.FILL_HORIZONTAL);
-		NetworkGroup.setLayoutData(gd3);
-		NetworkGroupInternetAccessRadioButton = new Button(NetworkGroup, SWT.RADIO);
-		NetworkGroupInternetAccessRadioButton.setText("Internet Access(No Subnet)");
-		NetworkGroupInternetAccessRadioButton.setSelection(true);
-		NetworkGroupPrivateSubnetRadioButton = new Button(NetworkGroup, SWT.RADIO);
-		NetworkGroupPrivateSubnetRadioButton.setText("Secure Access to Private Subnet");
-		NetworkGroupPrivateSubnetRadioButton.addSelectionListener(new SelectionAdapter() {
+		networkGroup.setLayoutData(gd3);
+		networkGroupInternetAccessRadioButton = new Button(networkGroup, SWT.RADIO);
+		networkGroupInternetAccessRadioButton.setText("Internet Access(No Subnet)");
+		networkGroupInternetAccessRadioButton.setSelection(true);
+		networkGroupPrivateSubnetRadioButton = new Button(networkGroup, SWT.RADIO);
+		networkGroupPrivateSubnetRadioButton.setText("Secure Access to Private Subnet");
+		networkGroupPrivateSubnetRadioButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-            	if(!NetworkSectionSelected)
+            	if(!networkSectionSelected)
             	{
-            		NetworkSectionSelected= true;
-            		PrivateEndpointSection= new Composite(currentcontainer, SWT.NONE);
+            		networkSectionSelected= true;
+            		privateEndpointSection= new Composite(currentcontainer, SWT.NONE);
                     GridLayout innerTopLayout = new GridLayout();
                     innerTopLayout.numColumns = 1;
-                    PrivateEndpointSection.setLayout(innerTopLayout);
-                    PrivateEndpointSection.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-                    choosePrivateSubnet(PrivateEndpointSection);     
+                    privateEndpointSection.setLayout(innerTopLayout);
+                    privateEndpointSection.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+                    choosePrivateSubnet(privateEndpointSection);     
             	}
-            	AdvancedOptionsComposite.layout(true,true);
+            	advancedOptionsComposite.layout(true,true);
         		container.layout(true,true);
-        		scrolledcomposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
+        		scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
                 container.pack();
             }
         });
 		
-		NetworkGroupInternetAccessRadioButton.addSelectionListener(new SelectionAdapter() {
+		networkGroupInternetAccessRadioButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-            	if(NetworkSectionSelected){
-            		NetworkSectionSelected= false;
+            	if(networkSectionSelected){
+            		networkSectionSelected= false;
             		compartmentText.dispose();
             		compartmentButton.dispose();
-            		PrivateEndpointsCombo.dispose();
+            		privateEndpointsCombo.dispose();
             		innerTopContainer.dispose();            		
-            		PrivateEndpointSection.dispose();
+            		privateEndpointSection.dispose();
             	} 
-            	AdvancedOptionsComposite.layout(true,true);
+            	advancedOptionsComposite.layout(true,true);
         		container.layout(true,true);
                 container.pack();
             }
         });
         container.layout(true,true);
-        scrolledcomposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
+        scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
         container.pack();
 	}
 	
@@ -251,34 +251,34 @@ public class CreateApplicationWizardPage3   extends WizardPage {
         chooseSubnet(currentcontainer,selectedApplicationCompartment.getId());
         
         currentcontainer.layout(true,true);
-        AdvancedOptionsComposite.layout(true,true);
+        advancedOptionsComposite.layout(true,true);
         container.layout(true,true);
-        scrolledcomposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
+        scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
         container.pack();                
 	}
 	
 	private void chooseSubnet(Composite currentcontainer, String compartmentId) {		     
 		PrivateEndPointsClient oci = PrivateEndPointsClient.getInstance();
-		PrivateEndpoints = oci.getPrivateEndPoints(compartmentId);		
-		int sizeoflist= PrivateEndpoints.size();
+		privateEndpoints = oci.getPrivateEndPoints(compartmentId);		
+		int sizeoflist= privateEndpoints.size();
 		String[] PrivateEndpointsList = new String[sizeoflist];
-		for(int i = 0; i < PrivateEndpoints.size(); i++){  
-			PrivateEndpointsList[i]= PrivateEndpoints.get(i).getDisplayName();
+		for(int i = 0; i < privateEndpoints.size(); i++){  
+			PrivateEndpointsList[i]= privateEndpoints.get(i).getDisplayName();
 		}
 		
-		PrivateEndpointsLabel = new Label(currentcontainer, SWT.NULL);
-		PrivateEndpointsLabel.setText("&Choose Private Endpoint:");
+		privateEndpointsLabel = new Label(currentcontainer, SWT.NULL);
+		privateEndpointsLabel.setText("&Choose Private Endpoint:");
 		
 		GridData gd4 = new GridData(GridData.FILL_HORIZONTAL);
-		PrivateEndpointsCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
-		PrivateEndpointsCombo.setLayoutData(gd4);		 
-		PrivateEndpointsCombo.setItems(PrivateEndpointsList);
+		privateEndpointsCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
+		privateEndpointsCombo.setLayoutData(gd4);		 
+		privateEndpointsCombo.setItems(PrivateEndpointsList);
 		if(intial != -1)
-			PrivateEndpointsCombo.select(intial);
+			privateEndpointsCombo.select(intial);
         currentcontainer.layout(true,true);
-        AdvancedOptionsComposite.layout(true,true);
+        advancedOptionsComposite.layout(true,true);
         container.layout(true,true);
-        scrolledcomposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
+        scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
         container.pack();
 	}
 	
@@ -289,10 +289,10 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 				if (compartment != null) {
 					selectedApplicationCompartment = compartment;
 					compartmentText.setText(selectedApplicationCompartment.getName());
-					if(PrivateEndpointsCombo != null)
-						PrivateEndpointsCombo.dispose();
-					if(PrivateEndpointsLabel != null)
-						PrivateEndpointsLabel.dispose();					
+					if(privateEndpointsCombo != null)
+						privateEndpointsCombo.dispose();
+					if(privateEndpointsLabel != null)
+						privateEndpointsLabel.dispose();					
 					chooseSubnet(currentcontainer,selectedApplicationCompartment.getId());
 				}
 			}
@@ -305,32 +305,32 @@ public class CreateApplicationWizardPage3   extends WizardPage {
     }	
 	
 	public String getWarehouseUri() {		
-		return WarehouseLocationText.getText().trim();
+		return warehouseLocationText.getText().trim();
 	}
 	
 	public String getApplicationLogLocation() {		
-		return LogLocationText.getText().trim();
+		return logLocationText.getText().trim();
 	}
 	
 	public String getPrivateEndPointId() {
-		return PrivateEndpoints.get(PrivateEndpointsCombo.getSelectionIndex()).getId()   ;		
+		return privateEndpoints.get(privateEndpointsCombo.getSelectionIndex()).getId()   ;		
 	}
 	
 	 public Map<String,String> getSparkProperties(){
 		 Map<String,String> SparkProperties=new HashMap<String,String>();
 		 
-		 for(SparkProperty Property : CreatedPropertiesSet) {			
-			 SparkProperties.put(Property.TagKey.getText(), Property.TagValue.getText());	
+		 for(SparkProperty Property : createdPropertiesSet) {			
+			 SparkProperties.put(Property.tagKey.getText(), Property.tagValue.getText());	
 		 }
 		 return SparkProperties;
 	 }
 	 
 	 public boolean usesAdvancedOptions(){
-		 return UsesAdvancedOptions;		 
+		 return usesAdvancedOptions;		 
 	 }
 	 
 	 public boolean usesPrivateSubnet(){
-		 return NetworkSectionSelected;		 
+		 return networkSectionSelected;		 
 	 }	
 	 
 
@@ -343,43 +343,43 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 		    		Application application = ApplicationClient.getInstance().getApplicationDetails(applicationId);
 		    	   if(application.getConfiguration() != null) {        	
 		          	 for (Map.Entry<String,String> property : application.getConfiguration().entrySet()) {
-		          		 SparkProperty propertypresent = new SparkProperty(PropertiesSection,AdvancedOptionsComposite,scrolledcomposite,CreatedPropertiesSet,application.getSparkVersion());
-		          		 CreatedPropertiesSet.add(propertypresent);
-		          		 propertypresent.TagKey.setText(property.getKey());
-		  				 propertypresent.TagValue.setText(property.getValue());
+		          		 SparkProperty propertypresent = new SparkProperty(propertiesSection,advancedOptionsComposite,scrolledComposite,createdPropertiesSet,application.getSparkVersion());
+		          		 createdPropertiesSet.add(propertypresent);
+		          		 propertypresent.tagKey.setText(property.getKey());
+		  				 propertypresent.tagValue.setText(property.getValue());
 		          	 }         	
 		      		 container.layout(true,true);
-		           	 scrolledcomposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );		          	
+		           	 scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );		          	
 		          } 
 		    	   
-		    	   LogLocationText.setText(application.getLogsBucketUri());
+		    	   logLocationText.setText(application.getLogsBucketUri());
 		    	   
 		    	   if(application.getWarehouseBucketUri() != null) {
-		   			WarehouseLocationText.setText(application.getWarehouseBucketUri());
+		   			warehouseLocationText.setText(application.getWarehouseBucketUri());
 		   		}
 		    	
 		    	
-		    	   if(NetworkSectionSelected)
+		    	   if(networkSectionSelected)
 	            	{	            		
-	            		NetworkSectionSelected= false;	            		
+	            		networkSectionSelected= false;	            		
 	            		compartmentLabel.dispose();
 	            		compartmentText.dispose();
 	            		compartmentButton.dispose();
-	            		PrivateEndpointsCombo.dispose();
+	            		privateEndpointsCombo.dispose();
 	            		innerTopContainer.dispose();            		
-	            		PrivateEndpointSection.dispose();	
+	            		privateEndpointSection.dispose();	
 	            	} 
 		    	   
-		    	NetworkGroupInternetAccessRadioButton.setSelection(false);
+		    	networkGroupInternetAccessRadioButton.setSelection(false);
 		   		if(application.getPrivateEndpointId() != null && !application.getPrivateEndpointId().equals("")) {
-					NetworkGroupPrivateSubnetRadioButton.setSelection(true);
-					NetworkSectionSelected= true;
+					networkGroupPrivateSubnetRadioButton.setSelection(true);
+					networkSectionSelected= true;
 					
-					PrivateEndpointSection= new Composite(NetworkSection, SWT.NONE);
+					privateEndpointSection= new Composite(networkSection, SWT.NONE);
 		            GridLayout innerTopLayout = new GridLayout();
 		            innerTopLayout.numColumns = 1;
-		            PrivateEndpointSection.setLayout(innerTopLayout);
-		            PrivateEndpointSection.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		            privateEndpointSection.setLayout(innerTopLayout);
+		            privateEndpointSection.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		            PrivateEndPointsClient oci = PrivateEndPointsClient.getInstance();
 		            PrivateEndpoint current = oci.getPrivateEndpointDetails(application.getPrivateEndpointId());
 		    		Compartment rootCompartment = IdentClient.getInstance().getRootCompartment();
@@ -391,24 +391,24 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 		    			}
 		    		}
 		    		
-		    		PrivateEndpoints = oci.getPrivateEndPoints(selectedApplicationCompartment.getId());		
-		    		int sizeoflist= PrivateEndpoints.size();
+		    		privateEndpoints = oci.getPrivateEndPoints(selectedApplicationCompartment.getId());		
+		    		int sizeoflist= privateEndpoints.size();
 		    		String[] PrivateEndpointsList = new String[sizeoflist];
-		    		for(int i = 0; i < PrivateEndpoints.size(); i++)
+		    		for(int i = 0; i < privateEndpoints.size(); i++)
 		    		{  
-		    			PrivateEndpointsList[i]= PrivateEndpoints.get(i).getDisplayName();
-		    			if(PrivateEndpoints.get(i).getId().equals(application.getPrivateEndpointId())) {
+		    			PrivateEndpointsList[i]= privateEndpoints.get(i).getDisplayName();
+		    			if(privateEndpoints.get(i).getId().equals(application.getPrivateEndpointId())) {
 		    				intial = i;
 		    				break;
 		    			}
 		    		}
 		    		
-		            choosePrivateSubnet(PrivateEndpointSection);     								
+		            choosePrivateSubnet(privateEndpointSection);     								
 
 				}
 				else {
-					NetworkGroupInternetAccessRadioButton.setSelection(true);
-					NetworkSectionSelected= false;
+					networkGroupInternetAccessRadioButton.setSelection(true);
+					networkSectionSelected= false;
 				}
 
 		    	   
@@ -416,7 +416,7 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 		    
 		    container.pack();
 		    container.layout(true,true);
-		    scrolledcomposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
+		    scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 		}
 	 
 	 

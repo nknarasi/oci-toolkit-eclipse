@@ -50,7 +50,6 @@ public class Activator extends AbstractUIPlugin {
      */
     @Override
     public void stop(BundleContext context) throws Exception {
-    	String tl=System.getProperty("java.io.tmpdir");
 		File theDir = new File(System.getProperty("java.io.tmpdir")+"\\dataflowtempdir");
 		if(theDir.exists()) {
 			for(String s: theDir.list()){

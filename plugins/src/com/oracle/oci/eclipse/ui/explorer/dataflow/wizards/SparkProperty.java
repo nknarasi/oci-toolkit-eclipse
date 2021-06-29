@@ -1,7 +1,6 @@
 package com.oracle.oci.eclipse.ui.explorer.dataflow.wizards;
 
 import java.util.Set;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -9,17 +8,15 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
-import com.oracle.oci.eclipse.ui.explorer.dataflow.DataflowConstants;
 
 public class SparkProperty {
 	
 	 Composite composite;
-	 Text TagValue;
-	 Text TagKey;
-	 Button CloseButton;
+	 Text tagValue;
+	 Text tagKey;
+	 Button closeButton;
 	 
 	 SparkProperty(Composite current,Composite container, ScrolledComposite scrolledcomposite,Set<SparkProperty> CreatedPropertiesSet,String Version){
 		 
@@ -29,15 +26,15 @@ public class SparkProperty {
 		 GridLayout1.numColumns = 3 ;
 		 composite.setLayout(GridLayout1);
 
-		 TagKey = new Text(composite,SWT.BORDER);
-		 TagKey.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		 TagKey.setMessage("Key");
+		 tagKey = new Text(composite,SWT.BORDER);
+		 tagKey.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		 tagKey.setMessage("Key");
 		 
-		 TagValue = new Text(composite,SWT.BORDER);
-		 TagValue.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		 TagValue.setMessage("Value");
-		 CloseButton=new Button(composite,SWT.PUSH);
-		 CloseButton.setText("Remove");
+		 tagValue = new Text(composite,SWT.BORDER);
+		 tagValue.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		 tagValue.setMessage("Value");
+		 closeButton=new Button(composite,SWT.PUSH);
+		 closeButton.setText("Remove");
 		 refresh(current, container, scrolledcomposite);
 		 addClose(current,container, scrolledcomposite,CreatedPropertiesSet);
 	 }
@@ -49,7 +46,7 @@ public class SparkProperty {
 	 }
 	 
 	 void addClose(Composite current,Composite container, ScrolledComposite scrolledcomposite,Set<SparkProperty> CreatedPropertiesSet) {
-		 CloseButton.addSelectionListener(new SelectionAdapter() {
+		 closeButton.addSelectionListener(new SelectionAdapter() {
 	            @Override
 	            public void widgetSelected(SelectionEvent e) {
 					 composite.dispose();

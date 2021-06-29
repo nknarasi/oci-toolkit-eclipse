@@ -68,6 +68,7 @@ public class CreatePrivateEndpointWizard extends Wizard implements INewWizard {
 					.maxHostCount((int)obj[9])
 					.nsgIds(page2.getnsgs())
 					.subnetId((String)obj[8]).build();
+			
 			CreatePrivateEndpointRequest createPrivateEndpointRequest = CreatePrivateEndpointRequest.builder()
 					.createPrivateEndpointDetails(createPrivateEndpointDetails)
 					.build();

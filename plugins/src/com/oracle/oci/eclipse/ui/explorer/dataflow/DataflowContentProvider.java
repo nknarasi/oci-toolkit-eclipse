@@ -20,8 +20,7 @@ public class DataflowContentProvider extends BaseContentProvider
 	List<PrivateEndpointSummary> privateendpointsList = new ArrayList<PrivateEndpointSummary>();
     boolean foundApplications = true;
     boolean foundPrivateEndpoints = true;
-    
-    
+        
     public DataflowContentProvider() {
         instance = this;
     }
@@ -56,51 +55,7 @@ public class DataflowContentProvider extends BaseContentProvider
 	        return (element instanceof RootElement || element instanceof DataflowRootElement);
 	    }
 
-	    /*
-	    public void getApplicationsAndRefresh() {
-	        applicationList.clear();
-	        new Job("Get Applications") {
-	            @Override
-	            protected IStatus run(IProgressMonitor monitor) {
-	                try {
-	                    ApplicationClient oci = ApplicationClient.getInstance();
-	                    applicationList = oci.getApplications();
-	                    if (applicationList.size() > 0) {
-	                        foundApplications = true;
-	                    } else {
-	                        foundApplications = false;
-	                    }
-	                } catch (Exception e) {
-	                    return ErrorHandler.reportException("Unable to get applications: " + e.getMessage(), e);
-	                }
-	                return Status.OK_STATUS;
-	            }
-	        }.schedule();
-	    }
-	    
-	    public void getPrivateEndPointsAndRefresh() {
-	    	privateendpointsList.clear();
-	        new Job("Get Private End Points") {
-	            @Override
-	            protected IStatus run(IProgressMonitor monitor) {
-	                try {
-	                    PrivateEndPointsClient oci = PrivateEndPointsClient.getInstance();
-	                    privateendpointsList = oci.getPrivateEndPoints();
-	                    if (privateendpointsList.size() > 0) {
-	                        foundPrivateEndpoints = true;
-	                    } else {
-	                        foundPrivateEndpoints = false;
-	                    }
-	                } catch (Exception e) {
-	                    return ErrorHandler.reportException("Unable to get private end points: " + e.getMessage(), e);
-	                }
-	                refresh();
-	                return Status.OK_STATUS;
-	            }
-	        }.schedule();
-	    }
-	    
-	    */
+
 	    @Override
 	    public void inputChanged(Viewer viewer, Object oldInput, Object newInput)
 	    {

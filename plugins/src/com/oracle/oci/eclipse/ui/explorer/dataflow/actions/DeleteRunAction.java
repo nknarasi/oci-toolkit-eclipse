@@ -12,24 +12,24 @@ import com.oracle.oci.eclipse.ui.explorer.dataflow.editor.RunTable;
 public class DeleteRunAction extends BaseAction {
     
 	private RunTable runTable;
-	private RunSummary rs;
+	private RunSummary runSummary;
 	
-	public DeleteRunAction(RunSummary rs,RunTable runTable) {
+	public DeleteRunAction(RunSummary runSummary,RunTable runTable) {
         setText("Cancel Run");
 		this.runTable=runTable;
-		this.rs=rs;
+		this.runSummary=runSummary;
     }
 
     @Override
     protected void runAction() {
     	
-    	boolean result = MessageDialog.openConfirm(runTable.getShell(), "Please Confirm", "Are you sure you want to cancel running of "+rs.getDisplayName()+".");
+    	boolean result = MessageDialog.openConfirm(runTable.getShell(), "Please Confirm", "Are you sure you want to cancel running of "+runSummary.getDisplayName()+".");
 		if (result){
 			try{
 			DataFlowClient client = RunClient.getInstance().getDataFlowClient();
 			DeleteRunRequest deleteRunRequest = DeleteRunRequest.builder()
-					.runId(this.rs.getId())
-					.opcRequestId(this.rs.getOpcRequestId())
+					.runId(this.runSummary.getId())
+					.opcRequestId(this.runSummary.getOpcRequestId())
 					.build();
 			        client.deleteRun(deleteRunRequest);
 			MessageDialog.openInformation(runTable.getShell(), "Successful", "Run Cancelling...");

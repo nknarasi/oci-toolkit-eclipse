@@ -44,7 +44,7 @@ public class PrivateEndpointTable extends BaseTable {
 	private static final int CREATED_COL = 2;
 	public static String compid;
 	private static String compname;
-	List<PrivateEndpointSummary> privateEndpointSummaryList = new ArrayList<PrivateEndpointSummary>();
+	private List<PrivateEndpointSummary> privateEndpointSummaryList = new ArrayList<PrivateEndpointSummary>();
 
     public PrivateEndpointTable(Composite parent, int style) {
         super(parent, style);
@@ -61,10 +61,13 @@ public class PrivateEndpointTable extends BaseTable {
             @Override
             protected IStatus run(IProgressMonitor monitor) {
                 try {
-                    if(compid==null) privateEndpointSummaryList = PrivateEndPointsClient.getInstance().getPrivateEndPoints(AuthProvider.getInstance().getCompartmentId());
-					else privateEndpointSummaryList = PrivateEndPointsClient.getPrivateEndPoints(compid);
-                    tableDataSize = privateEndpointSummaryList.size();
-                } catch (Exception e) {
+                    if(compid==null) 
+                    	privateEndpointSummaryList = PrivateEndPointsClient.getInstance().getPrivateEndPoints(AuthProvider.getInstance().getCompartmentId());
+					else 
+						privateEndpointSummaryList = PrivateEndPointsClient.getPrivateEndPoints(compid);
+                        tableDataSize = privateEndpointSummaryList.size();
+                } 
+                catch (Exception e) {
                     MessageDialog.openError(getShell(), "Unable to get Private Endpoints list", e.getMessage());
                 }
                 refresh(false);
@@ -126,8 +129,10 @@ public class PrivateEndpointTable extends BaseTable {
         if (getSelectedObjects().size() == 1) {
            String pepState=((PrivateEndpointSummary)getSelectedObjects().get(0)).getLifecycleState().toString();
            manager.add(new Separator());
-           if(!pepState.equals("Creating")) manager.add(new DetailsPrivateEndpointAction(PrivateEndpointTable.this));
-           if(!pepState.equals("Creating")) manager.add(new DeletePrivateEndpointAction(PrivateEndpointTable.this,(PrivateEndpointSummary)getSelectedObjects().get(0)));
+           if(!pepState.equals("Creating")) 
+        	   manager.add(new DetailsPrivateEndpointAction(PrivateEndpointTable.this));
+           if(!pepState.equals("Creating")) 
+        	   manager.add(new DeletePrivateEndpointAction(PrivateEndpointTable.this,(PrivateEndpointSummary)getSelectedObjects().get(0)));
 		   if(pepState.equals("Creating")||pepState.equals("Failed")) {}
 		   else {
 			   manager.add(new EditPrivateEndpointAction((PrivateEndpointSummary)getSelectedObjects().get(0),PrivateEndpointTable.this));
@@ -139,8 +144,9 @@ public class PrivateEndpointTable extends BaseTable {
 	@Override
     protected void addTableLabels(FormToolkit toolkit, Composite left, Composite right) {
 		
-		ccb.setText("Change Compartment");ccb.setVisible(true);
-        ccb.addSelectionListener(new SelectionListener() {
+		changeCompartmentButton.setText("Change Compartment");
+		changeCompartmentButton.setVisible(true);
+		changeCompartmentButton.addSelectionListener(new SelectionListener() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 

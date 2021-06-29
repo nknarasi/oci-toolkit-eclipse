@@ -8,8 +8,6 @@ import com.oracle.bmc.dataflow.model.CreateApplicationDetails;
 import com.oracle.bmc.dataflow.model.CreateRunDetails;
 import com.oracle.bmc.dataflow.model.CreateApplicationDetails.Builder;
 import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
-import com.oracle.oci.eclipse.ui.explorer.dataflow.DataflowConstants;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -35,7 +33,6 @@ public class CreateApplicationWizard extends Wizard implements INewWizard {
 		setNeedsProgressMonitor(true);
 	}
 	
-
     @Override
     public void addPages() {
     	DataTransferObject dto = new DataTransferObject();
@@ -44,174 +41,7 @@ public class CreateApplicationWizard extends Wizard implements INewWizard {
         thirdpage = new CreateApplicationWizardPage3(selection,dto);
         addPage(thirdpage);
         tagpage= new TagsPage(selection,COMPARTMENT_ID);
-        addPage(tagpage);
-        
-    }
-    private boolean validations(CreateApplicationWizardPage firstpage, TagsPage tagpage, CreateApplicationWizardPage3 thirdpage) {
-    	
-    	boolean valid = true;
-    	if(firstpage.getDisplayName().length()<1 || firstpage.getDisplayName().length()>20)
-    	{
-    		warnings += "Application Name should satisfy constraints" + "\n"; 
-    		valid = false;
-    	}
-    	
-    	if(firstpage.getApplicationDescription().length() > 50 )
-    	{
-    		warnings += "Application Description should satisfy constraints" + "\n"; 
-    		valid = false;
-    	}
-    	if(!firstpage.usesSparkSubmit() && (firstpage.getFileUri() ==null ||firstpage.getFileUri().equals("") )) {    		
-    		warnings += "File Uri is absent" + "\n"; 
-    		valid = false;    		
-    	}
-    	if(!firstpage.usesSparkSubmit() && (firstpage.getLanguage() == ApplicationLanguage.Java && 
-    			(firstpage.getMainClassName() == null || firstpage.getMainClassName().equals("")))) {
-    		warnings += "Main Class Name is absent" + "\n"; 
-    		valid = false;   
-    	}
-    	if(thirdpage.getApplicationLogLocation() != null && !thirdpage.getApplicationLogLocation().equals("") ) {
-    		String loglocation = thirdpage.getApplicationLogLocation();
-    		if(loglocation.length() < 9) {
-    			warnings += "Log Bucket Uri format is invalid" + "\n"; 
-    			valid = false;
-    		}
-    		else if( !loglocation.substring(0,6).equals("oci://") ) {
-    			warnings += "Log Bucket Uri format is invalid" + "\n"; 
-    			valid = false;
-    		}
-    		else if(loglocation.charAt(loglocation.length()-1) != '/') {
-    			warnings += "Log Bucket Uri format is invalid" + "\n"; 
-    			valid = false;
-    		}
-    		else {
-    			boolean symbol = false;
-    			for(int i= 6; i< loglocation.length()-1; i++) {
-    				if(loglocation.charAt(i) == '@') {
-    					symbol = true;
-    					break;
-    				}    				
-    			}
-    			if(symbol == false) {
-    				warnings += "Log Bucket Uri format is invalid" + "\n"; 
-        			valid = false;
-    			}
-    		}
-    	}
-    	
-    	if(thirdpage.getWarehouseUri() != null && !thirdpage.getWarehouseUri().equals("") ) {
-    		String loglocation = thirdpage.getWarehouseUri();
-    		if(loglocation.length() < 9) {
-    			warnings += "Warehouse Bucket Uri format is invalid" + "\n"; 
-    			valid = false;
-    		}
-    		else if( !loglocation.substring(0,6).equals("oci://") ) {
-    			warnings += "Warehouse Bucket Uri format is invalid" + "\n"; 
-    			valid = false;
-    		}
-    		else {
-    			boolean symbol = false;
-    			for(int i= 6; i< loglocation.length(); i++) {
-    				if(loglocation.charAt(i) == '@') {
-    					symbol = true;
-    					break;
-    				}    				
-    			}
-    			if(symbol == false) {
-    				warnings += "Warehouse Bucket Uri format is invalid" + "\n"; 
-        			valid = false;
-    			}
-    		}
-    	}
-    	if (thirdpage.usesPrivateSubnet() && thirdpage.PrivateEndpointsCombo.getSelectionIndex()<0){
-    		warnings += "Select a Private endpoint" + "\n"; 
-			valid = false;
-    	}
-    	
-    	if(!firstpage.usesSparkSubmit() && firstpage.getArchiveUri() != null && !firstpage.getArchiveUri().equals("") ) {
-    		String loglocation = firstpage.getArchiveUri();
-    		if(loglocation.length() < 9) {
-    			warnings += "Archive Uri format is invalid" + "\n"; 
-    			valid = false;
-    		}
-    		else if( !loglocation.substring(0,6).equals("oci://") ) {
-    			warnings += "Archive Uri format is invalid" + "\n"; 
-    			valid = false;
-    		}
-    		else {
-    			boolean symbol1 = false;
-    			boolean symbol2= false;
-    			for(int i= 6; i< loglocation.length(); i++) {
-    				if(loglocation.charAt(i) == '@') {
-    					symbol1 = true;
-    				}
-    				if(loglocation.charAt(i) == '/') {
-    					symbol2 = true;
-    				}
-    			}
-    			if(!symbol1 || !symbol2) {
-    				warnings += "Archive Uri format is invalid" + "\n"; 
-        			valid = false;
-    			}
-    		}
-    	}
-    	
-    	//SPARK CONFIGURATION VALIDATIONS;
-    	if(thirdpage.getSparkProperties() != null) {
-    		
-    		 for (Map.Entry<String,String> property : thirdpage.getSparkProperties().entrySet()) {
-    			 
-    			 boolean allowed= false;
-    			 String key = property.getKey();
-    			 if(firstpage.getSparkVersion().equals(DataflowConstants.Versions[0])) {
-    				 
-    				 for(String propertypresent : DataflowConstants.Spark2PropertiesList ) {   					    					 
-    					 if(propertypresent.charAt(propertypresent.length()-1) != '*') {
-    						 if(key.equals(propertypresent)) {
-    							 allowed = true;
-    							 break;
-    						 }
-    					 }
-    					 else {
-    						 if(propertypresent.length() <= key.length() && 
-    								 propertypresent.substring(0, propertypresent.length()-1)
-    								 .equals(key.substring(0, propertypresent.length()-1))) {
-    							 allowed = true;
-    							 break;
-    						 }
-    					 }
-    				 }
-    				 
-    			 }
-    			 else {
-    				 
-    				 for(String propertypresent : DataflowConstants.Spark3PropertiesList ) {   					    					 
-    					 if(propertypresent.charAt(propertypresent.length()-1) != '*') {
-    						 if(key.equals(propertypresent)) {
-    							 allowed = true;
-    							 break;
-    						 }
-    					 }
-    					 else {
-    						 if( propertypresent.length() <= key.length() && propertypresent.substring(0, propertypresent.length()-1)
-    								 .equals(key.substring(0, propertypresent.length()-1))) {
-    							 allowed = true;
-    							 break;
-    						 }
-    					 }
-    				 }
-    				 
-    			 }
-    			 
-    			 if(!allowed) {
-    				 warnings += "Sprak Property " + key + " is not allowed." + "\n"; 
-         			valid = false;
-    			 }
-        	 }         	
-    	}
-    	
-    	
-    	return valid;
+        addPage(tagpage);        
     }
     
     @Override
@@ -232,18 +62,8 @@ public class CreateApplicationWizard extends Wizard implements INewWizard {
     
     @Override
     public boolean performFinish() {   	
-    	warnings = "";
-    	if(!validations(firstpage,tagpage,thirdpage)) {
-    	String title = "Warnings";
-   		 String message = warnings;
-   		 MessageDialog.openInformation(getShell(), title, message);    		
-    	return false;
-    	}
-    	final String compartmentId = firstpage.getApplicationCompartmentId();
-    	
-    	if(firstpage.usesSparkSubmit()) {
-    		//System.out.println("EXECUTE");
-    		
+    	final String compartmentId = firstpage.getApplicationCompartmentId();    	
+    	if(firstpage.usesSparkSubmit()) {   		
     		CreateRunDetails.Builder createApplicationRequestBuilder =  
     				CreateRunDetails.builder()
         	        .compartmentId(compartmentId)
@@ -274,7 +94,7 @@ public class CreateApplicationWizard extends Wizard implements INewWizard {
         	            return false;
         	        } catch (InvocationTargetException e) {
         	            Throwable realException = e.getTargetException();
-        	            MessageDialog.openError(getShell(), "Failed to Run Application ", realException.getMessage());
+        	            MessageDialog.openError(getShell(), "Failed to Create Application ", realException.getMessage());
         	            return false;
         	        }
         	        return true;
@@ -292,8 +112,7 @@ public class CreateApplicationWizard extends Wizard implements INewWizard {
         			.numExecutors(Integer.valueOf(firstpage.getNumofExecutors()))
         			.definedTags(tagpage.getOT())
         			.freeformTags(tagpage.getFT());
-        			
-        			
+        	        			
         			if(firstpage.usesSparkSubmit() == false) {
         				createApplicationRequestBuilder = createApplicationRequestBuilder
         						.language(firstpage.getLanguage())
@@ -306,22 +125,13 @@ public class CreateApplicationWizard extends Wizard implements INewWizard {
         		    	}
         		    	else if (firstpage.getLanguage()== ApplicationLanguage.Python) {
         		    		createApplicationRequestBuilder = createApplicationRequestBuilder.arguments(firstpage.getArguments());			
-        		    	}
-        		    	
-        		    createApplicationRequestBuilder = createApplicationRequestBuilder.parameters(firstpage.getParameters());			
-        		    	
+        		    	}        		    	
+        		    createApplicationRequestBuilder = createApplicationRequestBuilder.parameters(firstpage.getParameters());			       		    	
         			}
-        			else
-        			{
+        			else{
         				createApplicationRequestBuilder = createApplicationRequestBuilder.execute(firstpage.getSparkSubmit());
         			}
-        			
-        			
-        			
-        	    	final CreateApplicationDetails createApplicationRequest;
-        	    	
-        	    	
-        	    	
+        			final CreateApplicationDetails createApplicationRequest;       	    	
         			final boolean usesAdvancedOptions = thirdpage.usesAdvancedOptions();
         			if (usesAdvancedOptions) {
         				createApplicationRequestBuilder = createApplicationRequestBuilder.configuration(thirdpage.getSparkProperties())
@@ -334,11 +144,9 @@ public class CreateApplicationWizard extends Wizard implements INewWizard {
         				}
         				else {
         					createApplicationRequest = createApplicationRequestBuilder.build();
-        				}
-        						
+        				}        						
         			} else {
-        				createApplicationRequest = createApplicationRequestBuilder.build();
-        						
+        				createApplicationRequest = createApplicationRequestBuilder.build();       						
         			}
         	    		
         	        IRunnableWithProgress op = new IRunnableWithProgress() {
@@ -359,11 +167,8 @@ public class CreateApplicationWizard extends Wizard implements INewWizard {
         	        }
         	        return true;
     	}
-        
-
     }
     
-
     /**
      * We will accept the selection in the workbench to see if
      * we can initialize from it.

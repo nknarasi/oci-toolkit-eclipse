@@ -47,7 +47,8 @@ public abstract class BaseTable extends Composite {
     protected void addTableLabels(FormToolkit toolkit, Composite left, Composite right) {}
     Label profileLabel;
     Label compartmentLabel;
-    Label regionLabel;    protected Button ccb;
+    Label regionLabel;    
+    protected Button changeCompartmentButton;
     protected String compartmentName;
 
     protected void createTable() {
@@ -72,8 +73,13 @@ public abstract class BaseTable extends Composite {
         right.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
         right.setLayout(new GridLayout(1, true));
 
-        profileLabel = new Label(left, SWT.NONE);GridData plgd=new GridData();plgd.horizontalSpan=2;profileLabel.setLayoutData(plgd);
-        compartmentLabel = new Label(left, SWT.NONE);ccb=new Button(left,SWT.PUSH);ccb.setVisible(false);
+        profileLabel = new Label(left, SWT.NONE);
+        GridData gridData=new GridData();
+        gridData.horizontalSpan=2;
+        profileLabel.setLayoutData(gridData);
+        compartmentLabel = new Label(left, SWT.NONE);
+        changeCompartmentButton=new Button(left,SWT.PUSH);
+        changeCompartmentButton.setVisible(false);
         regionLabel = new Label(left, SWT.NONE);
         updateTableLabels();
         addTableLabels(toolkit, left, right);

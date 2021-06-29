@@ -31,18 +31,12 @@ import com.oracle.oci.eclipse.sdkclients.IdentClient;
 
 
 public class TagsPage extends WizardPage {
-    private Text nameText;
-	private Combo vcnCombo;
-	private Combo subnetCombo;
-	private Text dnszText;
     private ISelection selection;
     private String compid;
-    private Composite container,p,c;
+    private Composite container;
     private ScrolledComposite sc;
     private Set<Tags> set=new HashSet<Tags>();
-    private int not;
     private String[] namespacesList;
-    Label sn;
 
     public TagsPage(ISelection selection,String compid) {
         super("wizardPage");
@@ -56,9 +50,7 @@ public class TagsPage extends WizardPage {
     @Override
     public void createControl(Composite parent) {
     	
-    	not=0;
-    	p=parent;
-    	//c=new Composite(parent,SWT.NONE);
+
     	sc=new ScrolledComposite(parent,SWT.V_SCROLL);
     	sc.setExpandHorizontal( true );
     	sc.setExpandVertical( true );
@@ -69,13 +61,7 @@ public class TagsPage extends WizardPage {
         GridLayout layout = new GridLayout();
         container.setLayout(layout);
         layout.numColumns = 1;
-        
-        //sc.addListener( SWT.Resize, event -> {
-  		  //int width = sc.getClientArea().width;
-  		  //sc.setMinSize( container.computeSize( width, SWT.DEFAULT ) );
-        	
-  		//} );
-		
+
         Button check=new Button(container,SWT.PUSH);check.setText("Check for duplicacy");
         check.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP,true,false));
         check.addSelectionListener(new SelectionAdapter() {
@@ -109,8 +95,6 @@ public class TagsPage extends WizardPage {
 		 Combo tc,dtc;
 		 Text ftk,val;
 		 Button c;
-		 //String sel;
-		 //Label l;
 		 
 		 Tags(){
 			 
@@ -170,7 +154,6 @@ public class TagsPage extends WizardPage {
 	 String[] getNamespaces() {
 		 IdentityClient client = new IdentityClient(AuthProvider.getInstance().getProvider());
 		 
-		//if(compid==null) 
 		compid=IdentClient.getInstance().getRootCompartment().getId();
 		ListTagNamespacesRequest listTagNamespacesRequest = ListTagNamespacesRequest.builder().compartmentId(compid)
 			//.limit(570)
@@ -184,10 +167,6 @@ public class TagsPage extends WizardPage {
 	        	rl[i]=l.get(i).getName();
 	        }
 	        rl[l.size()]="Free Form Tags";
-	        //System.out.println(l.get(0));
-	        /*for (TagNamespaceSummary e:l) {
-	            System.out.println(getTagNamespace(e.getId()).toString());
-	        }*/
 	        return rl;
 	 }
 	 
