@@ -2,8 +2,6 @@ package com.oracle.oci.eclipse.ui.explorer.dataflow.wizards;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -14,38 +12,31 @@ import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWizard;
-
 import com.oracle.bmc.dataflow.model.Application;
 import com.oracle.bmc.dataflow.model.ApplicationLanguage;
 import com.oracle.bmc.dataflow.model.CreateApplicationDetails;
 import com.oracle.bmc.dataflow.model.CreateRunDetails;
 import com.oracle.bmc.dataflow.model.UpdateApplicationDetails;
 import com.oracle.bmc.dataflow.model.CreateApplicationDetails.Builder;
+import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.account.AuthProvider;
 import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
 import com.oracle.oci.eclipse.sdkclients.ObjStorageClient;
-import com.oracle.oci.eclipse.ui.explorer.dataflow.DataflowConstants;
 import com.oracle.oci.eclipse.ui.explorer.objectstorage.actions.MakeJarAndZip;
 
-public class LocalFileSelectWizard extends Wizard implements INewWizard  {
-	
-	
-	 private ProjectSelectWizardPage page1;
-	 private JarSelectPage page2;
-	 
-	 
+public class LocalFileSelectWizard extends Wizard implements INewWizard  {	
+	private ProjectSelectWizardPage page1;
+	private JarSelectPage page2;	 
     LocalFileSelectWizardPage1 firstbpage;
     LocalFileSelectWizardPage2 secondbpage;
     LocalFileSelectWizardPage3 thirdbpage;
     private ISelection selection;
-    private String warnings="";
 	private String COMPARTMENT_ID;
 	DataTransferObject dto;
     CreateApplicationWizardPage firstpage;
     CreateApplicationWizardPage3 thirdpage;
     private TagsPage tagpage;
     private Application application;
-    private String filedir,archivedir,filename,archivename= "";
 	public LocalFileSelectWizard() {
 		super();
 		this.COMPARTMENT_ID= AuthProvider.getInstance().getCompartmentId();
@@ -80,7 +71,7 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	    public IWizardPage getNextPage(IWizardPage page) {
 	    	
 	    	if(page.equals(page1)) {
-	    		page2.job2.schedule();
+	    		page2.job.schedule();
 	    		return page2;
 	    	}
 	    	if(page.equals(page2)) {
@@ -112,159 +103,7 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	        return null;       
 	    }
 	   
-	   
-	    private boolean validations(LocalFileSelectWizardPage1 firstbpage, 
-	    		LocalFileSelectWizardPage2 secondbpage,
-	    		CreateApplicationWizardPage firstpage, TagsPage tagpage, 
-	    		CreateApplicationWizardPage3 thirdpage) {
-	    	
-	    	boolean valid = true;
-	    	
-	    	if(dto.getFiledir() == null) {
-	    		warnings+="Please select a project and create files" +"\n";
-	    		valid=false;
-	    	}
-	    	
-	    	if(firstbpage.getBucketSelected() == null ) {
-	    		warnings+="Please select a bucket for Application" +"\n";
-	    		valid=false;
-	    		
-	    	}
-	    	
-	    	if(firstpage.getDisplayName().length()<1 || firstpage.getDisplayName().length()>20)
-	    	{
-	    		warnings += "Application Name should satisfy constraints" + "\n"; 
-	    		valid = false;
-	    	}
-	    	
-	    	if(firstpage.getApplicationDescription().length() > 255 )
-	    	{
-	    		warnings += "Application Description should satisfy constraints" + "\n"; 
-	    		valid = false;
-	    	}
-	    	
-	    	
-	    	if(!firstpage.usesSparkSubmit() && (firstpage.getLanguage() == ApplicationLanguage.Java && 
-	    			(firstpage.getMainClassName() == null || firstpage.getMainClassName().equals("")))) {
-	    		warnings += "Main Class Name is absent" + "\n"; 
-	    		valid = false;   
-	    	}
-	    	if(thirdpage.getApplicationLogLocation() != null && !thirdpage.getApplicationLogLocation().equals("") ) {
-	    		String loglocation = thirdpage.getApplicationLogLocation();
-	    		if(loglocation.length() < 9) {
-	    			warnings += "Log Bucket Uri format is invalid" + "\n"; 
-	    			valid = false;
-	    		}
-	    		else if( !loglocation.substring(0,6).equals("oci://") ) {
-	    			warnings += "Log Bucket Uri format is invalid" + "\n"; 
-	    			valid = false;
-	    		}
-	    		else if(loglocation.charAt(loglocation.length()-1) != '/') {
-	    			warnings += "Log Bucket Uri format is invalid" + "\n"; 
-	    			valid = false;
-	    		}
-	    		else {
-	    			boolean symbol = false;
-	    			for(int i= 6; i< loglocation.length()-1; i++) {
-	    				if(loglocation.charAt(i) == '@') {
-	    					symbol = true;
-	    					break;
-	    				}    				
-	    			}
-	    			if(symbol == false) {
-	    				warnings += "Log Bucket Uri format is invalid" + "\n"; 
-	        			valid = false;
-	    			}
-	    		}
-	    	}
-	    	
-	    	if(thirdpage.getWarehouseUri() != null && !thirdpage.getWarehouseUri().equals("") ) {
-	    		String loglocation = thirdpage.getWarehouseUri();
-	    		if(loglocation.length() < 9) {
-	    			warnings += "Warehouse Bucket Uri format is invalid" + "\n"; 
-	    			valid = false;
-	    		}
-	    		else if( !loglocation.substring(0,6).equals("oci://") ) {
-	    			warnings += "Warehouse Bucket Uri format is invalid" + "\n"; 
-	    			valid = false;
-	    		}
-	    		else {
-	    			boolean symbol = false;
-	    			for(int i= 6; i< loglocation.length(); i++) {
-	    				if(loglocation.charAt(i) == '@') {
-	    					symbol = true;
-	    					break;
-	    				}    				
-	    			}
-	    			if(symbol == false) {
-	    				warnings += "Warehouse Bucket Uri format is invalid" + "\n"; 
-	        			valid = false;
-	    			}
-	    		}
-	    	}
-	    	if (thirdpage.usesPrivateSubnet() && thirdpage.PrivateEndpointsCombo.getSelectionIndex()<0){
-	    		warnings += "Select a Private endpoint" + "\n"; 
-				valid = false;
-	    	}
 
-	    	
-	    	//SPARK CONFIGURATION VALIDATIONS;
-	    	if(thirdpage.getSparkProperties() != null) {
-	    		
-	    		 for (Map.Entry<String,String> property : thirdpage.getSparkProperties().entrySet()) {
-	    			 
-	    			 boolean allowed= false;
-	    			 String key = property.getKey();
-	    			 if(firstpage.getSparkVersion().equals(DataflowConstants.Versions[0])) {
-	    				 
-	    				 for(String propertypresent : DataflowConstants.Spark2PropertiesList ) {   					    					 
-	    					 if(propertypresent.charAt(propertypresent.length()-1) != '*') {
-	    						 if(key.equals(propertypresent)) {
-	    							 allowed = true;
-	    							 break;
-	    						 }
-	    					 }
-	    					 else {
-	    						 if(propertypresent.length() <= key.length() && 
-	    								 propertypresent.substring(0, propertypresent.length()-1)
-	    								 .equals(key.substring(0, propertypresent.length()-1))) {
-	    							 allowed = true;
-	    							 break;
-	    						 }
-	    					 }
-	    				 }
-	    				 
-	    			 }
-	    			 else {
-	    				 
-	    				 for(String propertypresent : DataflowConstants.Spark3PropertiesList ) {   					    					 
-	    					 if(propertypresent.charAt(propertypresent.length()-1) != '*') {
-	    						 if(key.equals(propertypresent)) {
-	    							 allowed = true;
-	    							 break;
-	    						 }
-	    					 }
-	    					 else {
-	    						 if( propertypresent.length() <= key.length() && propertypresent.substring(0, propertypresent.length()-1)
-	    								 .equals(key.substring(0, propertypresent.length()-1))) {
-	    							 allowed = true;
-	    							 break;
-	    						 }
-	    					 }
-	    				 }
-	    				 
-	    			 }
-	    			 
-	    			 if(!allowed) {
-	    				 warnings += "Sprak Property " + key + " is not allowed." + "\n"; 
-	         			valid = false;
-	    			 }
-	        	 }         	
-	    	}
-	    	
-	    	
-	    	return valid;
-	    }
 	    
 
 	    /**
@@ -279,47 +118,38 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	    }
 	    
 	    @Override
-	    public boolean performFinish() {
-	    	
-			
-			warnings = "";
-	    	if(!validations(firstbpage,secondbpage,firstpage,tagpage,thirdpage)) {
-	    	String title = "Warnings";
-	   		 String message = warnings;
-	   		 MessageDialog.openInformation(getShell(), title, message);    		
-	    	return false;
-	    	}
-	    	
+	    public boolean performFinish() {	   	    	
 	    	String bucketName = firstbpage.getBucketSelected();
-	    	File f = new File(dto.getFiledir());
+	    	File applicationFile = new File(dto.getFiledir());
+	    	String newfileName = dto.getFiledir().substring(0,dto.getFiledir().lastIndexOf('\\')+1);
+	    	File applicationFileNew = new File(newfileName+firstbpage.getnewName());
+	    	applicationFile.renameTo(applicationFileNew);
 	    	try {
-				ObjStorageClient.getInstance().uploadObject(bucketName, f);
+				ObjStorageClient.getInstance().uploadObject(bucketName, applicationFileNew);
+				
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				ErrorHandler.logError("Unable to upload application .jar to bucket: " + e.getMessage());
 			};
 			
 			if(dto.getArchivedir() != null && secondbpage.getBucketSelected() != null)
 			{
 				String archivebucketName = secondbpage.getBucketSelected();
-		    	File f2 = new File(dto.getArchivedir());
+		    	File archiveFile = new File(dto.getArchivedir());
+		    	String newfileName2 = dto.getArchivedir().substring(0,dto.getFiledir().lastIndexOf('\\')+1);
+		    	File archiveFileNew = new File(newfileName2+secondbpage.getnewName());
+		    	archiveFile.renameTo(archiveFileNew);
 		    	try {
-					ObjStorageClient.getInstance().uploadObject(archivebucketName, f2);
+					ObjStorageClient.getInstance().uploadObject(archivebucketName, archiveFileNew);
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					 ErrorHandler.logError("Unable to upload archive .zip to bucket: " + e.getMessage());					
 				};
 			}
 
-			if(dto.applicationId != null) {
-				
-				Application applicationold = ApplicationClient.getInstance().getApplicationDetails(dto.getApplicationId());
-				
+			if(dto.applicationId != null) {				
+				Application applicationOld = ApplicationClient.getInstance().getApplicationDetails(dto.getApplicationId());				
 		    	final String compartmentId = firstpage.getApplicationCompartmentId();
 		    	
-		    	if(firstpage.usesSparkSubmit()) {
-		    		//System.out.println("EXECUTE");
-		    		
+		    	if(firstpage.usesSparkSubmit()) {		    		
 		    		CreateRunDetails.Builder createApplicationRequestBuilder =  
 		    				CreateRunDetails.builder()
 		        	        .compartmentId(compartmentId)
@@ -367,12 +197,12 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 		        			.executorShape(firstpage.getExecutorShape())
 		        			.numExecutors(Integer.valueOf(firstpage.getNumofExecutors()))
 		        			.definedTags(tagpage.getOT())
-		        			.freeformTags(tagpage.getFT());	
-		    		
+		        			.freeformTags(tagpage.getFT())
+    						.language(firstpage.getLanguage())
+    						.fileUri(firstbpage.getFileUri());
+				    		
 		    		if(dto.getArchivedir() != null) {
 			    		editApplicationRequestBuilder = editApplicationRequestBuilder
-        						.language(firstpage.getLanguage())
-        						.fileUri(firstbpage.getFileUri())
         						.archiveUri(secondbpage.getArchiveUri());
 		    		}
 		    		else{
@@ -380,54 +210,48 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
         						.language(firstpage.getLanguage())
         						.fileUri(firstbpage.getFileUri())
         						.archiveUri("");
-		    		}
-
-		        				
-		        				if(firstpage.getLanguage()== ApplicationLanguage.Java || firstpage.getLanguage()== ApplicationLanguage.Scala){
+		    		}	        				
+		        	if(firstpage.getLanguage()== ApplicationLanguage.Java || firstpage.getLanguage()== ApplicationLanguage.Scala){
 		        					editApplicationRequestBuilder = editApplicationRequestBuilder.className(firstpage.getMainClassName())
 		        		    				.arguments(firstpage.getArguments());					
-		        		    	}
-		        		    	else if (firstpage.getLanguage()== ApplicationLanguage.Python) {
-		        		    		editApplicationRequestBuilder = editApplicationRequestBuilder.arguments(firstpage.getArguments());			
-		        		    	}
-		        		    	else if (firstpage.getLanguage()== ApplicationLanguage.Sql) {
+		        	}
+		        	else if (firstpage.getLanguage()== ApplicationLanguage.Python) {
+		        		    		editApplicationRequestBuilder = editApplicationRequestBuilder.arguments(firstpage.getArguments());					        		    	
+		        	}		        		    	
+		        	else if (firstpage.getLanguage()== ApplicationLanguage.Sql) {
 		        		    		editApplicationRequestBuilder= editApplicationRequestBuilder.parameters(firstpage.getParameters());			
-		        		    	}
+		        	}
 
-		        	    	final UpdateApplicationDetails editApplicationRequest;
-		        	    	
-		        			final boolean usesAdvancedOptions = thirdpage.usesAdvancedOptions();
-		        			if (usesAdvancedOptions) {
-		        				editApplicationRequestBuilder = editApplicationRequestBuilder.configuration(thirdpage.getSparkProperties())
-		        						.logsBucketUri(thirdpage.getApplicationLogLocation()).warehouseBucketUri(thirdpage.getWarehouseUri());
+		        	final UpdateApplicationDetails editApplicationRequest;		        	    	
+		        	final boolean usesAdvancedOptions = thirdpage.usesAdvancedOptions();
+		        	if (usesAdvancedOptions) {
+		        		editApplicationRequestBuilder = editApplicationRequestBuilder.configuration(thirdpage.getSparkProperties())
+		        				.logsBucketUri(thirdpage.getApplicationLogLocation()).warehouseBucketUri(thirdpage.getWarehouseUri());
 		        				
-		        				final boolean usesPrivateSubnet = thirdpage.usesPrivateSubnet();
-		        				if(usesPrivateSubnet) {
+		        		final boolean usesPrivateSubnet = thirdpage.usesPrivateSubnet();
+		        		if(usesPrivateSubnet) {
 		        					editApplicationRequest = editApplicationRequestBuilder.privateEndpointId(thirdpage.getPrivateEndPointId())
 		        							.build();
-		        				}
-		        				else {
-		        					if(applicationold.getPrivateEndpointId() != null) {					
+		        		}
+		        		else {
+		        			if(applicationOld.getPrivateEndpointId() != null) {					
 		        						editApplicationRequestBuilder
 		        						.privateEndpointId("");
-		        					}
-		        					editApplicationRequest = editApplicationRequestBuilder.build();
-		        				}
-		        						
-		        			} else {
-		        				editApplicationRequest = editApplicationRequestBuilder.build();
-		        						
 		        			}
+		        			editApplicationRequest = editApplicationRequestBuilder.build();
+		        			}		        						
+		        		} 
+		        	else {
+		        				editApplicationRequest = editApplicationRequestBuilder.build();		        						
+		        	}
 		        	    		
-		        	        IRunnableWithProgress op = new IRunnableWithProgress() {
-		        	            @Override
-		        	            public void run(IProgressMonitor monitor) throws InvocationTargetException {
-		        	               application= ApplicationClient.getInstance().editApplicationandgetId(dto.getApplicationId(),editApplicationRequest);       	               
+		        		IRunnableWithProgress op = new IRunnableWithProgress() {	        	      
+		        		@Override		        	            
+		        		public void run(IProgressMonitor monitor) throws InvocationTargetException {
+		        	               application= ApplicationClient.getInstance().editApplication(dto.getApplicationId(),editApplicationRequest);       	               
 		        	               monitor.done();
 		        	            }
-		        	        };
-		        	        
-		        	        
+		        	        };		        	        		        	        
 		        	        try {
 		        	            getContainer().run(true, false, op);
 		        	        } catch (InterruptedException e) {
@@ -469,18 +293,14 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	     	                 Throwable realException = e.getTargetException();
 	     	                 MessageDialog.openError(getShell(), "Failed to Run Application ", realException.getMessage());
 	     	                 return false;
-	     	             }
-	     	           
+	     	             }	     	           
 		        	        return true;
-		    	}
-				
+		    	}				
 			}
 			else {
 		    	final String compartmentId = firstpage.getApplicationCompartmentId();
 		    	
-		    	if(firstpage.usesSparkSubmit()) {
-		    		//System.out.println("EXECUTE");
-		    		
+		    	if(firstpage.usesSparkSubmit()) {		    		
 		    		CreateRunDetails.Builder createApplicationRequestBuilder =  
 		    				CreateRunDetails.builder()
 		        	        .compartmentId(compartmentId)
@@ -569,12 +389,10 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 		        	        IRunnableWithProgress op = new IRunnableWithProgress() {
 		        	            @Override
 		        	            public void run(IProgressMonitor monitor) throws InvocationTargetException {
-		        	               application= ApplicationClient.getInstance().createApplicationandgetId(createApplicationRequest);       	               
+		        	               application= ApplicationClient.getInstance().createApplication(createApplicationRequest);       	               
 		        	               monitor.done();
 		        	            }
-		        	        };
-		        	        
-		        	        
+		        	        };		        	        
 		        	        try {
 		        	            getContainer().run(true, false, op);
 		        	        } catch (InterruptedException e) {
@@ -616,15 +434,10 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	     	                 Throwable realException = e.getTargetException();
 	     	                 MessageDialog.openError(getShell(), "Failed to Run Application ", realException.getMessage());
 	     	                 return false;
-	     	             }
-	     	           
+	     	             }    	           
 		        	        return true;
 		    	}
 			}
-			
-
-
-	
 	    }
 	    
 	    /**

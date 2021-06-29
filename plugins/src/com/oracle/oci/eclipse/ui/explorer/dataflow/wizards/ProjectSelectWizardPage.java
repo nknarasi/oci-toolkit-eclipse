@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,13 +25,11 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -42,22 +39,17 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
-import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
 
-import com.oracle.bmc.objectstorage.model.BucketSummary;
 import com.oracle.oci.eclipse.Activator;
 import com.oracle.oci.eclipse.Icons;
-import com.oracle.oci.eclipse.sdkclients.ObjStorageClient;
-import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
 import com.oracle.oci.eclipse.ui.explorer.objectstorage.actions.MakeJarAndZip;
 
 public class ProjectSelectWizardPage extends WizardPage{
 	
 	    private ISelection selection;
-	    private Tree tree,tree2;
+	    private Tree tree;
 	    private Image IMAGE;
 	    Button doZip;
 	    Label progress;
@@ -70,7 +62,7 @@ public class ProjectSelectWizardPage extends WizardPage{
 	    public ProjectSelectWizardPage(ISelection selection) {
 	        super("wizardPage");
 	        setTitle("Select Project");
-	            setDescription("Choose the Project");
+	        setDescription("Choose the Project");
 	        IMAGE = Activator.getImage(Icons.COMPARTMENT.getPath());
 	    }
 
@@ -87,7 +79,7 @@ public class ProjectSelectWizardPage extends WizardPage{
 	        Job job = new Job("Get Projects") {
 	            @Override
 	            protected IStatus run(IProgressMonitor monitor) {
-	                // update tree node using UI thread
+
 	                Display.getDefault().asyncExec(new Runnable() {
 	                    @Override
 	                    public void run() {
@@ -141,30 +133,27 @@ public class ProjectSelectWizardPage extends WizardPage{
 	    	pc.layout(true,true);
 	    }
 	    
-	    public void start(IJavaProject proj) throws Exception
-		   {		
+	    public void start(IJavaProject proj) throws Exception {		
 	    		String projectUri=proj.getProject().getLocation().toString();
-	        		String tl=System.getProperty("java.io.tmpdir");
-	        		theDir = new File(tl+"\\dataflowtempdir");
-	        		if (!theDir.exists()){
-	        		    theDir.mkdirs();
-	        		}
-	        		String dff=File.createTempFile("dataflowtempdir\\dfspark-",".jar",theDir).getAbsolutePath();
-	        	      Manifest manifest = new Manifest();
-	        	      manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
-	        	      //if(MakeJarAndZip.jarList.size()>0)
-	        	    	  //createJarZip(theDir,MakeJarAndZip.jarList);
-	        	      //if(MakeJarAndZip.jarList.size()>0) manifest.getMainAttributes().put(Attributes.Name.CLASS_PATH,createJarZip(theDir,MakeJarAndZip.jarList));
-	        	      JarOutputStream target = new JarOutputStream(new FileOutputStream(dff), manifest);
-	        	      File inputDirectory = new File(projectUri+File.separator+"bin");
-	        	      for (File nestedFile : inputDirectory.listFiles())
-	        	         add("", nestedFile, target);
-	        	      target.close();
-	        	      MakeJarAndZip.jarUri=dff;
+	        	String tl=System.getProperty("java.io.tmpdir");
+	        	theDir = new File(tl+"\\dataflowtempdir");
+	        	if (!theDir.exists()){
+	        		theDir.mkdirs();
+	        	}
+	        	String dff=File.createTempFile("dataflowtempdir\\dfspark-",".jar",theDir).getAbsolutePath();
+	        	Manifest manifest = new Manifest();
+	        	manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
+	        	      
+	        	JarOutputStream target = new JarOutputStream(new FileOutputStream(dff), manifest);
+	        	File inputDirectory = new File(projectUri+File.separator+"bin");
+	        	      
+	        	for (File nestedFile : inputDirectory.listFiles())
+	        	    add("", nestedFile, target);
+	        	target.close();
+	        	MakeJarAndZip.jarUri=dff;
 		}
 
-		   private void add(String parents, File source, JarOutputStream target) throws IOException
-		   {
+		   private void add(String parents, File source, JarOutputStream target) throws IOException {
 		      BufferedInputStream in = null;
 		      try
 		      {
@@ -201,6 +190,9 @@ public class ProjectSelectWizardPage extends WizardPage{
 		         }
 		         target.closeEntry();
 		      }
+		      catch (Exception e) {
+		    	  MessageDialog.openError(getShell(), "Error", e.getMessage());
+		      }
 		      finally
 		      {
 		         if (in != null)
@@ -208,15 +200,16 @@ public class ProjectSelectWizardPage extends WizardPage{
 		      }
 		   }
 		   
-		   public String createJarZip(List<String> classPathEntries) throws Exception{
+		   public String createJarZip(List<String> classPathEntries) throws Exception {
+			   
 			   if(MakeJarAndZip.jarUri==null) throw new Exception("Create .jar file first");
 			   byte[] buffer = new byte[1024];
 			   File dff=File.createTempFile("dataflowtempdir\\dflib-",".zip",theDir);
 			   ZipOutputStream out = new ZipOutputStream(new FileOutputStream(dff));
 			   
 			   
-			    StringBuffer mcp=new StringBuffer("");
-			    FileInputStream in=null;
+			   StringBuffer mcp=new StringBuffer("");
+			   FileInputStream in=null;
 			   for (String classpathEntry : new HashSet<String>(classPathEntries)) {
 			        if (classpathEntry.endsWith(".jar")) {
 			            File jar = new File(classpathEntry);
@@ -231,7 +224,11 @@ public class ProjectSelectWizardPage extends WizardPage{
 		                    while ((len = in.read(buffer)) > 0) {
 		                        out.write(buffer, 0, len);
 		                    }
-		                } finally {
+		                }
+			            catch (Exception e1) {
+			            	MessageDialog.openError(getShell(), "Error", e1.getMessage());
+			            }
+			            finally {
 		                	if(in!=null)
 		                    in.close();
 		                }
@@ -256,13 +253,13 @@ public class ProjectSelectWizardPage extends WizardPage{
 			         }
 			      }
 			      catch(CoreException ce) {
-			         ce.printStackTrace();
+			    	  MessageDialog.openError(getShell(), "Error", ce.getMessage());
 			      }
 			      return projectList;
 			   }
 		   
 			@Override
 			public boolean canFlipToNextPage() {
-			return projectSelected;
+				return projectSelected;
 			}
 }

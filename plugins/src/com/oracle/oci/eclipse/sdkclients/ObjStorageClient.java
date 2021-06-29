@@ -94,7 +94,7 @@ public class ObjStorageClient extends BaseClient {
         return objectStorageClient;
     }
 
-    private ObjectStorage getObjectStorageClient() {
+    public ObjectStorage getObjectStorageClient() {
         return objectStorageClient;
     }
 
@@ -136,10 +136,6 @@ public class ObjStorageClient extends BaseClient {
 
         return bList;
     }
-
-    
-    
-    ///////////////////ADDED NEW/////////////////////////////////
     public List<BucketSummary> getBucketsinCompartment(String CompartmentId) throws Exception {
         String nextToken = null;
         List<BucketSummary> bList = new ArrayList<BucketSummary>();
@@ -167,10 +163,7 @@ public class ObjStorageClient extends BaseClient {
 
         return bList;
     }
-
-    
-    
-    
+  
     public List<ObjectSummary> getBucketObjects(String bucket) throws Exception {
 
         String nextToken = null;

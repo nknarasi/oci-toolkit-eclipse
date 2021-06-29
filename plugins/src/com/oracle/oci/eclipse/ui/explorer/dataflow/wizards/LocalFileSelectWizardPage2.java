@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.TreeItem;
 import com.oracle.bmc.identity.model.Compartment;
 import com.oracle.bmc.objectstorage.model.BucketSummary;
 import com.oracle.oci.eclipse.Activator;
+import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.Icons;
 import com.oracle.oci.eclipse.sdkclients.IdentClient;
 import com.oracle.oci.eclipse.sdkclients.ObjStorageClient;
@@ -48,23 +49,21 @@ public class LocalFileSelectWizardPage2 extends WizardPage {
     private String fileName;
     private List<BucketSummary> buckets;
     private DataTransferObject dto;
-    BucketSummary bucket;
+    private BucketSummary bucket;
 	private Compartment selectedApplicationCompartment;
-	Map<BucketSummary, TreeItem> BucketTreeMap;
-	String fileUriSelected;
-	private Text FileUriText;
+	private Map<BucketSummary, TreeItem> bucketTreeMap;
+	private String fileUriSelected;
+	private Text fileUriText;
 	boolean fileSelected = false;
 	
 	   public LocalFileSelectWizardPage2(ISelection selection, DataTransferObject dto, String COMPARTMENT_ID) {
 	        super("wizardPage");
-	        setTitle("Select Bucket for External Libraries");     
-	        setDescription("Choose the Bucket for Archive or External Libraries required.");
+	        setTitle("Bucket Selection Wizard for Archive Zip.");     
+	        setDescription("Choose a Bucket for uploading Archive Zip file for adding external dependencies.");
 	        this.selection = selection;
 	        this.dto = dto;
-	        IMAGE = Activator.getImage(Icons.BUCKET.getPath());
-	        
-	        this.selectedApplicationCompartment = IdentClient.getInstance().getRootCompartment();
-	        
+	        IMAGE = Activator.getImage(Icons.BUCKET.getPath());	        
+	        this.selectedApplicationCompartment = IdentClient.getInstance().getRootCompartment();	        
 			Compartment rootCompartment = IdentClient.getInstance().getRootCompartment();
 			List<Compartment> Allcompartments = IdentClient.getInstance().getCompartmentList(rootCompartment);
 			for(Compartment compartment : Allcompartments) {
@@ -81,8 +80,6 @@ public class LocalFileSelectWizardPage2 extends WizardPage {
 	        Composite container = new Composite(parent, SWT.NULL);
 	        GridLayout layout = new GridLayout();
 	        container.setLayout(layout);
-	        
-
 			Composite innerTopContainer = new Composite(container, SWT.NONE);
 	        GridLayout innerTopLayout = new GridLayout();
 	        innerTopLayout.numColumns = 3;
@@ -106,11 +103,8 @@ public class LocalFileSelectWizardPage2 extends WizardPage {
 	        });
 
 	        tree = new Tree(container, SWT.RADIO | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
-	        tree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-	                
-	        createBucketSection();
-	        
-	        
+	        tree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));                
+	        createBucketSection();	        
 			Composite FileUriContainer = new Composite(container, SWT.NONE);
 	        GridLayout FileUriLayout = new GridLayout();
 	        FileUriLayout.numColumns = 2;
@@ -119,49 +113,45 @@ public class LocalFileSelectWizardPage2 extends WizardPage {
 
 			Label FileUriLabel = new Label(FileUriContainer, SWT.NULL);
 			FileUriLabel.setText("&Archive Uri :"); 
-			FileUriText = new Text(FileUriContainer, SWT.BORDER | SWT.SINGLE);
-			FileUriText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			FileUriText.setEditable(false);
-			FileUriText.setText("");
+			fileUriText = new Text(FileUriContainer, SWT.BORDER | SWT.SINGLE);
+			fileUriText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			fileUriText.setText("");
 	        
 	        setControl(container);
 	    }
 	    
 	    private void createBucketSection() {
 
-	    	if(BucketTreeMap != null)
+	    	if(bucketTreeMap != null)
 	    	{
-	        	for(Entry<BucketSummary,TreeItem> item: BucketTreeMap.entrySet() ) {        		
+	        	for(Entry<BucketSummary,TreeItem> item: bucketTreeMap.entrySet() ) {        		
 	        		item.getValue().removeAll();
-	        		item.getValue().dispose();
-	        		//BucketTreeMap.remove(item.getKey());       		
+	        		item.getValue().dispose();     		
 	        	}
 	    	}
 	    	try {
 				buckets = ObjStorageClient.getInstance().getBucketsinCompartment(selectedApplicationCompartment.getId());
 			} catch (Exception e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				 ErrorHandler.logError("Unable to list buckets: " + e1.getMessage());
 			}
 
 	   	 Job job = new Job("Get Objects inside Bucket in User Compartment") {
 	            @Override
-	            protected IStatus run(IProgressMonitor monitor) {
-	            	// update tree node using UI thread
+	            protected IStatus run(IProgressMonitor monitor) {	            	
 	                Display.getDefault().asyncExec(new Runnable() {
 	                    @Override
 	                    public void run() {
 	                        try {
-	                            // add root compartment node to tree
-	                        	BucketTreeMap= new HashMap<BucketSummary,TreeItem>();
+	                        	bucketTreeMap= new HashMap<BucketSummary,TreeItem>();
 	                        	for(BucketSummary bucket : buckets) {                       		
-	                        		BucketTreeMap.put(bucket, new TreeItem(tree,0));
-	                        		BucketTreeMap.get(bucket).setText(bucket.getName());
-	                        		BucketTreeMap.get(bucket).setImage(IMAGE);
-	                        		BucketTreeMap.get(bucket).setData(BUCKET_KEY,bucket);
-	                        	}
-	                         
-	                        } catch(Exception ex) {}
+	                        		bucketTreeMap.put(bucket, new TreeItem(tree,0));
+	                        		bucketTreeMap.get(bucket).setText(bucket.getName());
+	                        		bucketTreeMap.get(bucket).setImage(IMAGE);
+	                        		bucketTreeMap.get(bucket).setData(BUCKET_KEY,bucket);
+	                        	}	                         
+	                        } catch(Exception ex) {
+	                        	ErrorHandler.logError("Unable to create tree Item: " + ex.getMessage());
+	                        }
 	                    }
 	                });
 	                return Status.OK_STATUS;
@@ -181,7 +171,7 @@ public class LocalFileSelectWizardPage2 extends WizardPage {
 		       	            TreeItem selectedItem = items[0];
 		       	            BucketSummary bucket = (BucketSummary)selectedItem.getData(BUCKET_KEY);	      
 		       	            fileUriSelected = "oci://"+ bucket.getName() +"@" + ObjStorageClient.getInstance().getNamespace()+"/"+fileName;
-		       	            FileUriText.setText(fileUriSelected);
+		       	            fileUriText.setText(fileUriSelected);
 		       	            fileSelected = true;
 		       	            canFlipToNextPage();
 		       	            getWizard().getContainer().updateButtons();
@@ -216,24 +206,22 @@ public class LocalFileSelectWizardPage2 extends WizardPage {
 	        TreeItem[] items = tree.getSelection();
 	        if(items !=null && items.length>0) {
 	            TreeItem selectedItem = items[0];
-	            BucketSummary bucket = (BucketSummary)selectedItem.getData(BUCKET_KEY);	      
-	            
+	            BucketSummary bucket = (BucketSummary)selectedItem.getData(BUCKET_KEY);	      	            
 	            return bucket.getName();
 	        }
 	        return null;
 	    }
 	    
 	    public String getArchiveUri() {
-	       return fileUriSelected;
+	       return fileUriText.getText();
 	    }	    
-
 	    
 		void onEnterPage()
 		{
 		    final DataTransferObject dto = ((LocalFileSelectWizard) getWizard()).dto;
 		    if(dto.getArchivedir() != null) {
-		    	String filedir = dto.getArchivedir();
-		    	this.fileName = filedir.substring(filedir.lastIndexOf('\\')+1);
+		    	String fileDirectory = dto.getArchivedir();
+		    	this.fileName = fileDirectory.substring(fileDirectory.lastIndexOf('\\')+1);
 		    }
 		}
 		
@@ -247,11 +235,12 @@ public class LocalFileSelectWizardPage2 extends WizardPage {
 		return false;
 		}
 		
-		
+		public String getnewName() {			
+			return fileUriText.getText().substring(fileUriText.getText().lastIndexOf('/')+1);
+		}
 		
 		 @Override
 		    public IWizardPage getNextPage() { 
 	        return super.getNextPage();
 		    }
-
 }

@@ -1,14 +1,10 @@
 package com.oracle.oci.eclipse.ui.explorer.dataflow.wizards;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
@@ -21,10 +17,9 @@ import com.oracle.bmc.dataflow.model.CreateRunDetails;
 import com.oracle.bmc.dataflow.model.RunSummary;
 import com.oracle.bmc.dataflow.requests.CreateRunRequest;
 import com.oracle.oci.eclipse.sdkclients.RunClient;
-import com.oracle.oci.eclipse.ui.explorer.dataflow.DataflowConstants;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.Validations;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.editor.RunTable;
 
-//import com.oracle.oci.eclipse.sdkclients.ObjStorageClient;
 
 public class RunWizard extends Wizard implements INewWizard {
     private RunWizardPage page;
@@ -57,51 +52,34 @@ public class RunWizard extends Wizard implements INewWizard {
 		else page = new RunWizardPage(selection,appSum);
         page2=new TagsPage(selection,runSum!=null?runSum.getCompartmentId():appSum.getCompartmentId());
         addPage(page);addPage(page2);
-        page3=new AdvancedOptionsPage(selection,obj);
+        page3=new AdvancedOptionsPage(selection,obj,page);
         addPage(page3);
         
     }
-    /**
-     * This method is called when 'Finish' button is pressed in
-     * the wizard. We will create an operation and run it
-     * using wizard as execution context.
-     */
+    
     @Override
     public boolean performFinish() {
-        //final String bucketName = page.getBucketName();
-        IRunnableWithProgress op = new IRunnableWithProgress() {
-            @Override
-            public void run(IProgressMonitor monitor) throws InvocationTargetException {
-                //ObjStorageClient.getInstance().createBucket(bucketName);
-				//MessageDialog.openInformation(getShell(),"Details of Re-Run",page.getDetails());
-                //monitor.done();
-            }
-        };
-        /*try {
-            getContainer().run(true, false, op);
-        } catch (InterruptedException e) {
-            return false;
-        } catch (InvocationTargetException e) {
-            Throwable realException = e.getTargetException();
-            MessageDialog.openError(getShell(), "Failed to Create Run ", realException.getMessage());
-            return false;
-        }*/
-
-        // Refresh TreeView to show new nodes
-        //ObjStorageContentProvider.getInstance().getBucketsAndRefresh();
+    	
         try {
-        Object[] obj;
-		if(runSum!=null) obj=page.getDetails();
-		else obj=page.getDetails_app();
-		if(page3.ischecked()) {obj[11]=page3.loguri();obj[15]=page3.buckuri();}
-		if(page3.ischecked()&&!sparkprop((String)obj[14])) return false;
-		if(!check(obj)) return false;
-		if(!sparkprop((String)obj[14])) return false;
-		DataFlowClient client=RunClient.getInstance().getDataFlowClient();
-        CreateRunDetails createRunDetails = CreateRunDetails.builder()
+        	Object[] obj;
+        	if(runSum!=null) obj=page.getDetails();
+        	else obj=page.getDetails_app();
+        	if(page3.ischecked()) {obj[11]=page3.loguri();obj[15]=page3.buckuri();}
+        	
+        	String d="";
+        	if(!page3.ischecked()) d="!";
+        	Object[] validObjects=new Object[] {obj[6],obj[11],obj[15],page3.getconfig().keySet()};
+        	String[] objType=new String[] {"name",d+"loguri",d+"warehouseuri",d+"sparkprop"+((String)obj[14]).charAt(0)};
+        	String message=Validations.check(validObjects, objType);
+        	if(!message.isEmpty()) {
+        		open("Improper Entries",message);
+        		return false;
+        	}
+        	
+        	DataFlowClient client=RunClient.getInstance().getDataFlowClient();
+        	CreateRunDetails createRunDetails = CreateRunDetails.builder()
         		.applicationId((String)obj[0])
         		.archiveUri((String)obj[1])
-        		//.arguments(new ArrayList<>(Arrays.asList("EXAMPLE--Value")))
         		.compartmentId((String)obj[3])
         		.configuration(page3.ischecked()?page3.getconfig():null)
         		.definedTags(page2.getOT())
@@ -114,67 +92,26 @@ public class RunWizard extends Wizard implements INewWizard {
         		.numExecutors((Integer)obj[12])
         		.parameters((List<ApplicationParameter>)obj[13])
         		.warehouseBucketUri((String)obj[15]).build();
-		CreateRunRequest createRunRequest;
-		if(runSum!=null){		
-        createRunRequest = CreateRunRequest.builder()
-        		.createRunDetails(createRunDetails)
-		.opcRequestId((String)obj[16]).build();}
-		else {		
-        createRunRequest = CreateRunRequest.builder()
-        		.createRunDetails(createRunDetails).build();}
-        client.createRun(createRunRequest);
-        if(runSum!=null) MessageDialog.openInformation(getShell(),"Re-Run Succesful","Successful");
-        else MessageDialog.openInformation(getShell(),"Run Application Succesful","Successful");
-		//DataFlowContentProvider.getInstance().getRunsAndRefresh();
-		runTable.refresh(true);
+        	
+        	CreateRunRequest createRunRequest;
+        	if(runSum!=null){		
+        		createRunRequest = CreateRunRequest.builder().createRunDetails(createRunDetails).opcRequestId((String)obj[16]).build();
+        	}
+        	else {		
+        		createRunRequest = CreateRunRequest.builder().createRunDetails(createRunDetails).build();
+        	}
+        	
+        	client.createRun(createRunRequest);
+        	if(runSum!=null) MessageDialog.openInformation(getShell(),"Re-Run Succesful","A re-run of application is scheduled.");
+        	else MessageDialog.openInformation(getShell(),"Run Application Succesful","A run of application is scheduled.");
+
+        	runTable.refresh(true);
         }
         catch (Exception e) {
         	MessageDialog.openError(getShell(), "Failed to Create Run ", e.getMessage());
         	return false;
         }
         return true;
-    }
-    
-    boolean sparkprop(String v) {
-    	
-    	String l[];
-    	if(v.charAt(0)=='3') l=DataflowConstants.Spark3PropertiesList;
-    	else l=DataflowConstants.Spark2PropertiesList;
-    	boolean b;
-    	for(String e:page3.getconfig().keySet()) {
-    		b=false;
-    		for(String ie:l) {
-    			String nie=new String(ie);
-    			if(nie.charAt(nie.length()-1)=='*') nie=nie.substring(0, nie.length()-1);
-    			if(e.indexOf(nie)==0) {b=true;break;}
-    		}
-    		if(b) continue;
-    		else {open("Improper Values","Spark Property Invalid");return false;}
-    	}
-    	
-    	return true;
-    }
-    
-    boolean check(Object[] obj) {
-    	
-    	//display-name
-    	String n=(String)obj[6];
-    	if(n.equals("")||n==null) {open("Improper Values","Name cannot be empty");return false;}
-    	
-    	//loguri
-    	n=(String)obj[11];
-    	boolean b=(n.length()>9)&&(n.substring(0,6).equals("oci://"))&&(n.substring(n.length()-1).equals("/"))
-    			&&n.split("@").length==2;
-    	if(page3.ischecked()) {
-    	if(!b) {open("Improper Values","Log Bucket Uri of improper format");return false;}
-    	
-    	//whuri
-    	n=(String)obj[15];System.out.print(n+"lollol");
-    	b=(n.length()>9)&&(n.substring(0,6).equals("oci://"))&&(n.substring(n.length()-1).equals("/"))
-    			&&n.split("@").length==2;
-    	if(!b) {open("Improper Values","Warehouse Bucket Uri of improper format");return false;}
-    	}
-    	return true;
     }
     
     void open(String h,String m) {

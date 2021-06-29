@@ -15,9 +15,9 @@ import org.eclipse.swt.widgets.Text;
 
 public class Parameters {
 	 Composite composite;
-	 Text TagValue;
-	 Text TagKey;
-	 Button CloseButton;
+	 Text tagValue;
+	 Text tagKey;
+	 Button closeButton;
 	 
 	 Parameters(Composite current,Composite container, ScrolledComposite scrolledcomposite,Set<Parameters> CreatedParametersSet){
 		 
@@ -27,15 +27,15 @@ public class Parameters {
 		 GridLayout1.numColumns = 3 ;
 		 composite.setLayout(GridLayout1);
 		 
-		 TagKey = new Text(composite,SWT.BORDER);
-		 TagKey.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		 TagKey.setMessage("Key");
+		 tagKey = new Text(composite,SWT.BORDER);
+		 tagKey.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		 tagKey.setMessage("Key");
 		 
-		 TagValue = new Text(composite,SWT.BORDER);
-		 TagValue.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		 TagValue.setMessage("Value");
-		 CloseButton=new Button(composite,SWT.PUSH);
-		 CloseButton.setText("Remove");
+		 tagValue = new Text(composite,SWT.BORDER);
+		 tagValue.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		 tagValue.setMessage("Value");
+		 closeButton=new Button(composite,SWT.PUSH);
+		 closeButton.setText("Remove");
 		 refresh(container, scrolledcomposite);
 		 addClose(composite,container, scrolledcomposite,CreatedParametersSet);
 	 }
@@ -46,7 +46,7 @@ public class Parameters {
 	 }
 	 
 	 void addClose(Composite current,Composite container, ScrolledComposite scrolledcomposite,Set<Parameters> CreatedPropertiesSet) {
-		 CloseButton.addSelectionListener(new SelectionAdapter() {
+		 closeButton.addSelectionListener(new SelectionAdapter() {
 	            @Override
 	            public void widgetSelected(SelectionEvent e) {
 					 composite.dispose();

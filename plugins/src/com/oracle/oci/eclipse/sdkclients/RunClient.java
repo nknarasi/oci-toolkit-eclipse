@@ -78,34 +78,9 @@ public class RunClient extends BaseClient {
             ErrorHandler.logErrorStack(e.getMessage(), e);
         }
     }
+   
     
-    public List<RunSummary> getRuns(ListRunsRequest.SortBy s,ListRunsRequest.SortOrder so) throws Exception {
-    	
-        String nextToken = null;
-   		List<RunSummary> runssummary = new ArrayList<RunSummary>();
-   		
-   		
-         Builder listRunsBuilder =  ListRunsRequest.builder()
-        		 .compartmentId(AuthProvider.getInstance().getCompartmentId()).sortBy(s).sortOrder(so);
-         do {
-             listRunsBuilder.page(nextToken);
-             try {
-                 ListRunsResponse listrunsresponse =
-                         dataflowClient.listRuns(listRunsBuilder.build());
-                 
-                 runssummary.addAll(listrunsresponse.getItems());
-                 nextToken = listrunsresponse.getOpcNextPage();
-             } catch(Throwable e) {
-                 ErrorHandler.logError("Unable to list runs: " + e.getMessage());
-             }
-
-         } while (nextToken != null);
-        
-       	
-        return runssummary;
-    }
-    
-   public List<RunSummary> getRunsinCompartment(String CompartmentId,ListRunsRequest.SortBy s,ListRunsRequest.SortOrder so) throws Exception {
+   public List<RunSummary> getRuns(String CompartmentId,ListRunsRequest.SortBy s,ListRunsRequest.SortOrder so) throws Exception {
     	
         String nextToken = null;
    		List<RunSummary> runssummary = new ArrayList<RunSummary>();
@@ -131,33 +106,6 @@ public class RunClient extends BaseClient {
         return runssummary;
     }
     
-    
-    
- /*
-	public List<RunSummary> getRuns() throws Exception {
-        String nextToken = null;
-        List<RunSummary> rsList = new ArrayList<RunSummary>();
-		ListRunsRequest.Builder listRunsBuilder =
-                ListRunsRequest.builder()
-                .compartmentId(compid).sortBy(ListRunsRequest.SortBy.TimeCreated);
-
-        do {
-            listRunsBuilder.page(nextToken);
-            try {
-                ListRunsResponse listRunsResponse =
-                        dataflowClient.listRuns(listRunsBuilder.build());
-                rsList.addAll(listRunsResponse.getItems());
-                nextToken = listRunsResponse.getOpcNextPage();
-            } catch(Throwable e) {
-                ErrorHandler.logError("Unable to list runs: " + e.getMessage());
-                return rsList;
-            }
-
-        } while (nextToken != null);
-
-        return rsList;
-    }
-	*/
     
 	public Run getRunDetails(String runid) throws Exception {		 
 		 GetRunRequest req = GetRunRequest.builder().runId(runid).build();

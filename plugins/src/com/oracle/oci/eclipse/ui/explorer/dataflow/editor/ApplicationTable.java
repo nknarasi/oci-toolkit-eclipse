@@ -1,23 +1,20 @@
 package com.oracle.oci.eclipse.ui.explorer.dataflow.editor;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
-
-
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.layout.TableColumnLayout;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -26,10 +23,10 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import com.oracle.bmc.dataflow.model.ApplicationSummary;
 import com.oracle.bmc.dataflow.requests.ListApplicationsRequest;
+import com.oracle.bmc.dataflow.responses.ListApplicationsResponse;
 import com.oracle.bmc.identity.model.Compartment;
 import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.account.AuthProvider;
-import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
 import com.oracle.oci.eclipse.ui.account.CompartmentSelectWizard;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseTable;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseTableLabelProvider;
@@ -37,6 +34,7 @@ import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DeleteApplicationAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DetailsApplicationAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.EditApplicationAction;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetApplications;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RefreshApplicationAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RunApplicationAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.wizards.CreateApplicationWizard;
@@ -52,11 +50,13 @@ public class ApplicationTable extends BaseTable{
     private static final int CREATED_COL = 4;
     private static final int UPDATED_COL = 5;
     
-    private static String COMPARTMENT_ID;
+    private static String COMPARTMENT_ID = AuthProvider.getInstance().getCompartmentId();
     private static String COMPARTMENT_NAME;
-    
-    ListApplicationsRequest.SortBy s=ListApplicationsRequest.SortBy.TimeCreated;
-	ListApplicationsRequest.SortOrder so=ListApplicationsRequest.SortOrder.Desc;
+	private String pageToShow=null;
+    private ListApplicationsRequest.SortBy sortBy=ListApplicationsRequest.SortBy.TimeCreated;
+	private ListApplicationsRequest.SortOrder sortOrder=ListApplicationsRequest.SortOrder.Desc;
+	private ListApplicationsResponse listApplicationsResponse;
+	private Button previouspage,nextpage;
 	
     public ApplicationTable(Composite parent, int style) {
         super(parent, style);
@@ -64,34 +64,26 @@ public class ApplicationTable extends BaseTable{
         viewer.setLabelProvider(new TableLabelProvider());
         viewer.setInput(getTableData());
         viewer.setItemCount(getTableDataSize());
-        s=ListApplicationsRequest.SortBy.TimeCreated;
-        so=ListApplicationsRequest.SortOrder.Desc;
+        sortBy=ListApplicationsRequest.SortBy.TimeCreated;
+        sortOrder=ListApplicationsRequest.SortOrder.Desc;
     }
     
     List<ApplicationSummary> applicationList = new ArrayList<ApplicationSummary>();
     
     @Override
-    public List<ApplicationSummary> getTableData() {
-        new Job("Get Applications") {
-            @Override
-            protected IStatus run(IProgressMonitor monitor) {
+    public List<ApplicationSummary> getTableData() {  
+    	System.out.println(AuthProvider.getInstance().getCompartmentId());
+    	System.out.println(AuthProvider.getInstance().getCompartmentName());
                 try {
-                    ApplicationClient oci = ApplicationClient.getInstance();
-                    applicationList = oci.getApplicationsbyCompartmentId(COMPARTMENT_ID,s,so);
-                    for (Iterator<ApplicationSummary> it = applicationList.iterator(); it.hasNext(); ) {
-                        ApplicationSummary instance = it.next();
-                        if (instance.getLifecycleState().getValue().equals("TERMINATED")) {
-                            it.remove();
-                        }
-                    }
+                	IRunnableWithProgress op = new GetApplications(COMPARTMENT_ID,sortBy,sortOrder,pageToShow);
+                    new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+                    listApplicationsResponse = ((GetApplications)op).listApplicationsResponse;
+                    applicationList=((GetApplications)op).applicationSummaryList;
                     tableDataSize = applicationList.size();
                 } catch (Exception e) {
-                    return ErrorHandler.reportException(e.getMessage(), e);
+                	ErrorHandler.logError("Unable to get applications: " + e.getMessage());
                 }
-                refresh(false);
-                return Status.OK_STATUS;
-            }
-        }.schedule();
+                refresh(false);            
         return applicationList;
     }
 
@@ -140,9 +132,12 @@ public class ApplicationTable extends BaseTable{
         tc = createColumn(tableColumnLayout,tree, "Name", 10);
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
-                s=ListApplicationsRequest.SortBy.DisplayName;
-                if(so==ListApplicationsRequest.SortOrder.Desc) so=ListApplicationsRequest.SortOrder.Asc;
-                else so=ListApplicationsRequest.SortOrder.Desc;
+            	pageToShow=null;
+            	sortBy=ListApplicationsRequest.SortBy.DisplayName;
+                if(sortOrder == ListApplicationsRequest.SortOrder.Desc)
+                	sortOrder=ListApplicationsRequest.SortOrder.Asc;
+                else
+                	sortOrder=ListApplicationsRequest.SortOrder.Desc;
                 refresh(true);
               }
             });
@@ -152,9 +147,12 @@ public class ApplicationTable extends BaseTable{
         tc = createColumn(tableColumnLayout,tree, "Language", 6);
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
-                s=ListApplicationsRequest.SortBy.Language;
-                if(so==ListApplicationsRequest.SortOrder.Desc) so=ListApplicationsRequest.SortOrder.Asc;
-                else so=ListApplicationsRequest.SortOrder.Desc;
+            	pageToShow=null;
+            	sortBy=ListApplicationsRequest.SortBy.Language;
+                if(sortOrder == ListApplicationsRequest.SortOrder.Desc) 
+                	sortOrder = ListApplicationsRequest.SortOrder.Asc;
+                else 
+                	sortOrder = ListApplicationsRequest.SortOrder.Desc;
                 refresh(true);
               }
             });
@@ -164,9 +162,12 @@ public class ApplicationTable extends BaseTable{
         tc = createColumn(tableColumnLayout,tree, "Created", 10);
         tc.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
-                s=ListApplicationsRequest.SortBy.TimeCreated;
-                if(so==ListApplicationsRequest.SortOrder.Desc) so=ListApplicationsRequest.SortOrder.Asc;
-                else so=ListApplicationsRequest.SortOrder.Desc;
+            	pageToShow=null;
+            	sortBy=ListApplicationsRequest.SortBy.TimeCreated;
+                if(sortOrder == ListApplicationsRequest.SortOrder.Desc) 
+                	sortOrder = ListApplicationsRequest.SortOrder.Asc;
+                else 
+                	sortOrder = ListApplicationsRequest.SortOrder.Desc;
                 refresh(true);
               }
             });
@@ -178,7 +179,6 @@ public class ApplicationTable extends BaseTable{
     @Override
     protected void fillMenu(IMenuManager manager) {
         manager.add(new RefreshApplicationAction(ApplicationTable.this));
-       // manager.add(new CreateApplicationAction(ApplicationTable.this,COMPARTMENT_ID));
         manager.add(new Separator());
         if (getSelectedObjects().size() == 1) {
             manager.add(new DetailsApplicationAction(ApplicationTable.this));
@@ -190,10 +190,9 @@ public class ApplicationTable extends BaseTable{
 
     @Override
     protected void addTableLabels(FormToolkit toolkit, Composite left, Composite right) {
-    	
-    	
-    	//14-June 
-		ccb.setText("Change Compartment");ccb.setVisible(true);
+  
+		ccb.setText("Change Compartment");
+		ccb.setVisible(true);
         ccb.addSelectionListener(new SelectionListener() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -233,7 +232,34 @@ public class ApplicationTable extends BaseTable{
             public void widgetDefaultSelected(SelectionEvent e) {}
         });	
         
-    }
-    
- 
+        Composite page=new Composite(right,SWT.NONE);GridLayout gl=new GridLayout();gl.numColumns=2;
+        page.setLayout(gl);
+        previouspage=new Button(page,SWT.TRAVERSE_PAGE_PREVIOUS);
+        nextpage=new Button(page,SWT.TRAVERSE_PAGE_NEXT);
+        previouspage.setText("<");
+        nextpage.setText(">");
+        previouspage.setLayoutData(new GridData());
+        nextpage.setLayoutData(new GridData());
+        
+        nextpage.addSelectionListener(new SelectionListener() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+            	pageToShow = listApplicationsResponse.getOpcNextPage();
+				refresh(true);
+            }
+
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) {}
+        });
+        
+        previouspage.addSelectionListener(new SelectionListener() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {                
+            	pageToShow = listApplicationsResponse.getOpcPrevPage();
+				refresh(true);
+            }
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) {}
+        });        
+    } 
 }

@@ -1,10 +1,6 @@
 package com.oracle.oci.eclipse.ui.explorer.dataflow.wizards;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -16,13 +12,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 
-import com.oracle.oci.eclipse.account.AuthProvider;
 import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
 import com.oracle.oci.eclipse.sdkclients.RunClient;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.DataflowConstants;
-import com.oracle.bmc.core.ComputeClient;
-import com.oracle.bmc.core.model.Shape;
-import com.oracle.bmc.core.requests.ListShapesRequest;
 import com.oracle.bmc.dataflow.model.Application;
 import com.oracle.bmc.dataflow.model.ApplicationSummary;
 import com.oracle.bmc.dataflow.model.Run;
@@ -45,8 +37,9 @@ public class RunWizardPage extends WizardPage {
         this.selection = selection;
 		try {
 			this.run=RunClient.getInstance().getRunDetails(runSum.getId());
-		} catch (Exception e) {
-			
+		} 
+		catch (Exception e) {
+			MessageDialog.openError(getShell(), "Error", e.getMessage());
 		}
     }
 	
@@ -57,8 +50,9 @@ public class RunWizardPage extends WizardPage {
         this.selection = selection;
 		try {
 			this.app=ApplicationClient.getInstance().getApplicationDetails(appSum.getId());
-		} catch (Exception e) {
-			
+		} 
+		catch (Exception e) {
+			MessageDialog.openError(getShell(), "Error", e.getMessage());
 		}
     }
 
@@ -82,11 +76,14 @@ public class RunWizardPage extends WizardPage {
         dshapeLabel.setText("&Driver Shape:");
 		dshapeCombo = new Combo(container, SWT.READ_ONLY);
 		dshapeCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
 		try {
 			dshapeCombo.setItems(DataflowConstants.Shapes);
-		} catch (Exception e) {
-			
+		} 
+		catch (Exception e) {
+			MessageDialog.openError(getShell(), "Error", e.getMessage());
 		}
+		
 		if(run!=null) dshapeCombo.setText(run.getDriverShape());
 		else dshapeCombo.setText(app.getDriverShape());
 		
@@ -94,11 +91,14 @@ public class RunWizardPage extends WizardPage {
         eshapeLabel.setText("&Executor Shape:");
 		eshapeCombo = new Combo(container, SWT.READ_ONLY);
 		eshapeCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
 		try {
 			eshapeCombo.setItems(DataflowConstants.Shapes);
-		} catch (Exception e) {
-			
+		} 
+		catch (Exception e) {
+			MessageDialog.openError(getShell(), "Error", e.getMessage());
 		}
+		
 		if(run!=null) eshapeCombo.setText(run.getExecutorShape());
 		else eshapeCombo.setText(app.getExecutorShape());
 		
@@ -107,17 +107,20 @@ public class RunWizardPage extends WizardPage {
 		numExecSpinner = new Spinner(container, SWT.BORDER);
 		numExecSpinner.setMinimum(1);
 		numExecSpinner.setMaximum(128);
+		
 		if(run!=null) numExecSpinner.setSelection(run.getNumExecutors());
 		else numExecSpinner.setSelection(app.getNumExecutors());
+		
 		numExecSpinner.setIncrement(1);
 		
 		Label argLabel = new Label(container, SWT.NULL);
         argLabel.setText("&Arguments:");
         Text argText = new Text(container, SWT.BORDER | SWT.SINGLE | SWT.READ_ONLY);
+        
         if(run!=null) argText.setText(run.getArguments().toString());
 		else argText.setText(app.getArguments().toString());
-        GridData gdd = new GridData(GridData.FILL_HORIZONTAL);
-        argText.setLayoutData(gdd);
+        
+        argText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
         setControl(container);
     }
@@ -144,20 +147,4 @@ public class RunWizardPage extends WizardPage {
 				app.getWarehouseBucketUri()
 				});
     }
-	
-	private List<String[]> getShapes() throws Exception{
-		List<String[]> rl=new ArrayList<String[]>();
-		Path path=Path.of("D:\\\\Oracle\\\\Oracle_docs\\\\test.txt");
-		String[] s=Files.readString(path).split("#");
-		List<String> l=new ArrayList<String>(),l1=new ArrayList<String>(),l2=new ArrayList<String>();
-		for(String e:s) {
-			String[] sl=e.split(":");
-			String ns=sl[0].trim();
-			if(ns.equalsIgnoreCase("driver-shapes")) l=l1;
-			else if(ns.equalsIgnoreCase("executor-shapes")) l=l2;
-			for(String ne:sl[1].split(",")) l.add(ne.trim());
-		}
-		rl.add(l1.toArray(new String[0]));rl.add(l2.toArray(new String[0]));
-		return rl;
-	}
 }

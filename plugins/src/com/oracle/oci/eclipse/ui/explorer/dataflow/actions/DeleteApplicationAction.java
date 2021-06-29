@@ -22,7 +22,6 @@ public class DeleteApplicationAction extends BaseAction{
 	    private String applicationID;
 	    private String title = "Delete Application";
 	    
-	    @SuppressWarnings("unchecked")
 		public DeleteApplicationAction (ApplicationTable table){
 	        this.table = table;
 	        applicationSelectionList = (List<ApplicationSummary>)table.getSelectedObjects();
@@ -35,20 +34,21 @@ public class DeleteApplicationAction extends BaseAction{
 	        }
 	        return "";
 	    }
-	 @Override
-	 protected void runAction() {
-		 if (applicationSelectionList.size() > 0) {
+	    
+	    @Override
+	 	protected void runAction() {
+	    	if (applicationSelectionList.size() > 0) {
 	        	ApplicationSummary object = applicationSelectionList.get(0);
 	        	applicationID = object.getId();
-	        }
-		 Application application = ApplicationClient.getInstance().getApplicationDetails(applicationID);
-		 String title = "Delete Dataflow Application Bucket";
-		 String message = "Are you sure you want to delete Application: " + application.getDisplayName();
-	     Dialog dialog =  new MessageDialog(Display.getDefault().getActiveShell(), title, null, message, MessageDialog.QUESTION, new String[] {"Yes","No"}, 1);
-	        if (dialog.open() != Dialog.OK) {
-	            return;
-	        }
-	        new Job("Deleting Application") {
+	    		}
+	    	Application application = ApplicationClient.getInstance().getApplicationDetails(applicationID);
+	    	String title = "Delete Dataflow Application Bucket";
+	    	String message = "Are you sure you want to delete Application: " + application.getDisplayName();
+	    	Dialog dialog =  new MessageDialog(Display.getDefault().getActiveShell(), title, null, message, MessageDialog.QUESTION, new String[] {"Yes","No"}, 1);
+	        	if (dialog.open() != Dialog.OK) {
+	        		return;
+	        	}
+	        	new Job("Deleting Application") {
 	            @Override
 	            protected IStatus run(IProgressMonitor monitor) {
 	                try {

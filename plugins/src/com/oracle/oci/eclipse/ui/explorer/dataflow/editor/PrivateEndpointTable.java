@@ -11,6 +11,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.events.SelectionEvent;
@@ -43,6 +44,7 @@ public class PrivateEndpointTable extends BaseTable {
 	private static final int CREATED_COL = 2;
 	public static String compid;
 	private static String compname;
+	List<PrivateEndpointSummary> privateEndpointSummaryList = new ArrayList<PrivateEndpointSummary>();
 
     public PrivateEndpointTable(Composite parent, int style) {
         super(parent, style);
@@ -52,25 +54,27 @@ public class PrivateEndpointTable extends BaseTable {
         viewer.setItemCount(getTableDataSize());
         compid=AuthProvider.getInstance().getCompartmentId();
     }
-    List<PrivateEndpointSummary> privateEndpointSummaryList = new ArrayList<PrivateEndpointSummary>();
+    
     @Override
     public List<PrivateEndpointSummary> getTableData() {
         new Job("Get Private Endpoints") {
             @Override
             protected IStatus run(IProgressMonitor monitor) {
                 try {
-                    if(compid==null) privateEndpointSummaryList =PrivateEndPointsClient.getInstance().getPrivateEndPoints();
-					else privateEndpointSummaryList = PrivateEndPointsClient.getPrivateEndPointsinCompartment(compid);
+                    if(compid==null) privateEndpointSummaryList = PrivateEndPointsClient.getInstance().getPrivateEndPoints(AuthProvider.getInstance().getCompartmentId());
+					else privateEndpointSummaryList = PrivateEndPointsClient.getPrivateEndPoints(compid);
                     tableDataSize = privateEndpointSummaryList.size();
                 } catch (Exception e) {
-                    return ErrorHandler.reportException(e.getMessage(), e);
+                    MessageDialog.openError(getShell(), "Unable to get Private Endpoints list", e.getMessage());
                 }
                 refresh(false);
                 return Status.OK_STATUS;
             }
         }.schedule();
+        
         return privateEndpointSummaryList;
     }
+    
     @Override
     public List<PrivateEndpointSummary> getTableCachedData() {
         return privateEndpointSummaryList;
@@ -97,8 +101,9 @@ public class PrivateEndpointTable extends BaseTable {
 				case CREATED_COL:
 					return (new SimpleDateFormat("dd-M-yyyy hh:mm:ss")).format(s.getTimeCreated());
                 }
-            } catch (Exception ex) {
-                ex.printStackTrace();
+            } 
+            catch (Exception ex) {
+            	MessageDialog.openError(getShell(), "Error forming table", ex.getMessage());
             }
             return "";
         }
@@ -118,11 +123,6 @@ public class PrivateEndpointTable extends BaseTable {
 		manager.add(new CreatePrivateEndpointAction(PrivateEndpointTable.this));
         manager.add(new Separator());
 
-        /*if (getSelectedObjects().size() > 0) {
-            for (String action: actionMap.keySet()) {
-                manager.add(new InstanceAction(InstanceTable.this, action));
-            }
-        }*/
         if (getSelectedObjects().size() == 1) {
            String pepState=((PrivateEndpointSummary)getSelectedObjects().get(0)).getLifecycleState().toString();
            manager.add(new Separator());
@@ -132,7 +132,6 @@ public class PrivateEndpointTable extends BaseTable {
 		   else {
 			   manager.add(new EditPrivateEndpointAction((PrivateEndpointSummary)getSelectedObjects().get(0),PrivateEndpointTable.this));
 		   }
-		   //manager.add(new RunAction((RunSummary)getSelectedObjects().get(0),RunTable.this));
         }
 
     }

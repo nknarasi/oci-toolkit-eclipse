@@ -65,7 +65,6 @@ public class CreatePrivateEndpointWizardPage extends WizardPage {
 		vcnCombo = new Combo(container, SWT.READ_ONLY);
 		vcnCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		vcnCombo.setItems(getVcns());
-		//vcnCombo.listener
 		vcnCombo.addSelectionListener(new SelectionAdapter() {
 		      public void widgetSelected(SelectionEvent e) {
 		  		subnetCombo.setItems(getSubnets(mv.get(vcnCombo.getText())));
@@ -108,14 +107,17 @@ public class CreatePrivateEndpointWizardPage extends WizardPage {
 	String[] getVcns(){
 		if(compid==null) compid=AuthProvider.getInstance().getCompartmentId();
 		VirtualNetworkClient client = new VirtualNetworkClient(AuthProvider.getInstance().getProvider());
-		ListVcnsRequest listVcnsRequest = ListVcnsRequest.builder()
-				.compartmentId(compid).build();
+		ListVcnsRequest listVcnsRequest = ListVcnsRequest.builder().compartmentId(compid).build();
 		ListVcnsResponse response = client.listVcns(listVcnsRequest);
 		List<Vcn> l=response.getItems();
 		String[] s=new String[l.size()];
 		int i=0;
 		mv.clear();
-		for(Vcn v:l) {s[i]=v.getDisplayName();mv.put(v.getDisplayName(), v.getId());i++;}
+		for(Vcn v:l) {
+			s[i]=v.getDisplayName();
+			mv.put(v.getDisplayName(), v.getId());
+			i++;
+		}
 		return s;
 	}
 	
@@ -124,19 +126,18 @@ public class CreatePrivateEndpointWizardPage extends WizardPage {
 		if(compid==null) compid=AuthProvider.getInstance().getCompartmentId();
 		VirtualNetworkClient client = new VirtualNetworkClient(AuthProvider.getInstance().getProvider());
 
-        /* Create a request and dependent object(s). */
+		ListSubnetsRequest listSubnetsRequest = ListSubnetsRequest.builder().compartmentId(compid).vcnId(id).build();
 
-		ListSubnetsRequest listSubnetsRequest = ListSubnetsRequest.builder()
-		.compartmentId(compid)
-		.vcnId(id).build();
-
-        /* Send request to the Client */
         ListSubnetsResponse response = client.listSubnets(listSubnetsRequest);
         List<Subnet> l=response.getItems();
 		String[] s=new String[l.size()];
 		int i=0;
 		ms.clear();
-		for(Subnet v:l) {s[i]=v.getDisplayName();ms.put(v.getDisplayName(), v.getId());i++;}
+		for(Subnet v:l) {
+			s[i]=v.getDisplayName();
+			ms.put(v.getDisplayName(), v.getId());
+			i++;
+		}
 		return s;
 	}
 }

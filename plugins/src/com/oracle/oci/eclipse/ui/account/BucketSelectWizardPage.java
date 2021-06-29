@@ -1,13 +1,10 @@
 package com.oracle.oci.eclipse.ui.account;
 
-
 import java.util.HashMap;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -30,23 +27,21 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
-
 import com.oracle.bmc.dataflow.model.ApplicationLanguage;
 import com.oracle.bmc.identity.model.Compartment;
 import com.oracle.bmc.objectstorage.model.BucketSummary;
 import com.oracle.bmc.objectstorage.model.ObjectSummary;
 import com.oracle.oci.eclipse.Activator;
+import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.Icons;
 import com.oracle.oci.eclipse.sdkclients.IdentClient;
 import com.oracle.oci.eclipse.sdkclients.ObjStorageClient;
 import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
 
-
 public class BucketSelectWizardPage extends WizardPage {
 	
     private static final String BUCKET_KEY = "bucket";
     private static final String OBJECT_KEY = "object";
-    private static final String GRAND_CHILDREN_FETCHED = "grandChildrenFetched";
     private ISelection selection;
     private Tree tree;
     private Text compartmentText;
@@ -54,7 +49,7 @@ public class BucketSelectWizardPage extends WizardPage {
     private ApplicationLanguage language;
     private List<BucketSummary> buckets;
 	private Compartment selectedApplicationCompartment;
-	Map<BucketSummary, TreeItem> BucketTreeMap;
+	Map<BucketSummary, TreeItem> bucketTreeMap;
     
     public BucketSelectWizardPage(ISelection selection,String CompartmentId,ApplicationLanguage language) {
         super("wizardPage");
@@ -113,40 +108,34 @@ public class BucketSelectWizardPage extends WizardPage {
     
     private void createBucketSection() {
 
-    	if(BucketTreeMap != null)
+    	if(bucketTreeMap != null)
     	{
-        	for(Entry<BucketSummary,TreeItem> item: BucketTreeMap.entrySet() ) {        		
+        	for(Entry<BucketSummary,TreeItem> item: bucketTreeMap.entrySet() ) {        		
         		item.getValue().removeAll();
-        		item.getValue().dispose();
-        		//BucketTreeMap.remove(item.getKey());       		
+        		item.getValue().dispose();     		
         	}
     	}
     	try {
 			buckets = ObjStorageClient.getInstance().getBucketsinCompartment(selectedApplicationCompartment.getId());
 		} catch (Exception e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			ErrorHandler.logError("Unable to list buckets: " + e1.getMessage());
 		}
     	
     	
    	 Job job = new Job("Get Objects inside Bucket in User Compartment") {
             @Override
             protected IStatus run(IProgressMonitor monitor) {
-                // Get root compartment children from server
-           
-            	
                 // update tree node using UI thread
                 Display.getDefault().asyncExec(new Runnable() {
                     @Override
                     public void run() {
                         try {
-                            // add root compartment node to tree
-                        	BucketTreeMap= new HashMap<BucketSummary,TreeItem>();
+                        	bucketTreeMap= new HashMap<BucketSummary,TreeItem>();
                         	for(BucketSummary bucket : buckets) {                       		
-                        		BucketTreeMap.put(bucket, new TreeItem(tree,0));
-                        		BucketTreeMap.get(bucket).setText(bucket.getName());
-                        		BucketTreeMap.get(bucket).setImage(IMAGE);
-                        		BucketTreeMap.get(bucket).setData(BUCKET_KEY,bucket);
+                        		bucketTreeMap.put(bucket, new TreeItem(tree,0));
+                        		bucketTreeMap.get(bucket).setText(bucket.getName());
+                        		bucketTreeMap.get(bucket).setImage(IMAGE);
+                        		bucketTreeMap.get(bucket).setData(BUCKET_KEY,bucket);
                         	}
                            
                         	for(BucketSummary bucket : buckets) {                        		
@@ -159,12 +148,14 @@ public class BucketSelectWizardPage extends WizardPage {
                                                 public void run() {
                                                     try {
                                                     	if(correctformat(objects.getName())) {
-                                                    		TreeItem treeItem = new TreeItem(BucketTreeMap.get(bucket), 0);
+                                                    		TreeItem treeItem = new TreeItem(bucketTreeMap.get(bucket), 0);
                                                             treeItem.setText(objects.getName());
                                                             treeItem.setImage(IMAGE);
                                                             treeItem.setData(OBJECT_KEY,objects);
                                                     	}                                                     
-                                                    } catch(Exception e) {}
+                                                    } catch(Exception e) {
+                                                    	ErrorHandler.logError("Unable to create Tree Item :" + e.getMessage());
+                                                    }
                                                 }
                                             });
                                             return Status.OK_STATUS;
@@ -173,7 +164,10 @@ public class BucketSelectWizardPage extends WizardPage {
                                     job.schedule();
                         			}
                         	}
-                        } catch(Exception ex) {}
+                        } catch(Exception ex) {
+                        	ErrorHandler.logError("Unable to list buckets: " + ex.getMessage());
+                        }
+                        
                     }
                 });
                 return Status.OK_STATUS;
