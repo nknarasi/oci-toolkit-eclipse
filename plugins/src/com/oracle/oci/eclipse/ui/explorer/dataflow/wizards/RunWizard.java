@@ -1,22 +1,22 @@
 package com.oracle.oci.eclipse.ui.explorer.dataflow.wizards;
 
-import java.util.List;
-
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWizard;
 
-import com.oracle.bmc.dataflow.DataFlowClient;
-import com.oracle.bmc.dataflow.model.ApplicationParameter;
 import com.oracle.bmc.dataflow.model.ApplicationSummary;
-import com.oracle.bmc.dataflow.model.CreateRunDetails;
 import com.oracle.bmc.dataflow.model.RunSummary;
-import com.oracle.bmc.dataflow.requests.CreateRunRequest;
-import com.oracle.oci.eclipse.sdkclients.RunClient;
+import com.oracle.bmc.dataflow.requests.ListRunsRequest;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddRunPagesAction;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.ScheduleRerunAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.Validations;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.editor.RunTable;
 
@@ -40,13 +40,13 @@ public class RunWizard extends Wizard implements INewWizard {
     }
 
     @Override
-    public void addPages() {
-        page = new RunWizardPage(selection,runSum);
-        page2=new TagsPage(selection,runSum!=null?runSum.getCompartmentId():appSum.getCompartmentId());
-        addPage(page);addPage(page2);
-        page3=new AdvancedOptionsPage(selection,obj,page);
-        addPage(page3);
-        
+    public void addPages() {     
+    	 try {
+         	IRunnableWithProgress op = new AddRunPagesAction(this);
+             new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+         } catch (Exception e) {
+         	MessageDialog.openError(getShell(), "Unable to add pages to Re-run wizard", e.getMessage());
+         }
     }
     
     @Override
@@ -75,29 +75,14 @@ public class RunWizard extends Wizard implements INewWizard {
         		open("Improper Entries",message);
         		return false;
         	}
-        	
-        	DataFlowClient client=RunClient.getInstance().getDataFlowClient();
-        	CreateRunDetails createRunDetails = CreateRunDetails.builder()
-        		.applicationId((String)obj[0])
-        		.archiveUri((String)obj[1])
-        		.compartmentId((String)obj[3])
-        		.configuration(page3.ischecked()?page3.getconfig():null)
-        		.definedTags(page2.getOT())
-        		.displayName((String)obj[6])
-        		.driverShape((String)obj[7])
-        		.execute((String)obj[8])
-        		.executorShape((String)obj[9])
-        		.freeformTags(page2.getFT())
-        		.logsBucketUri((String)obj[11])
-        		.numExecutors((Integer)obj[12])
-        		.parameters((List<ApplicationParameter>)obj[13])
-        		.warehouseBucketUri((String)obj[15]).build();
-        	
-        	CreateRunRequest createRunRequest;
-        	createRunRequest = CreateRunRequest.builder().createRunDetails(createRunDetails).opcRequestId((String)obj[16]).build();
-        	client.createRun(createRunRequest);
-        	MessageDialog.openInformation(getShell(),"Re-Run Succesful","A re-run of application is scheduled.");
 
+        	IRunnableWithProgress op = new ScheduleRerunAction(obj,page2.getOT(),page2.getFT(),page3.getconfig(),page3.ischecked());
+            new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+        	
+        	MessageDialog.openInformation(getShell(),"Re-Run Succesful","A re-run of application is scheduled.");
+        	
+        	runTable.setSortBy(ListRunsRequest.SortBy.TimeCreated);
+        	runTable.setSortOrder(ListRunsRequest.SortOrder.Desc);
         	runTable.refresh(true);
         }
         catch (Exception e) {
@@ -109,6 +94,17 @@ public class RunWizard extends Wizard implements INewWizard {
     
     void open(String h,String m) {
     	MessageDialog.openInformation(getShell(), h, m);
+    }
+    
+    public void addPagesWithProgress(IProgressMonitor monitor) {
+    	monitor.subTask("Adding Main page");
+    	page = new RunWizardPage(selection,runSum);
+    	monitor.subTask("Adding Tags Page");
+        page2=new TagsPage(selection,runSum!=null?runSum.getCompartmentId():appSum.getCompartmentId());
+        addPage(page);addPage(page2);
+        monitor.subTask("Adding Advanced Options page");
+        page3=new AdvancedOptionsPage(selection,obj,page);
+        addPage(page3);
     }
     
     /**

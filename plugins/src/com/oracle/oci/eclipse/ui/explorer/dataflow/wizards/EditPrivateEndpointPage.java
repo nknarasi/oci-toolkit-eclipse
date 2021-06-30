@@ -1,21 +1,16 @@
 package com.oracle.oci.eclipse.ui.explorer.dataflow.wizards;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import com.oracle.oci.eclipse.sdkclients.PrivateEndPointsClient;
-import com.oracle.bmc.dataflow.model.Application;
 import com.oracle.bmc.dataflow.model.PrivateEndpoint;
 import com.oracle.bmc.dataflow.model.PrivateEndpointSummary;
 
@@ -68,9 +63,9 @@ public class EditPrivateEndpointPage extends WizardPage {
         setPageComplete(message == null);
     }
 
-    public List<String> getDNS() {
+    public String[] getDNS() {
         
-		return Arrays.asList(dnsText.getText().split(","));
+		return dnsText.getText().split(",");
     }
 	
 	public String getName() {

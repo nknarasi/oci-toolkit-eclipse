@@ -130,12 +130,10 @@ public class PrivateEndpointTable extends BaseTable {
            manager.add(new Separator());
            if(!pepState.equals("Creating")) 
         	   manager.add(new DetailsPrivateEndpointAction(PrivateEndpointTable.this));
-           if(!pepState.equals("Creating")) 
+           if(!pepState.equals("Creating")&&!pepState.equals("Deleting")) 
         	   manager.add(new DeletePrivateEndpointAction(PrivateEndpointTable.this,(PrivateEndpointSummary)getSelectedObjects().get(0)));
-		   if(pepState.equals("Creating")||pepState.equals("Failed")) {}
-		   else {
+		   if(pepState.equals("Active")||pepState.equals("Inactive"))
 			   manager.add(new EditPrivateEndpointAction((PrivateEndpointSummary)getSelectedObjects().get(0),PrivateEndpointTable.this));
-		   }
         }
 
     }

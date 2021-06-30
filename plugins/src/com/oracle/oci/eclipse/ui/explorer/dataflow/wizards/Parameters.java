@@ -24,18 +24,25 @@ public class Parameters {
 		 composite=new Composite(current,SWT.NONE);
 		 composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		 GridLayout GridLayout1 = new GridLayout();
-		 GridLayout1.numColumns = 3 ;
+		 GridLayout1.numColumns = 8 ;
+		 GridLayout1.makeColumnsEqualWidth=true;
 		 composite.setLayout(GridLayout1);
 		 
 		 tagKey = new Text(composite,SWT.BORDER);
-		 tagKey.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		 GridData gridData1=new GridData(GridData.FILL_HORIZONTAL);
+		 gridData1.horizontalSpan=2;
+		 tagKey.setLayoutData(gridData1);
 		 tagKey.setMessage("Key");
 		 
 		 tagValue = new Text(composite,SWT.BORDER);
-		 tagValue.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		 GridData gridData2=new GridData(GridData.FILL_HORIZONTAL);
+		 gridData2.horizontalSpan=5;
+		 tagValue.setLayoutData(gridData2);
 		 tagValue.setMessage("Value");
+		 
 		 closeButton=new Button(composite,SWT.PUSH);
 		 closeButton.setText("Remove");
+		 
 		 refresh(container, scrolledcomposite);
 		 addClose(composite,container, scrolledcomposite,CreatedParametersSet);
 	 }

@@ -115,10 +115,10 @@ public class RunWizardPage extends WizardPage {
         argText.setText(run.getArguments().toString());
         
         argText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		
+        
 		Composite parametercontainer = new Composite(container, SWT.NULL);
 		GridData grid1 = new GridData(GridData.FILL_HORIZONTAL);
-		grid1.horizontalSpan = 2;
+		grid1.horizontalSpan=2;
 		parametercontainer.setLayoutData(grid1);
         parametercontainer.setLayout(new GridLayout());
         

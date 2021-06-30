@@ -343,6 +343,12 @@ public class RunTable extends BaseTable {
         
     }
 
+	public void setSortBy(ListRunsRequest.SortBy sortBy) {
+		this.sortBy=sortBy;
+	}
 	
+	public void setSortOrder(ListRunsRequest.SortOrder sortOrder) {
+		this.sortOrder=sortOrder;
+	}
 
 }

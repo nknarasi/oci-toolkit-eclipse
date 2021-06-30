@@ -24,7 +24,6 @@ public class RunAction extends BaseAction {
     protected void runAction() {
     	WizardDialog dialog;
         dialog = new WizardDialog(Display.getDefault().getActiveShell(), new RunWizard(runSum,runTable));
-        if (Window.OK == dialog.open()) {
-        }
+        if (Window.OK == dialog.open()) {}
     }
 }
