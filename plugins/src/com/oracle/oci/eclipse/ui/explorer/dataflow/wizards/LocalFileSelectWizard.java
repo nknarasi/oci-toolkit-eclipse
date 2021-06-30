@@ -2,6 +2,9 @@ package com.oracle.oci.eclipse.ui.explorer.dataflow.wizards;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -22,19 +25,20 @@ import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.account.AuthProvider;
 import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
 import com.oracle.oci.eclipse.sdkclients.ObjStorageClient;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.Validations;
 import com.oracle.oci.eclipse.ui.explorer.objectstorage.actions.MakeJarAndZip;
 
 public class LocalFileSelectWizard extends Wizard implements INewWizard  {	
 	private ProjectSelectWizardPage page1;
 	private JarSelectPage page2;	 
-    LocalFileSelectWizardPage1 firstbpage;
-    LocalFileSelectWizardPage2 secondbpage;
-    LocalFileSelectWizardPage3 thirdbpage;
+    protected LocalFileSelectWizardPage1 firstbpage;
+    protected LocalFileSelectWizardPage2 secondbpage;
+    protected LocalFileSelectWizardPage3 thirdbpage;
     private ISelection selection;
 	private String COMPARTMENT_ID;
-	DataTransferObject dto;
-    CreateApplicationWizardPage firstpage;
-    CreateApplicationWizardPage3 thirdpage;
+	protected DataTransferObject dto;
+	protected CreateApplicationWizardPage firstpage;
+	protected CreateApplicationWizardPage3 thirdpage;
     private TagsPage tagpage;
     private Application application;
 	public LocalFileSelectWizard() {
@@ -118,7 +122,19 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	    }
 	    
 	    @Override
-	    public boolean performFinish() {	   	    	
+	    public boolean performFinish() {	
+	    	
+	    	List<Object> validObjects = new ArrayList<Object>();
+	    	List<String> objectType = new ArrayList<String>();
+	    	
+	    	performValidations(validObjects,objectType);       	
+	    	String message=Validations.check(validObjects.toArray(),objectType.toArray(new String[1]));
+	    	
+	    	if(!message.isEmpty()) {
+	    		open("Improper Entries",message);
+	    		return false;
+	    	}	    	
+	    	
 	    	String bucketName = firstbpage.getBucketSelected();
 	    	File applicationFile = new File(dto.getFiledir());
 	    	String newfileName = dto.getFiledir().substring(0,dto.getFiledir().lastIndexOf('\\')+1);
@@ -439,7 +455,49 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 		    	}
 			}
 	    }
-	    
+	    public void performValidations(List<Object> objectArray,List<String>nameArray) {
+	    	
+	    	objectArray.add(firstpage.getDisplayName());
+	    	nameArray.add("name");
+	    	
+	    	objectArray.add(firstpage.getApplicationDescription());
+	    	nameArray.add("description");
+
+	    	if(!firstpage.usesSparkSubmit()) {    		
+	        	objectArray.add(firstpage.getFileUri());
+	        	nameArray.add("fileuri");   		
+	    	}
+	    	if(!firstpage.usesSparkSubmit() && (firstpage.getLanguage() == ApplicationLanguage.Java )) {
+	        	objectArray.add(firstpage.getMainClassName());
+	        	nameArray.add("mainclassname"); 
+	    	}
+	    	
+	       objectArray.add(thirdpage.getApplicationLogLocation());
+	       nameArray.add("loguri"); 
+	       
+	       if(thirdpage.getWarehouseUri() != null && !thirdpage.getWarehouseUri().isEmpty()) {
+	           objectArray.add(thirdpage.getWarehouseUri());
+	           nameArray.add("warehouseuri"); 
+	       }     
+	    	if (thirdpage.usesPrivateSubnet()){
+	    	       objectArray.add(thirdpage.privateEndpointsCombo.getText());
+	    	       nameArray.add("subnetid"); 
+	    	}
+	    	
+	    	if(!firstpage.usesSparkSubmit() && firstpage.getArchiveUri() != null && !firstpage.getArchiveUri().isEmpty()) {
+	    	       objectArray.add(firstpage.getArchiveUri());
+	    	       nameArray.add("archiveuri"); 
+	    	}
+	    	
+	    	if(thirdpage.getSparkProperties() != null) {
+	 	       objectArray.add(thirdpage.getSparkProperties().keySet());
+	 	       nameArray.add("sparkprop" + firstpage.getSparkVersion().charAt(0));         
+	    	}
+
+	    }
+	    public void open(String h,String m) {
+	    	MessageDialog.openInformation(getShell(), h, m);
+	    }
 	    /**
 	     * We will accept the selection in the workbench to see if
 	     * we can initialize from it.

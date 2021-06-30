@@ -1,6 +1,9 @@
 package com.oracle.oci.eclipse.ui.explorer.dataflow.wizards;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -15,6 +18,7 @@ import com.oracle.bmc.dataflow.model.ApplicationLanguage;
 import com.oracle.bmc.dataflow.model.UpdateApplicationDetails;
 import com.oracle.bmc.dataflow.model.UpdateApplicationDetails.Builder;
 import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.Validations;
 
 
 public class EditApplicationWizard extends Wizard implements INewWizard {	
@@ -23,7 +27,7 @@ public class EditApplicationWizard extends Wizard implements INewWizard {
     private TagsPage tagPage;
     private ISelection selection;
     private Application application;
-    private String warnings="";
+
 	public EditApplicationWizard(String applicationId) {
 		super();
 		setNeedsProgressMonitor(true);
@@ -47,7 +51,19 @@ public class EditApplicationWizard extends Wizard implements INewWizard {
      * using wizard as execution context.
      */   
     @Override
-    public boolean performFinish() { 	  		
+    public boolean performFinish() { 
+    	
+       	List<Object> validObjects = new ArrayList<Object>();
+    	List<String> objectType = new ArrayList<String>();
+    	
+    	performValidations(validObjects,objectType);       	
+    	String message=Validations.check(validObjects.toArray(),objectType.toArray(new String[1]));
+    	
+    	if(!message.isEmpty()) {
+    		open("Improper Entries",message);
+    		return false;
+    	}
+    	
 	    if(application.getExecute() != null && !application.getExecute().equals("")) {	    		
 	    	 	Builder editApplicationRequestBuilder = 
 	    	 	        UpdateApplicationDetails.builder()
@@ -161,6 +177,50 @@ public class EditApplicationWizard extends Wizard implements INewWizard {
     	 	        }
     	 	        return true;
     	}   
+    }
+    
+   public void performValidations(List<Object> objectArray,List<String>nameArray) {
+    	
+    	objectArray.add(firstPage.getDisplayName());
+    	nameArray.add("name");
+    	
+    	objectArray.add(firstPage.getApplicationDescription());
+    	nameArray.add("description");
+
+    	if(!firstPage.usesSparkSubmit()) {    		
+        	objectArray.add(firstPage.getFileUri());
+        	nameArray.add("fileuri");   		
+    	}
+    	if(!firstPage.usesSparkSubmit() && (firstPage.getLanguage() == ApplicationLanguage.Java )) {
+        	objectArray.add(firstPage.getMainClassName());
+        	nameArray.add("mainclassname"); 
+    	}
+    	
+       objectArray.add(secondPage.getApplicationLogLocation());
+       nameArray.add("loguri"); 
+       
+       if(secondPage.getWarehouseUri() != null && !secondPage.getWarehouseUri().isEmpty()) {
+           objectArray.add(secondPage.getWarehouseUri());
+           nameArray.add("warehouseuri"); 
+       }     
+    	if (secondPage.usesPrivateSubnet()){
+    	       objectArray.add(secondPage.privateEndpointsCombo.getText());
+    	       nameArray.add("subnetid"); 
+    	}
+    	
+    	if(!firstPage.usesSparkSubmit() && firstPage.getArchiveUri() != null && !firstPage.getArchiveUri().isEmpty()) {
+    	       objectArray.add(firstPage.getArchiveUri());
+    	       nameArray.add("archiveuri"); 
+    	}
+    	
+    	if(secondPage.getSparkProperties() != null) {
+ 	       objectArray.add(secondPage.getSparkProperties().keySet());
+ 	       nameArray.add("sparkprop" + firstPage.getSparkVersion().charAt(0));         
+    	}
+
+    }
+    public void open(String h,String m) {
+    	MessageDialog.openInformation(getShell(), h, m);
     }
     /**
      * We will accept the selection in the workbench to see if

@@ -9,6 +9,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
@@ -34,7 +35,6 @@ import com.oracle.bmc.dataflow.requests.ListApplicationsRequest;
 import com.oracle.bmc.dataflow.responses.ListApplicationsResponse;
 import com.oracle.bmc.identity.model.Compartment;
 import com.oracle.oci.eclipse.Activator;
-import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.Icons;
 import com.oracle.oci.eclipse.sdkclients.IdentClient;
 import com.oracle.oci.eclipse.ui.account.CompartmentSelectWizard;
@@ -55,7 +55,6 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 	private String applicationIdSelected = null;
     private ListApplicationsRequest.SortBy sortBy=ListApplicationsRequest.SortBy.TimeCreated;
 	private ListApplicationsRequest.SortOrder sortOrder=ListApplicationsRequest.SortOrder.Desc;
-	boolean allow = false;
 	private ListApplicationsResponse listapplicationsresponse;
 	private String pagetoshow= null;
 	private Button previouspage,nextpage;
@@ -165,7 +164,7 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
                 applications=((GetApplications)op).applicationSummaryList;
                 
 			} catch (Exception e1) {
-				 ErrorHandler.logError("Unable to list applications: " + e1.getMessage());
+				MessageDialog.openError(Display.getDefault().getActiveShell(), "Unable to get list applications ", e1.getMessage());	     
 			}
 
 	   	 Job job = new Job("Get Applications in User Compartment") {
@@ -237,26 +236,20 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 	        return null;
 	    }
 	    
-	    @Override
-	    public boolean isPageComplete() {
-	    return allow;
-	    }
-	    
 		@Override
 		public boolean canFlipToNextPage() {
 			return true;
-		}
-	    
+		}	    
 		 @Override
-		    public IWizardPage getNextPage() { 			 	
-			 	allow = true;
-			 	isPageComplete();
-			 	getWizard().getContainer().updateButtons();
+		    public IWizardPage getNextPage() { 
 			    dto.setApplicationId(applicationIdSelected); 			   
 			    CreateApplicationWizardPage page = ((LocalFileSelectWizard)getWizard()).firstpage;
+			    page.allow = true;
+			    page.isPageComplete();
+			    getWizard().getContainer().updateButtons();
 			    page.onEnterPage();
 			    CreateApplicationWizardPage3 advpage = ((LocalFileSelectWizard)getWizard()).thirdpage;
-			    advpage.onEnterPage();			   
+			    advpage.onEnterPage();	
 			    return page;       
 		    }
 

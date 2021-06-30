@@ -4,12 +4,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.swt.widgets.Display;
 import com.oracle.bmc.dataflow.DataFlowClient;
 import com.oracle.bmc.dataflow.model.ApplicationSummary;
 import com.oracle.bmc.dataflow.requests.ListApplicationsRequest;
 import com.oracle.bmc.dataflow.responses.ListApplicationsResponse;
-import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
 
 public class GetApplications implements IRunnableWithProgress{
@@ -44,8 +45,8 @@ public class GetApplications implements IRunnableWithProgress{
 	            	 listApplicationsResponse =
 	                 dataflowClient.listApplications(listApplicationsBuilder.build());
 	                 applicationSummaryList.addAll(listApplicationsResponse.getItems());
-	             } catch(Throwable e) {
-	                 ErrorHandler.logError("Unable to list applications: " + e.getMessage());
+	             } catch(Exception e) {            	 
+	            	 MessageDialog.openError(Display.getDefault().getActiveShell(),"Unable to get list applications: ",e.getMessage());
 	             }
 	        monitor.done();
 	    }

@@ -44,7 +44,6 @@ public class GetRuns implements IRunnableWithProgress{
         // Do your work
    		runSummaryList = new ArrayList<RunSummary>();
    		
-   		
          Builder listRunsBuilder =  ListRunsRequest.builder()
         		 .compartmentId(AuthProvider.getInstance().getCompartmentId()).sortBy(sortBy).sortOrder(sortOrder).limit(20).page(page);
              try {

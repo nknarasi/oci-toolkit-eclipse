@@ -10,6 +10,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.IWizardPage;
@@ -17,6 +20,7 @@ import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -32,6 +36,7 @@ import org.eclipse.swt.widgets.TreeItem;
 
 import com.oracle.bmc.identity.model.Compartment;
 import com.oracle.bmc.objectstorage.model.BucketSummary;
+import com.oracle.bmc.objectstorage.responses.ListBucketsResponse;
 import com.oracle.oci.eclipse.Activator;
 import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.Icons;
@@ -39,6 +44,7 @@ import com.oracle.oci.eclipse.sdkclients.IdentClient;
 import com.oracle.oci.eclipse.sdkclients.ObjStorageClient;
 import com.oracle.oci.eclipse.ui.account.CompartmentSelectWizard;
 import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetBuckets;
 
 public class LocalFileSelectWizardPage2 extends WizardPage {
     private static final String BUCKET_KEY = "bucket";
@@ -49,12 +55,14 @@ public class LocalFileSelectWizardPage2 extends WizardPage {
     private String fileName;
     private List<BucketSummary> buckets;
     private DataTransferObject dto;
-    private BucketSummary bucket;
 	private Compartment selectedApplicationCompartment;
 	private Map<BucketSummary, TreeItem> bucketTreeMap;
 	private String fileUriSelected;
 	private Text fileUriText;
 	boolean fileSelected = false;
+	private ListBucketsResponse listbucketsresponse;
+	private String pagetoshow= null;
+	private Button previouspage,nextpage;
 	
 	   public LocalFileSelectWizardPage2(ISelection selection, DataTransferObject dto, String COMPARTMENT_ID) {
 	        super("wizardPage");
@@ -104,7 +112,41 @@ public class LocalFileSelectWizardPage2 extends WizardPage {
 
 	        tree = new Tree(container, SWT.RADIO | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
 	        tree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));                
-	        createBucketSection();	        
+	        
+	        createBucketSection();	   
+	        
+	        Composite page=new Composite(container,SWT.NONE);GridLayout gl=new GridLayout();gl.numColumns=2;
+	        page.setLayout(gl);
+	        previouspage=new Button(page,SWT.TRAVERSE_PAGE_PREVIOUS);
+	        nextpage=new Button(page,SWT.TRAVERSE_PAGE_NEXT);
+	        previouspage.setText("<");
+	        nextpage.setText(">");
+	        previouspage.setLayoutData(new GridData());
+	        nextpage.setLayoutData(new GridData());
+	        
+	        nextpage.addSelectionListener(new SelectionListener() {
+	            @Override
+	            public void widgetSelected(SelectionEvent e) {	                
+					pagetoshow=listbucketsresponse.getOpcNextPage();
+			        createBucketSection();	
+	            }
+
+	            @Override
+	            public void widgetDefaultSelected(SelectionEvent e) {}
+	        });
+	        
+	        previouspage.addSelectionListener(new SelectionListener() {
+	            @Override
+	            public void widgetSelected(SelectionEvent e) {
+	                
+					pagetoshow = null;
+			        createBucketSection();	
+	            }
+
+	            @Override
+	            public void widgetDefaultSelected(SelectionEvent e) {}
+	        });
+	        
 			Composite FileUriContainer = new Composite(container, SWT.NONE);
 	        GridLayout FileUriLayout = new GridLayout();
 	        FileUriLayout.numColumns = 2;
@@ -129,11 +171,16 @@ public class LocalFileSelectWizardPage2 extends WizardPage {
 	        		item.getValue().dispose();     		
 	        	}
 	    	}
-	    	try {
-				buckets = ObjStorageClient.getInstance().getBucketsinCompartment(selectedApplicationCompartment.getId());
+	    	try {	    		
+	    		IRunnableWithProgress op = new GetBuckets(selectedApplicationCompartment.getId(),pagetoshow);
+                new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+                listbucketsresponse=((GetBuckets)op).listBucketsResponse;
+                buckets=((GetBuckets)op).bucketSummaryList;
+                
 			} catch (Exception e1) {
-				 ErrorHandler.logError("Unable to list buckets: " + e1.getMessage());
+				MessageDialog.openError(Display.getDefault().getActiveShell(), "Unable to get list buckets", e1.getMessage());	     
 			}
+
 
 	   	 Job job = new Job("Get Objects inside Bucket in User Compartment") {
 	            @Override

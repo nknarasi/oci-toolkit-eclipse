@@ -5,27 +5,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.layout.TableColumnLayout;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.window.Window;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
 import com.oracle.bmc.dataflow.model.PrivateEndpointSummary;
+import com.oracle.bmc.dataflow.responses.ListPrivateEndpointsResponse;
 import com.oracle.bmc.identity.model.Compartment;
-import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.account.AuthProvider;
-import com.oracle.oci.eclipse.sdkclients.PrivateEndPointsClient;
 import com.oracle.oci.eclipse.ui.account.CompartmentSelectWizard;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseTable;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseTableLabelProvider;
@@ -35,6 +36,7 @@ import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.CreatePrivateEndpoint
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DeletePrivateEndpointAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DetailsPrivateEndpointAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.EditPrivateEndpointAction;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetPrivateEndpoints;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RefreshPrivateEndpointAction;
 
 public class PrivateEndpointTable extends BaseTable {
@@ -44,7 +46,10 @@ public class PrivateEndpointTable extends BaseTable {
 	private static final int CREATED_COL = 2;
 	public static String compid;
 	private static String compname;
-	private List<PrivateEndpointSummary> privateEndpointSummaryList = new ArrayList<PrivateEndpointSummary>();
+	private List<PrivateEndpointSummary> pepSummaryList = new ArrayList<PrivateEndpointSummary>();
+	private String pagetoshow=null;
+	private ListPrivateEndpointsResponse listpepsresponse;
+	private Button previousPage,nextPage;
 
     public PrivateEndpointTable(Composite parent, int style) {
         super(parent, style);
@@ -57,30 +62,24 @@ public class PrivateEndpointTable extends BaseTable {
     
     @Override
     public List<PrivateEndpointSummary> getTableData() {
-        new Job("Get Private Endpoints") {
-            @Override
-            protected IStatus run(IProgressMonitor monitor) {
-                try {
-                    if(compid==null) 
-                    	privateEndpointSummaryList = PrivateEndPointsClient.getInstance().getPrivateEndPoints(AuthProvider.getInstance().getCompartmentId());
-					else 
-						privateEndpointSummaryList = PrivateEndPointsClient.getPrivateEndPoints(compid);
-                        tableDataSize = privateEndpointSummaryList.size();
-                } 
-                catch (Exception e) {
-                    MessageDialog.openError(getShell(), "Unable to get Private Endpoints list", e.getMessage());
-                }
-                refresh(false);
-                return Status.OK_STATUS;
-            }
-        }.schedule();
+    	
+    	 try {
+         	IRunnableWithProgress op = new GetPrivateEndpoints(compid,pagetoshow);
+             new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+             listpepsresponse=((GetPrivateEndpoints)op).listpepsresponse;
+             pepSummaryList=((GetPrivateEndpoints)op).pepSummaryList;
+             tableDataSize = pepSummaryList.size();
+         } catch (Exception e) {
+         	MessageDialog.openError(getShell(), "Unable to get Private Endpoints list", e.getMessage());
+         }
+         refresh(false);
         
-        return privateEndpointSummaryList;
+        return pepSummaryList;
     }
     
     @Override
     public List<PrivateEndpointSummary> getTableCachedData() {
-        return privateEndpointSummaryList;
+        return pepSummaryList;
     }
 
     @Override
@@ -165,6 +164,43 @@ public class PrivateEndpointTable extends BaseTable {
 					setCompartmentName(new String(compname));
 					refresh(true);
 				}
+            }
+
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) {}
+        });
+		
+		Composite page=new Composite(right,SWT.NONE);
+        GridLayout gl=new GridLayout();
+        gl.numColumns=2;
+        page.setLayout(gl);
+        previousPage=new Button(page,SWT.TRAVERSE_PAGE_PREVIOUS);
+        nextPage=new Button(page,SWT.TRAVERSE_PAGE_NEXT);
+        previousPage.setText("<");
+        nextPage.setText(">");
+        previousPage.setLayoutData(new GridData());
+        nextPage.setLayoutData(new GridData());
+        previousPage.setEnabled(false);
+        
+        nextPage.addSelectionListener(new SelectionListener() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                
+				pagetoshow=listpepsresponse.getOpcNextPage();
+				refresh(true);
+				previousPage.setEnabled(true);
+            }
+
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) {}
+        });
+        
+        previousPage.addSelectionListener(new SelectionListener() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                
+				pagetoshow=listpepsresponse.getOpcPrevPage();
+				refresh(true);
             }
 
             @Override

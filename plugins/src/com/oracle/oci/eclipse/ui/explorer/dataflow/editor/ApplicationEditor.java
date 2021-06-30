@@ -14,8 +14,8 @@ import com.oracle.oci.eclipse.ui.explorer.common.BaseEditor;
 public class ApplicationEditor extends BaseEditor implements PropertyChangeListener  {	
     public final static String ID = ApplicationEditor.class.getName();
     public final static String TITLE = "Dataflow Applications";
-    ApplicationTable applicationTable;
-    ApplicationEditor classReference = this;
+    private ApplicationTable applicationTable;
+    private ApplicationEditor classReference = this;
 
     @Override
     public void createPartControl(Composite parent) {

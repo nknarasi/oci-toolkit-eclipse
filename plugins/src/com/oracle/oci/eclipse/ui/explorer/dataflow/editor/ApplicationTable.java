@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -27,6 +28,7 @@ import com.oracle.bmc.dataflow.responses.ListApplicationsResponse;
 import com.oracle.bmc.identity.model.Compartment;
 import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.account.AuthProvider;
+import com.oracle.oci.eclipse.sdkclients.IdentClient;
 import com.oracle.oci.eclipse.ui.account.CompartmentSelectWizard;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseTable;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseTableLabelProvider;
@@ -50,7 +52,7 @@ public class ApplicationTable extends BaseTable{
     private static final int CREATED_COL = 4;
     private static final int UPDATED_COL = 5;
     
-    private static String COMPARTMENT_ID = AuthProvider.getInstance().getCompartmentId();
+    private static String COMPARTMENT_ID;
     private static String COMPARTMENT_NAME;
 	private String pageToShow=null;
     private ListApplicationsRequest.SortBy sortBy=ListApplicationsRequest.SortBy.TimeCreated;
@@ -74,6 +76,9 @@ public class ApplicationTable extends BaseTable{
     public List<ApplicationSummary> getTableData() {  
     	System.out.println(AuthProvider.getInstance().getCompartmentId());
     	System.out.println(AuthProvider.getInstance().getCompartmentName());
+    	if(AuthProvider.getInstance().getCompartmentId() == null) {
+    		COMPARTMENT_ID = IdentClient.getInstance().getRootCompartment().getCompartmentId();
+    	}
                 try {
                 	IRunnableWithProgress op = new GetApplications(COMPARTMENT_ID,sortBy,sortOrder,pageToShow);
                     new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
@@ -81,7 +86,7 @@ public class ApplicationTable extends BaseTable{
                     applicationList=((GetApplications)op).applicationSummaryList;
                     tableDataSize = applicationList.size();
                 } catch (Exception e) {
-                	ErrorHandler.logError("Unable to get applications: " + e.getMessage());
+                	MessageDialog.openError(Display.getDefault().getActiveShell(),"Unable to get applications: ",e.getMessage());               
                 }
                 refresh(false);            
         return applicationList;
@@ -118,7 +123,7 @@ public class ApplicationTable extends BaseTable{
                     return s.getTimeUpdated().toString();
                 }
             } catch (Exception ex) {
-                ex.printStackTrace();
+            	MessageDialog.openError(Display.getDefault().getActiveShell(),"Unable to set Application table details: ",ex.getMessage());
             }
             return "";
         }

@@ -1,9 +1,15 @@
 package com.oracle.oci.eclipse.ui.explorer.dataflow.wizards;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
@@ -12,11 +18,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 
-import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
 import com.oracle.oci.eclipse.sdkclients.RunClient;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.DataflowConstants;
-import com.oracle.bmc.dataflow.model.Application;
-import com.oracle.bmc.dataflow.model.ApplicationSummary;
+import com.oracle.bmc.dataflow.model.ApplicationParameter;
 import com.oracle.bmc.dataflow.model.Run;
 import com.oracle.bmc.dataflow.model.RunSummary;
 
@@ -28,7 +32,8 @@ public class RunWizardPage extends WizardPage {
 	private Spinner numExecSpinner;
     private ISelection selection;
 	private Run run;
-	private Application application;
+	private ScrolledComposite scrolledComposite;
+	private Set<Parameters> parameterset;
 
     public RunWizardPage(ISelection selection,RunSummary runSum) {
         super("wizardPage");
@@ -39,26 +44,20 @@ public class RunWizardPage extends WizardPage {
 			this.run=RunClient.getInstance().getRunDetails(runSum.getId());
 		} 
 		catch (Exception e) {
-			MessageDialog.openError(getShell(), "Error", e.getMessage());
+			MessageDialog.openError(getShell(), "Error fetching run details", e.getMessage());
 		}
-    }
-	
-	public RunWizardPage(ISelection selection,ApplicationSummary appSum) {
-        super("wizardPage");
-        setTitle("Run Application Wizard");
-        setDescription("This wizard creates a run application request. Please enter the following details.");
-        this.selection = selection;
-		try {
-			this.application=ApplicationClient.getInstance().getApplicationDetails(appSum.getId());
-		} 
-		catch (Exception e) {
-			MessageDialog.openError(getShell(), "Error", e.getMessage());
-		}
+		this.parameterset = new HashSet<Parameters>();
     }
 
     @Override
     public void createControl(Composite parent) {
-        Composite container = new Composite(parent, SWT.NULL);
+    	
+    	scrolledComposite=new ScrolledComposite(parent,SWT.V_SCROLL| SWT.H_SCROLL);
+		scrolledComposite.setExpandHorizontal( true );
+		scrolledComposite.setExpandVertical( true );       
+    	
+        Composite container = new Composite(scrolledComposite, SWT.NULL);
+        scrolledComposite.setContent(container);
         GridLayout layout = new GridLayout();
         container.setLayout(layout);
         layout.numColumns = 2;
@@ -67,10 +66,7 @@ public class RunWizardPage extends WizardPage {
         Label nameLabel = new Label(container, SWT.NULL);
         nameLabel.setText("&Name:");
         nameText = new Text(container, SWT.BORDER | SWT.SINGLE);
-        if(run!=null) 
-        	nameText.setText(run.getDisplayName());
-		else 
-			nameText.setText(application.getDisplayName());
+        nameText.setText(run.getDisplayName());
         GridData gd = new GridData(GridData.FILL_HORIZONTAL);
         nameText.setLayoutData(gd);
 		
@@ -86,10 +82,7 @@ public class RunWizardPage extends WizardPage {
 			MessageDialog.openError(getShell(), "Error", e.getMessage());
 		}
 		
-		if(run!=null) 
-			dshapeCombo.setText(run.getDriverShape());
-		else 
-			dshapeCombo.setText(application.getDriverShape());
+		dshapeCombo.setText(run.getDriverShape());
 		
 		Label eshapeLabel = new Label(container, SWT.NULL);
         eshapeLabel.setText("&Executor Shape:");
@@ -103,10 +96,7 @@ public class RunWizardPage extends WizardPage {
 			MessageDialog.openError(getShell(), "Error", e.getMessage());
 		}
 		
-		if(run!=null) 
-			eshapeCombo.setText(run.getExecutorShape());
-		else 
-			eshapeCombo.setText(application.getExecutorShape());
+		eshapeCombo.setText(run.getExecutorShape());
 		
 		Label numExecLabel = new Label(container, SWT.NULL);
         numExecLabel.setText("&Number of Executors:");
@@ -114,10 +104,7 @@ public class RunWizardPage extends WizardPage {
 		numExecSpinner.setMinimum(1);
 		numExecSpinner.setMaximum(128);
 		
-		if(run!=null) 
-			numExecSpinner.setSelection(run.getNumExecutors());
-		else 
-			numExecSpinner.setSelection(application.getNumExecutors());
+		numExecSpinner.setSelection(run.getNumExecutors());
 		
 		numExecSpinner.setIncrement(1);
 		
@@ -125,14 +112,30 @@ public class RunWizardPage extends WizardPage {
         argLabel.setText("&Arguments:");
         Text argText = new Text(container, SWT.BORDER | SWT.SINGLE | SWT.READ_ONLY);
         
-        if(run!=null) 
-        	argText.setText(run.getArguments().toString());
-		else 
-			argText.setText(application.getArguments().toString());
+        argText.setText(run.getArguments().toString());
         
         argText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
-        setControl(container);
+		Composite parametercontainer = new Composite(container, SWT.NULL);
+		GridData grid1 = new GridData(GridData.FILL_HORIZONTAL);
+		grid1.horizontalSpan = 2;
+		parametercontainer.setLayoutData(grid1);
+        parametercontainer.setLayout(new GridLayout());
+        
+        if(run.getParameters() != null)
+        {
+        	 for (ApplicationParameter parameter : run.getParameters()) {
+             	Parameters newparameter = new Parameters(parametercontainer,container,scrolledComposite, parameterset);
+             	parameterset.add(newparameter);
+        		newparameter.tagKey.setText(parameter.getName());
+        		newparameter.tagKey.setEditable(false);
+     			newparameter.tagValue.setText(parameter.getValue());
+     			newparameter.closeButton.setEnabled(false);
+        	 	}         	
+        } 
+        
+      	container.layout(true,true);
+		setControl(scrolledComposite);
     }
 	
 	 private void updateStatus(String message) {
@@ -144,17 +147,19 @@ public class RunWizardPage extends WizardPage {
         
 		return (new Object[]{run.getApplicationId(),run.getArchiveUri(),null,run.getCompartmentId(),null,null,
 				nameText.getText().trim(),dshapeCombo.getText(),run.getExecute(),eshapeCombo.getText(),null,
-				run.getLogsBucketUri(),numExecSpinner.getSelection(),run.getParameters(),run.getSparkVersion(),
+				run.getLogsBucketUri(),numExecSpinner.getSelection(),getParameters(),run.getSparkVersion(),
 				run.getWarehouseBucketUri(),run.getOpcRequestId()
 				});
     }
 	
-	public Object[] getDetails_app() {
-        
-		return (new Object[]{application.getId(),application.getArchiveUri(),null,application.getCompartmentId(),null,null,
-				nameText.getText().trim(),dshapeCombo.getText(),application.getExecute(),eshapeCombo.getText(),null,
-				application.getLogsBucketUri(),numExecSpinner.getSelection(),application.getParameters(),application.getSparkVersion(),
-				application.getWarehouseBucketUri()
-				});
-    }
+	public  List<ApplicationParameter> getParameters(){
+		List<ApplicationParameter> Parameters = new ArrayList<ApplicationParameter>();	 
+		 for(Parameters parameter : parameterset) {	
+			 Parameters.add(ApplicationParameter.builder()
+					 .name(parameter.tagKey.getText())
+					 .value(parameter.tagValue.getText())
+					 .build());
+		 }		 
+		 return Parameters;
+	 }
 }

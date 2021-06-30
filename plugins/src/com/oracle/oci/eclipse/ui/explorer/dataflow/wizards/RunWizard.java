@@ -38,18 +38,10 @@ public class RunWizard extends Wizard implements INewWizard {
 		this.runTable=runTable;
 		this.obj=runSum;
     }
-	
-	public RunWizard(ApplicationSummary appSum) {
-        super();
-        setNeedsProgressMonitor(true);
-		this.appSum=appSum;
-		this.obj=appSum;
-    }
 
     @Override
     public void addPages() {
-        if(runSum!=null) page = new RunWizardPage(selection,runSum);
-		else page = new RunWizardPage(selection,appSum);
+        page = new RunWizardPage(selection,runSum);
         page2=new TagsPage(selection,runSum!=null?runSum.getCompartmentId():appSum.getCompartmentId());
         addPage(page);addPage(page2);
         page3=new AdvancedOptionsPage(selection,obj,page);
@@ -62,8 +54,7 @@ public class RunWizard extends Wizard implements INewWizard {
     	
         try {
         	Object[] obj;
-        	if(runSum!=null) obj=page.getDetails();
-        	else obj=page.getDetails_app();
+        	obj=page.getDetails();
         	if(page3.ischecked()) {obj[11]=page3.loguri();obj[15]=page3.buckuri();}
         	
         	Object[] validObjects;
@@ -103,16 +94,9 @@ public class RunWizard extends Wizard implements INewWizard {
         		.warehouseBucketUri((String)obj[15]).build();
         	
         	CreateRunRequest createRunRequest;
-        	if(runSum!=null){		
-        		createRunRequest = CreateRunRequest.builder().createRunDetails(createRunDetails).opcRequestId((String)obj[16]).build();
-        	}
-        	else {		
-        		createRunRequest = CreateRunRequest.builder().createRunDetails(createRunDetails).build();
-        	}
-        	
+        	createRunRequest = CreateRunRequest.builder().createRunDetails(createRunDetails).opcRequestId((String)obj[16]).build();
         	client.createRun(createRunRequest);
-        	if(runSum!=null) MessageDialog.openInformation(getShell(),"Re-Run Succesful","A re-run of application is scheduled.");
-        	else MessageDialog.openInformation(getShell(),"Run Application Succesful","A run of application is scheduled.");
+        	MessageDialog.openInformation(getShell(),"Re-Run Succesful","A re-run of application is scheduled.");
 
         	runTable.refresh(true);
         }
