@@ -34,10 +34,9 @@ import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
 
 public class NsgPage extends WizardPage {
     private ISelection selection;
-    private String compid;
-    private Composite container,p;
+    private Composite container;
     private ScrolledComposite sc;
-    private ArrayList<String> l;
+    private ArrayList<String> nsgList;
     private Set<Nsg> set=new HashSet<Nsg>();
 
     public NsgPage(ISelection selection,String compid) {
@@ -45,13 +44,11 @@ public class NsgPage extends WizardPage {
         setTitle("Network Security Group Wizard");
         setDescription("This wizard lets you add National Security Groups(NSGs).");
         this.selection = selection;
-        this.compid=compid;
     }
 
     @Override
     public void createControl(Composite parent) {
     	
-    	p=parent;
     	sc=new ScrolledComposite(parent,SWT.V_SCROLL);
     	sc.setExpandHorizontal( true );
     	sc.setExpandVertical( true );
@@ -87,11 +84,11 @@ public class NsgPage extends WizardPage {
 	 
 	 class Nsg{
 
-		 Button close;
-		 Button selComp;
-		 Combo combo;
-		 String compid2,compName2,nsgid;
-		 Map<String,String> m;
+		 private Button close;
+		 private Button selComp;
+		 private Combo combo;
+		 private String compid2,compName2,nsgid;
+		 private Map<String,String> nsgMap;
 		 
 		 Nsg(){
 			 close=new Button(container,SWT.PUSH);
@@ -117,7 +114,7 @@ public class NsgPage extends WizardPage {
 		 void addComboListener() {
 			 combo.addSelectionListener(new SelectionAdapter() {
 			      public void widgetSelected(SelectionEvent e) {
-			          nsgid=m.get(combo.getText());
+			          nsgid=nsgMap.get(combo.getText());
 			       }
 			 });
 		 }
@@ -151,15 +148,15 @@ public class NsgPage extends WizardPage {
 							ListNetworkSecurityGroupsRequest listNetworkSecurityGroupsRequest = ListNetworkSecurityGroupsRequest.builder().compartmentId(comp.getId()).build();
 
 					        ListNetworkSecurityGroupsResponse response = client.listNetworkSecurityGroups(listNetworkSecurityGroupsRequest);
-					        l=new ArrayList<String>();
+					        nsgList=new ArrayList<String>();
 					        List<NetworkSecurityGroup> nsgl=response.getItems();
-					        m=new HashMap<String,String>();
+					        nsgMap=new HashMap<String,String>();
 					        
 					        String[] sl=new String[0];
 					        if(nsgl!=null&&nsgl.size()>0) {
 					        	sl=new String[nsgl.size()];int i=0;
 					        	for(NetworkSecurityGroup e:nsgl) {
-					        		sl[i]=e.getDisplayName();m.put(e.getDisplayName(),e.getId());i++;
+					        		sl[i]=e.getDisplayName();nsgMap.put(e.getDisplayName(),e.getId());i++;
 					        	}
 					        }
 					        combo.setItems(sl);
@@ -174,12 +171,12 @@ public class NsgPage extends WizardPage {
 	 }
 	 
 	 ArrayList<String> getnsgs(){
-		 l=new ArrayList<String>();
+		 nsgList=new ArrayList<String>();
 		 for(Nsg e:set) {
 			 if(e.nsgid==null) return null;
-			 l.add(e.nsgid);
+			 nsgList.add(e.nsgid);
 		 }
-		 return l;
+		 return nsgList;
 	 }
 
 }

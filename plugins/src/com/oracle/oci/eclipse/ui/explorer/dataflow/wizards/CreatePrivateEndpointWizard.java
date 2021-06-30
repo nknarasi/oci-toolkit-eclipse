@@ -1,18 +1,20 @@
 package com.oracle.oci.eclipse.ui.explorer.dataflow.wizards;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 
-import com.oracle.bmc.dataflow.model.CreatePrivateEndpointDetails;
-import com.oracle.bmc.dataflow.requests.CreatePrivateEndpointRequest;
-import com.oracle.oci.eclipse.sdkclients.PrivateEndPointsClient;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddPrivateEndpointPagesAction;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.ScheduleCreatePrivateEndpointAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.Validations;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.editor.PrivateEndpointTable;
 
@@ -32,11 +34,12 @@ public class CreatePrivateEndpointWizard extends Wizard implements INewWizard {
 
     @Override
     public void addPages() {
-        page = new CreatePrivateEndpointWizardPage(selection,pepTable.compid);
-        addPage(page);
-        page2=new NsgPage(selection,"");
-        page3=new TagsPage(selection,pepTable.compid);
-        addPage(page2);addPage(page3);
+    	try {
+         	IRunnableWithProgress op = new AddPrivateEndpointPagesAction(this);
+             new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+         } catch (Exception e) {
+         	MessageDialog.openError(getShell(), "Unable to add pages to Re-run wizard", e.getMessage());
+         }
     }
 
     /**
@@ -59,21 +62,10 @@ public class CreatePrivateEndpointWizard extends Wizard implements INewWizard {
         		return false;
         	}
         	
-			CreatePrivateEndpointDetails createPrivateEndpointDetails = CreatePrivateEndpointDetails.builder()
-					.compartmentId(pepTable.compid==null?(String)obj[0]:pepTable.compid)
-					.definedTags(page3.getOT())
-					.displayName((String)obj[3])
-					.dnsZones(Arrays.asList((String[])obj[4]))
-					.freeformTags(page3.getFT())
-					.maxHostCount((int)obj[9])
-					.nsgIds(page2.getnsgs())
-					.subnetId((String)obj[8]).build();
-			CreatePrivateEndpointRequest createPrivateEndpointRequest = CreatePrivateEndpointRequest.builder()
-					.createPrivateEndpointDetails(createPrivateEndpointDetails)
-					.build();
-        /* Send request to the Client */
-        PrivateEndPointsClient.getInstance().getDataFLowClient().createPrivateEndpoint(createPrivateEndpointRequest);
-	    
+        	IRunnableWithProgress op = new ScheduleCreatePrivateEndpointAction(obj,page3.getOT(),page3.getFT(),page2.getnsgs(),pepTable.compid);
+            new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+        	
+        	
         MessageDialog.openInformation(getShell(),"Succesful","Private Endpoint created successfully.");
         }
         catch (Exception e) {
@@ -88,6 +80,18 @@ public class CreatePrivateEndpointWizard extends Wizard implements INewWizard {
     
     void open(String h,String m) {
     	MessageDialog.openInformation(getShell(), h, m);
+    }
+    
+    public void addPagesWithProgress(IProgressMonitor monitor) {
+    	monitor.subTask("Adding Main page");
+    	page = new CreatePrivateEndpointWizardPage(selection,pepTable.compid);
+        addPage(page);
+        monitor.subTask("Adding Network Security Group(NSG) page");
+        page2=new NsgPage(selection,"");
+        addPage(page2);
+        monitor.subTask("Adding Tags page");
+        page3=new TagsPage(selection,pepTable.compid);
+        addPage(page3);
     }
     
     @Override

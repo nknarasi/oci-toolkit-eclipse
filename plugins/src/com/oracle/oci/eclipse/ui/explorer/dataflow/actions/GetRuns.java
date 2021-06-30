@@ -19,13 +19,14 @@ import com.oracle.oci.eclipse.sdkclients.RunClient;
 
 public class GetRuns implements IRunnableWithProgress{
 	
-	DataFlowClient dataflowClient=RunClient.getInstance().getDataFlowClient();
-	String compid;
-	ListRunsRequest.SortBy sortBy;
-	ListRunsRequest.SortOrder sortOrder;
-	String page=null;
+	private DataFlowClient dataflowClient=RunClient.getInstance().getDataFlowClient();
+	private String compid;
+	private ListRunsRequest.SortBy sortBy;
+	private ListRunsRequest.SortOrder sortOrder;
+	private String page=null;
 	public List<RunSummary> runSummaryList = new ArrayList<RunSummary>();
 	public ListRunsResponse listrunsresponse;
+	
     public GetRuns(String compid,ListRunsRequest.SortBy sortBy,ListRunsRequest.SortOrder sortOrder,String page)
     {
         this.compid=compid;
@@ -42,7 +43,6 @@ public class GetRuns implements IRunnableWithProgress{
 
         // Do your work
    		runSummaryList = new ArrayList<RunSummary>();
-   		
    		
          Builder listRunsBuilder =  ListRunsRequest.builder()
         		 .compartmentId(AuthProvider.getInstance().getCompartmentId()).sortBy(sortBy).sortOrder(sortOrder).limit(20).page(page);

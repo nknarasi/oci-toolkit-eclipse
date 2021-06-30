@@ -8,15 +8,15 @@ public class RefreshApplicationAction extends BaseAction {
 	
 	 public RefreshApplicationAction (ApplicationTable table){
 	        objectTable = table;
-	    }
+	 }
 	   
 	 @Override
 	 public String getText() {
 	        return "Refresh List";
-	    }
+	 }
 	
 	 @Override
 	 protected void runAction() {
 	        objectTable.refresh(true);
-	    }		
+	 }		
 }

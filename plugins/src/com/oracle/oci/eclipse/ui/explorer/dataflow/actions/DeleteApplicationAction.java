@@ -17,7 +17,7 @@ import com.oracle.oci.eclipse.ui.explorer.dataflow.editor.ApplicationTable;
 
 public class DeleteApplicationAction extends BaseAction{
 	
-	   private final ApplicationTable table;
+	   	private final ApplicationTable table;
 	    private final List<ApplicationSummary> applicationSelectionList;
 	    private String applicationID;
 	    private String title = "Delete Application";
@@ -56,7 +56,8 @@ public class DeleteApplicationAction extends BaseAction{
 	                    table.refresh(true);
 	                    return Status.OK_STATUS;
 	                } catch (Exception e) {
-	                    return ErrorHandler.reportException("Error: Unable to delete Application. " + e.getMessage(), e);
+	                	MessageDialog.openError(table.getShell(), "Failed to Delete Application ", e.getMessage());
+	                	return Status.CANCEL_STATUS;
 	                }
 	            }
 	        }.schedule();     

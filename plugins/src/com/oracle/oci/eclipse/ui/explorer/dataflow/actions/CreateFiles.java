@@ -31,8 +31,8 @@ public class CreateFiles implements IRunnableWithProgress{
 
         // Do your work
         try {
-        String tl=System.getProperty("java.io.tmpdir");
-		File theDir = new File(tl+"\\dataflowtempdir");
+        String tempDir=System.getProperty("java.io.tmpdir");
+		File theDir = new File(tempDir+"\\dataflowtempdir");
 		byte[] buffer = new byte[1024];
 		File dff=File.createTempFile("dataflowtempdir\\dflib-",".zip",theDir);
 		ZipOutputStream out = new ZipOutputStream(new FileOutputStream(dff));

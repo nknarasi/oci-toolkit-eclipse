@@ -29,11 +29,10 @@ public class AdvancedOptionsPage extends WizardPage {
     private Object obj;
     private Composite comp1,comp2,comp3;
     private ScrolledComposite scrollComp;
-    //private Set<sparkkv> set=new HashSet<sparkkv>();
     private Set<SparkProperty> set=new HashSet<SparkProperty>();
-    RunWizardPage page;
-    Button add,show;
-    Text text1,text2;
+    private RunWizardPage page;
+    private Button add,show;
+    private Text text1,text2;
 
     public AdvancedOptionsPage(ISelection selection,Object obj,RunWizardPage page) {
         super("wizardPage");
@@ -97,7 +96,6 @@ public class AdvancedOptionsPage extends WizardPage {
         add.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
             	
-            	//set.add(new sparkkv());
             	set.add(new SparkProperty(comp3,comp1,scrollComp,set,(String)page.getDetails()[14]));
             }
           });
@@ -107,6 +105,7 @@ public class AdvancedOptionsPage extends WizardPage {
         text1=new Text(comp2,SWT.BORDER);
         text1.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         String s="";
+        
         if(obj instanceof RunSummary) {
         	try {
 				s=RunClient.getInstance().getRunDetails(((RunSummary)obj).getId().toString()).getLogsBucketUri();
@@ -121,7 +120,9 @@ public class AdvancedOptionsPage extends WizardPage {
 				MessageDialog.openError(Display.getDefault().getActiveShell(),"Unbale to fetch Logs Bucket Uri",e1.getMessage());
 			}
         }
+        
         text1.setText(s);
+        
         if(obj instanceof RunSummary) {
         	try {
 				s=RunClient.getInstance().getRunDetails(((RunSummary)obj).getId().toString()).getWarehouseBucketUri();
@@ -136,6 +137,7 @@ public class AdvancedOptionsPage extends WizardPage {
 				MessageDialog.openError(Display.getDefault().getActiveShell(),"Unbale to fetch Warehouse Bucket Uri",e1.getMessage());
 			}
         }
+        
         Label label2=new Label(comp2,SWT.NONE);
         label2.setText("Warehouse Bucket URI");
         text2=new Text(comp2,SWT.BORDER);
@@ -153,53 +155,6 @@ public class AdvancedOptionsPage extends WizardPage {
 	 boolean ischecked() {
 		 return show.getSelection();
 	 }
-	 
-	 class sparkkv{
-		 
-		 Composite comp;
-		 Text key,val;
-		 Button close;
-		 
-		 sparkkv(){
-			 
-			 comp=new Composite(comp3,SWT.NONE);
-			 comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			 GridLayout glc=new GridLayout();
-			 glc.numColumns=3;
-			 comp.setLayout(glc);
-			 
-			 close=new Button(comp,SWT.PUSH);
-			 close.setLayoutData(new GridData());
-			 close.setText("Remove");
-			 
-			 key=new Text(comp,SWT.BORDER);
-			 key.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			 key.setMessage("key");
-			 
-			 val=new Text(comp,SWT.BORDER);
-			 val.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			 val.setMessage("value");
-			 
-			 addClose();
-			 refresh();
-		 }
-		 
-		 void addClose() {
-			 close.addSelectionListener(new SelectionAdapter() {
-				 public void widgetSelected(SelectionEvent e) {
-					 comp.dispose();
-					 set.remove(sparkkv.this);
-					 refresh();
-				 }
-			 });
-		 }
-	 }
-	 
-	 
-	void refresh() {
-		comp1.layout(true,true);
-   	 	scrollComp.setMinSize( comp1.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
-	}
 	
 	Map<String,String> getconfig(){
 		Map<String,String> m=new HashMap<String,String>();

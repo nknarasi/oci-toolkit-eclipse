@@ -4,6 +4,10 @@ import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.widgets.Display;
+
 import com.oracle.bmc.dataflow.DataFlowClient;
 import com.oracle.bmc.dataflow.model.Application;
 import com.oracle.bmc.dataflow.model.ApplicationSummary;
@@ -92,10 +96,17 @@ public class PrivateEndPointsClient  extends BaseClient {
     }
         
     public PrivateEndpoint getPrivateEndpointDetails (String PrivateEndpointId) {
-    	return dataflowClient.getPrivateEndpoint(
-    			GetPrivateEndpointRequest.builder()
-    			.privateEndpointId(PrivateEndpointId)
-    			.build()).getPrivateEndpoint();   			
+        try {
+        	return dataflowClient.getPrivateEndpoint(
+        			GetPrivateEndpointRequest.builder()
+        		 	.privateEndpointId(PrivateEndpointId)
+        			.build()).getPrivateEndpoint();  
+           
+        } catch(Throwable e) {
+        	MessageDialog.openError(Display.getDefault().getActiveShell(), "Unable to get Private EndpointDetails details ", e.getMessage());	          
+            return null;
+        }
+			
     }
 
 }

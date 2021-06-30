@@ -38,19 +38,17 @@ public class JarSelectPage extends WizardPage{
 	    private ISelection selection;
 	    private Tree tree;
 	    private Image IMAGE;
-	    Button doZip;
-	    Composite pc,jarComp,container;
-	    ScrolledComposite sc;
-	    String jarUri,zipUri;
-	    DataTransferObject dto;
+	    private Composite pc,container;
+	    private ScrolledComposite sc;
+	    private DataTransferObject dto;
 	    private ProjectSelectWizardPage page;
 	    boolean fileCreated = false;
-	    Job job;
+	    protected Job job;
 
 	    public JarSelectPage(ISelection selection,ProjectSelectWizardPage page,DataTransferObject dto) {
 	        super("wizardPage");
 	        setTitle("Add Dependencies to Application");
-	            setDescription("Choose the the external dependencies you want to include in the application.");
+	        setDescription("Choose the the external dependencies you want to include in the application.");
 	        IMAGE = Activator.getImage(Icons.COMPARTMENT.getPath());
 	        this.page=page;
 	        this.dto= dto;
@@ -88,15 +86,20 @@ public class JarSelectPage extends WizardPage{
 	                            for(TreeItem e:tree.getItems()) {
 	                            	e.setChecked(true);
 	                            }
-	                        } catch(Exception e) {}
+	                        } catch(Exception e) {
+	                        	MessageDialog.openError(getShell(), "Error creating Jar tree items", e.getMessage());
+	                        }
 	                    }
 	                });
 	                return Status.OK_STATUS;
 	            }
 	        };
 	        
-	        pc=new Composite(container,SWT.NONE);GridLayout gl=new GridLayout();gl.numColumns=2;
-	        pc.setLayout(gl);pc.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	        pc=new Composite(container,SWT.NONE);
+	        GridLayout gl=new GridLayout();
+	        gl.numColumns=2;
+	        pc.setLayout(gl);
+	        pc.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 	        Button selDesel=new Button(pc,SWT.PUSH);
 	        selDesel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
@@ -119,7 +122,7 @@ public class JarSelectPage extends WizardPage{
 	            		}
 						
 					} catch (Exception e1) {
-						MessageDialog.openError(getShell(), "Error", e1.getMessage());
+						MessageDialog.openError(getShell(), "Error perfroming select/deselect operation", e1.getMessage());
 					}
 	            }
 
@@ -151,7 +154,8 @@ public class JarSelectPage extends WizardPage{
 	            public void widgetSelected(SelectionEvent e) {
 	            	try {
 	            		IJavaProject p=page.getSelectedProject();
-	            		if(p==null) throw new Exception("Improper Selection of Project");
+	            		if(p==null) 
+	            			throw new Exception("Improper Selection of Project");
 	            		page.start(p);
 	            		createJar.setEnabled(false);
 	            		createArchive.setEnabled(true);
@@ -160,7 +164,7 @@ public class JarSelectPage extends WizardPage{
 	            		getWizard().getContainer().updateButtons();
 						
 					} catch (Exception e1) {
-						MessageDialog.openError(getShell(), "Error", e1.getMessage());
+						MessageDialog.openError(getShell(), "Error creating Jar", e1.getMessage());
 					}
 	            }
 

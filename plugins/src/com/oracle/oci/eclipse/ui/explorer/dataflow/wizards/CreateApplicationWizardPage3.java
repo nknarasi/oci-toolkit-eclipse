@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.window.Window;
+import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -63,6 +64,7 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 	private boolean networkSectionSelected=false;
 	private boolean usesAdvancedOptions=false;
 	private int intial = -1; 
+	boolean allow = false;
 	
 	public CreateApplicationWizardPage3(ISelection selection,DataTransferObject dto) {
 		super("Page 3");
@@ -150,7 +152,7 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 		logLocationText = new Text(advancedOptionsComposite, SWT.BORDER | SWT.SINGLE);
 		GridData gd1 = new GridData(GridData.FILL_HORIZONTAL);
 		logLocationText.setLayoutData(gd1);
-		logLocationText.setMessage("oci://dataflow-logs@" + ObjStorageClient.getInstance().getNamespace()+"/");
+		logLocationText.setText("oci://dataflow-logs@" + ObjStorageClient.getInstance().getNamespace()+"/");
 		
 		Label warehouseLocationlabel = new Label(advancedOptionsComposite, SWT.NULL);
 		warehouseLocationlabel.setText("&Warehouse Bucket Uri:");
@@ -350,17 +352,13 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 		          	 }         	
 		      		 container.layout(true,true);
 		           	 scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );		          	
-		          } 
-		    	   
-		    	   logLocationText.setText(application.getLogsBucketUri());
-		    	   
+		          } 	    	   
+		    	   logLocationText.setText(application.getLogsBucketUri());		    	   
 		    	   if(application.getWarehouseBucketUri() != null) {
 		   			warehouseLocationText.setText(application.getWarehouseBucketUri());
 		   		}
-		    	
-		    	
-		    	   if(networkSectionSelected)
-	            	{	            		
+		    			    	
+		    	   if(networkSectionSelected){	            		
 	            		networkSectionSelected= false;	            		
 	            		compartmentLabel.dispose();
 	            		compartmentText.dispose();
@@ -389,8 +387,7 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 		    				 selectedApplicationCompartment = compartment;   			
 		    				 break;
 		    			}
-		    		}
-		    		
+		    		}	    		
 		    		privateEndpoints = oci.getPrivateEndPoints(selectedApplicationCompartment.getId());		
 		    		int sizeoflist= privateEndpoints.size();
 		    		String[] PrivateEndpointsList = new String[sizeoflist];
@@ -401,23 +398,33 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 		    				intial = i;
 		    				break;
 		    			}
-		    		}
-		    		
+		    		}	    		
 		            choosePrivateSubnet(privateEndpointSection);     								
-
 				}
 				else {
 					networkGroupInternetAccessRadioButton.setSelection(true);
 					networkSectionSelected= false;
-				}
-
-		    	   
-		    }
-		    
+				}		    	   
+		    }		    
 		    container.pack();
 		    container.layout(true,true);
 		    scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 		}
 	 
-	 
+    	@Override
+    	public boolean isPageComplete() {
+    		if(dto.isLocal()) {
+    			return allow;
+		 	}
+    		return true;
+    	}
+    	
+   	 @Override
+	    public IWizardPage getPreviousPage() {
+   		 	if(dto.isLocal()) {
+				allow = false;
+			    this.isPageComplete();
+		 	}	             
+	        return super.getPreviousPage();
+	    }
 }

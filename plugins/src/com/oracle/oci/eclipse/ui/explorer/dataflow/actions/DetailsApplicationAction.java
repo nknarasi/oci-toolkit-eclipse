@@ -6,6 +6,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
 import com.oracle.bmc.dataflow.model.Application;
 import com.oracle.bmc.dataflow.model.ApplicationLanguage;
@@ -17,7 +18,6 @@ import com.oracle.oci.eclipse.ui.explorer.common.DetailsTable;
 import com.oracle.oci.eclipse.ui.explorer.common.DetailsTable.TablePair;
 
 import com.oracle.oci.eclipse.ui.explorer.dataflow.editor.ApplicationTable;
-
 
 public class DetailsApplicationAction extends BaseAction {
 	
@@ -59,7 +59,7 @@ public class DetailsApplicationAction extends BaseAction {
 	                        }
 	                    });
 	                } catch (Exception e) {
-	                    return ErrorHandler.reportException("Unable to get Application details: " + e.getMessage(), e);
+	                	MessageDialog.openError(Display.getDefault().getActiveShell(), "Unable to get Application details ", e.getMessage());	          
 	                }
 	               return Status.OK_STATUS;
 	            }

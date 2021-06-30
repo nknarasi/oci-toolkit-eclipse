@@ -35,8 +35,8 @@ public class CreatePrivateEndpointWizardPage extends WizardPage {
     private ISelection selection;
     private String compid;
     private Spinner numExecSpinner;
-    private Map<String,String> mv=new HashMap<String,String>();
-    private Map<String,String> ms=new HashMap<String,String>();
+    private Map<String,String> mapVcn=new HashMap<String,String>();
+    private Map<String,String> mapSubnet=new HashMap<String,String>();
 
     public CreatePrivateEndpointWizardPage(ISelection selection,String compid) {
         super("wizardPage");
@@ -67,7 +67,7 @@ public class CreatePrivateEndpointWizardPage extends WizardPage {
 		vcnCombo.setItems(getVcns());
 		vcnCombo.addSelectionListener(new SelectionAdapter() {
 		      public void widgetSelected(SelectionEvent e) {
-		  		subnetCombo.setItems(getSubnets(mv.get(vcnCombo.getText())));
+		  		subnetCombo.setItems(getSubnets(mapVcn.get(vcnCombo.getText())));
 		        }
 		      });
 		
@@ -100,22 +100,23 @@ public class CreatePrivateEndpointWizardPage extends WizardPage {
     public Object[] getDetails() {
         
 		return (new Object[]{AuthProvider.getInstance().getCompartmentId(),null,null,nameText.getText(),
-				dnszText.getText().split(","),null,null,null,ms.get(subnetCombo.getText()),numExecSpinner.getSelection()
+				dnszText.getText().split(","),null,null,null,mapSubnet.get(subnetCombo.getText()),numExecSpinner.getSelection()
 				});
     }
 	
 	String[] getVcns(){
-		if(compid==null) compid=AuthProvider.getInstance().getCompartmentId();
+		if(compid==null) 
+			compid=AuthProvider.getInstance().getCompartmentId();
 		VirtualNetworkClient client = new VirtualNetworkClient(AuthProvider.getInstance().getProvider());
 		ListVcnsRequest listVcnsRequest = ListVcnsRequest.builder().compartmentId(compid).build();
 		ListVcnsResponse response = client.listVcns(listVcnsRequest);
 		List<Vcn> l=response.getItems();
 		String[] s=new String[l.size()];
 		int i=0;
-		mv.clear();
+		mapVcn.clear();
 		for(Vcn v:l) {
 			s[i]=v.getDisplayName();
-			mv.put(v.getDisplayName(), v.getId());
+			mapVcn.put(v.getDisplayName(), v.getId());
 			i++;
 		}
 		return s;
@@ -123,7 +124,9 @@ public class CreatePrivateEndpointWizardPage extends WizardPage {
 	
 	String[] getSubnets(String id){
 		
-		if(compid==null) compid=AuthProvider.getInstance().getCompartmentId();
+		if(compid==null) 
+			compid=AuthProvider.getInstance().getCompartmentId();
+		
 		VirtualNetworkClient client = new VirtualNetworkClient(AuthProvider.getInstance().getProvider());
 
 		ListSubnetsRequest listSubnetsRequest = ListSubnetsRequest.builder().compartmentId(compid).vcnId(id).build();
@@ -132,10 +135,11 @@ public class CreatePrivateEndpointWizardPage extends WizardPage {
         List<Subnet> l=response.getItems();
 		String[] s=new String[l.size()];
 		int i=0;
-		ms.clear();
+		mapSubnet.clear();
+		
 		for(Subnet v:l) {
 			s[i]=v.getDisplayName();
-			ms.put(v.getDisplayName(), v.getId());
+			mapSubnet.put(v.getDisplayName(), v.getId());
 			i++;
 		}
 		return s;

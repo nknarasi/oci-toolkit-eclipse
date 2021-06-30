@@ -24,10 +24,31 @@ public class Validations {
 				}
 				break;
 				
+			case "fileuri":
+				String fileuri=(String)obj[i];
+				if(!checkName(fileuri)) {
+					message.append("FileUri cannot be empty.\n");
+				}
+				break;
+				
+			case "mainclassname":
+				String mainclassname=(String)obj[i];
+				if(!checkName(mainclassname)) {
+					message.append("Main Class Name cannot be empty.\n");
+				}
+				break;
+				
 			case "loguri":
 				String logUri=(String)obj[i];
 				if(!checkLogUri(logUri)) {
 					message.append("Log Uri format invalid.\n");
+				}
+				break;
+				
+			case "archiveuri":
+				String archiveUri=(String)obj[i];
+				if(!checkArchiveUri(archiveUri)) {
+					message.append("Archive Uri format invalid.\n");
 				}
 				break;
 				
@@ -72,6 +93,13 @@ public class Validations {
 					message.append("Network Security Groups invalid.\n");
 				}
 				break;
+				
+			case "description":
+				String description = (String)obj[i];
+				if(!checkdescription(description)) {
+					message.append("Description Size exceeded. Allowed Size = 255 characters.\n");
+				}
+				break;
 			}
 		}
 		return message.toString();
@@ -85,6 +113,12 @@ public class Validations {
 		return (uri.length()>9)&&
 				(uri.substring(0,6).equals("oci://"))&&
 				(uri.endsWith("/"))&&
+				(uri.split("@").length==2);
+	}
+	
+	private static boolean checkArchiveUri(String uri) {
+		return (uri.length()>9)&&
+				(uri.substring(0,6).equals("oci://"))&&
 				(uri.split("@").length==2);
 	}
 	
@@ -128,5 +162,9 @@ public class Validations {
 	
 	private static boolean checkNsgls(List<String> nsgl) {
 		return (nsgl!=null);
+	}
+	
+	private static boolean checkdescription(String description) {
+		return (description.length() <= 255);
 	}
 }

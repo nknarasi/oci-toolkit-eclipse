@@ -84,8 +84,10 @@ public class DetailsPrivateEndpointAction extends BaseAction {
         data.add(new TablePair("DNS Zones to Resolve:", String.join(",",obj.getDnsZones())));
 		data.add(new TablePair("State Details:", obj.getLifecycleDetails()));
 		data.add(new TablePair("Number of Hosts to Access:", obj.getMaxHostCount().toString()));
-		if(obj.getNsgIds()!=null) data.add(new TablePair("Network Security Groups:", String.join(",",obj.getNsgIds())));
-		else data.add(new TablePair("Network Security Groups:",""));
+		if(obj.getNsgIds()!=null) 
+			data.add(new TablePair("Network Security Groups:", String.join(",",obj.getNsgIds())));
+		else 
+			data.add(new TablePair("Network Security Groups:",""));
 		data.add(new TablePair("OCID", obj.getId()));
         return data;
     }

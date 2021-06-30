@@ -1,18 +1,21 @@
 package com.oracle.oci.eclipse.ui.explorer.dataflow.wizards;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWizard;
 
-import com.oracle.bmc.dataflow.DataFlowClient;
 import com.oracle.bmc.dataflow.model.PrivateEndpointSummary;
-import com.oracle.bmc.dataflow.model.UpdatePrivateEndpointDetails;
-import com.oracle.bmc.dataflow.requests.UpdatePrivateEndpointRequest;
-import com.oracle.oci.eclipse.sdkclients.PrivateEndPointsClient;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddEditPrivateEndpointPagesAction;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.ScheduleEditPrivateEndpointAction;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.Validations;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.editor.PrivateEndpointTable;
 
 
@@ -22,22 +25,23 @@ public class EditPrivateEndpointWizard extends Wizard implements INewWizard {
     private ISelection selection;
 	private PrivateEndpointSummary pepSum;
 	private PrivateEndpointTable pepTable;
-	private Object obj;
 
     public EditPrivateEndpointWizard(PrivateEndpointSummary pepSum,PrivateEndpointTable pepTable) {
         super();
         setNeedsProgressMonitor(true);
 		this.pepSum=pepSum;
 		this.pepTable=pepTable;
-		this.obj=pepSum;
     }
     
     @Override
     public void addPages() {
-        page=new EditPrivateEndpointPage(selection,pepSum);
-        addPage(page);
-        page2=new TagsPage(selection,pepSum.getCompartmentId());
-        addPage(page2);
+    	
+    	try {
+         	IRunnableWithProgress op = new AddEditPrivateEndpointPagesAction(this);
+             new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+         } catch (Exception e) {
+         	MessageDialog.openError(getShell(), "Unable to add pages to Edit Private Endpoint wizard", e.getMessage());
+         }
         
     }
     /**
@@ -47,20 +51,18 @@ public class EditPrivateEndpointWizard extends Wizard implements INewWizard {
      */
     @Override
     public boolean performFinish() {
-        if(!check()) return false;
         try {
-        DataFlowClient client=PrivateEndPointsClient.getInstance().getDataFLowClient();
+        	
+        	Object[] validObjects=new Object[] {page.getName(),page.getDNS()};
+        	String[] objType=new String[] {"name","dnszones"};
+        	String message=Validations.check(validObjects, objType);
+        	if(!message.isEmpty()) {
+        		open("Improper Entries",message);
+        		return false;
+        	}
         
-        UpdatePrivateEndpointDetails updatePrivateEndpointDetails = UpdatePrivateEndpointDetails.builder()
-        		.definedTags(page2.getOT())
-        		.displayName(page.getName())
-        		.dnsZones(page.getDNS()).build();
-
-        UpdatePrivateEndpointRequest updatePrivateEndpointRequest = UpdatePrivateEndpointRequest.builder()
-        		.updatePrivateEndpointDetails(updatePrivateEndpointDetails)
-        		.privateEndpointId(pepSum.getId()).build();
-
-        client.updatePrivateEndpoint(updatePrivateEndpointRequest);
+        	IRunnableWithProgress op = new ScheduleEditPrivateEndpointAction(page2.getOT(),page2.getFT(),page.getDNS(),page.getName(),pepSum.getId());
+            new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
         
 		pepTable.refresh(true);
         }
@@ -70,15 +72,18 @@ public class EditPrivateEndpointWizard extends Wizard implements INewWizard {
         }
         return true;
     }
-    
-    boolean check() {
-    	if(page.nameText.getText()==null||page.nameText.getText().isEmpty()) {open("Improper Details","Provide proper name for the Private Endpoint");return false;}
-    	if(page.dnsText.getText()==null||page.dnsText.getText().isEmpty()) {open("Improper Details","Provide proper DNS Zones for the Private Endpoint");return false;}    	
-    	return true;
-    }
-    
+
     void open(String h,String m) {
     	MessageDialog.openInformation(getShell(), h, m);
+    }
+    
+    public void addPagesWithProgress(IProgressMonitor monitor) {
+    	monitor.subTask("Adding Main page");
+    	page=new EditPrivateEndpointPage(selection,pepSum);
+        addPage(page);
+        monitor.subTask("Adding Tags page");
+        page2=new TagsPage(selection,pepSum.getCompartmentId());
+        addPage(page2);
     }
     /**
      * We will accept the selection in the workbench to see if
