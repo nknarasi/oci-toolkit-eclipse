@@ -11,11 +11,11 @@ import com.oracle.bmc.dataflow.DataFlowClient;
 import com.oracle.bmc.dataflow.model.ApplicationSummary;
 import com.oracle.bmc.dataflow.requests.ListApplicationsRequest;
 import com.oracle.bmc.dataflow.responses.ListApplicationsResponse;
-import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 
 public class GetApplications implements IRunnableWithProgress{
 
-	private DataFlowClient dataflowClient=ApplicationClient.getInstance().getDataFlowClient();
+	private DataFlowClient dataflowClient = DataflowClient.getInstance().getDataFlowClient();
 	private String compartmentId;
 	private ListApplicationsRequest.SortBy sortBy;
 	private ListApplicationsRequest.SortOrder sortOrder;

@@ -3,13 +3,14 @@ package com.oracle.oci.eclipse.ui.explorer.dataflow.wizards;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWizard;
@@ -17,7 +18,8 @@ import com.oracle.bmc.dataflow.model.Application;
 import com.oracle.bmc.dataflow.model.ApplicationLanguage;
 import com.oracle.bmc.dataflow.model.UpdateApplicationDetails;
 import com.oracle.bmc.dataflow.model.UpdateApplicationDetails.Builder;
-import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddEditApplicationPagesAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.Validations;
 
 
@@ -31,18 +33,30 @@ public class EditApplicationWizard extends Wizard implements INewWizard {
 	public EditApplicationWizard(String applicationId) {
 		super();
 		setNeedsProgressMonitor(true);
-		application = ApplicationClient.getInstance().getApplicationDetails(applicationId);
+		application = DataflowClient.getInstance().getApplicationDetails(applicationId);
 	}
 	
     @Override
     public void addPages() {
+    	 try {
+           	IRunnableWithProgress op = new AddEditApplicationPagesAction(this);
+               new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+           } catch (Exception e) {
+           	MessageDialog.openError(getShell(), "Unable to add pages to Edit Application wizard", e.getMessage());
+           }    
+    }
+    
+    public void addPagesWithProgress(IProgressMonitor monitor) {
     	DataTransferObject dto = new DataTransferObject();
-        firstPage = new EditApplicationWizardPage1(selection, dto, application.getId());
+    	monitor.subTask("Adding Main page");
+    	firstPage = new EditApplicationWizardPage1(selection, dto, application.getId());
         addPage(firstPage);     
+    	monitor.subTask("Adding Tags Page");
         tagPage = new TagsPage(selection,application.getId());
         addPage(tagPage);
+        monitor.subTask("Adding Advanced Options page");
         secondPage = new EditApplicationWizardPage2(selection,dto, application.getId());
-        addPage(secondPage);        
+        addPage(secondPage);
     }
     
     /**
@@ -100,7 +114,7 @@ public class EditApplicationWizard extends Wizard implements INewWizard {
 	    	 			 IRunnableWithProgress op = new IRunnableWithProgress() {
 	     	 	            @Override
 	     	 	            public void run(IProgressMonitor monitor) throws InvocationTargetException {
-	     	 	                ApplicationClient.getInstance().editApplication(application.getId(),editApplicationRequest);
+	     	 	            	DataflowClient.getInstance().editApplication(application.getId(),editApplicationRequest);
 	     	 	                monitor.done();
 	     	 	            }
 	     	 	        };
@@ -162,7 +176,7 @@ public class EditApplicationWizard extends Wizard implements INewWizard {
     	 	        IRunnableWithProgress op = new IRunnableWithProgress() {
     	 	            @Override
     	 	            public void run(IProgressMonitor monitor) throws InvocationTargetException {
-    	 	                ApplicationClient.getInstance().editApplication(application.getId(),editApplicationRequest);
+    	 	            	DataflowClient.getInstance().editApplication(application.getId(),editApplicationRequest);
     	 	                monitor.done();
     	 	            }
     	 	        };

@@ -12,7 +12,7 @@ import org.eclipse.swt.widgets.Display;
 
 import com.oracle.bmc.dataflow.model.PrivateEndpoint;
 import com.oracle.bmc.dataflow.model.PrivateEndpointSummary;
-import com.oracle.oci.eclipse.sdkclients.PrivateEndPointsClient;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseAction;
 import com.oracle.oci.eclipse.ui.explorer.common.DetailsTable;
 import com.oracle.oci.eclipse.ui.explorer.common.DetailsTable.TablePair;
@@ -47,7 +47,7 @@ public class DetailsPrivateEndpointAction extends BaseAction {
             pepID = object.getId();
             
 			try {
-				privateEndpointObject=PrivateEndPointsClient.getInstance().getPrivateEndpointDetails(pepID);
+				privateEndpointObject=DataflowClient.getInstance().getPrivateEndpointDetails(pepID);
 			} 
 			catch (Exception e) {
 				MessageDialog.openError(Display.getDefault().getActiveShell(),"Unable to get Private Endpoint details: ",e.getMessage());

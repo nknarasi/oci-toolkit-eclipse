@@ -7,11 +7,13 @@ import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWizard;
@@ -23,8 +25,10 @@ import com.oracle.bmc.dataflow.model.UpdateApplicationDetails;
 import com.oracle.bmc.dataflow.model.CreateApplicationDetails.Builder;
 import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.account.AuthProvider;
-import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.oci.eclipse.sdkclients.ObjStorageClient;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddCreateApplicationPagesAction;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddLocalProjectSelectPagesAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.Validations;
 import com.oracle.oci.eclipse.ui.explorer.objectstorage.actions.MakeJarAndZip;
 
@@ -41,6 +45,8 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	protected CreateApplicationWizardPage3 thirdpage;
     private TagsPage tagpage;
     private Application application;
+    boolean canFinish = false;
+    
 	public LocalFileSelectWizard() {
 		super();
 		this.COMPARTMENT_ID= AuthProvider.getInstance().getCompartmentId();
@@ -48,27 +54,41 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	}	
 	   @Override
 	    public void addPages() {	   
+		   try {
+	          	IRunnableWithProgress op = new AddLocalProjectSelectPagesAction(this);
+	              new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+	          } catch (Exception e) {
+	          	MessageDialog.openError(getShell(), "Unable to add pages to Local Project Select wizard", e.getMessage());
+	          }   
+	    }
+	   
+	    public void addPagesWithProgress(IProgressMonitor monitor) {
 	        dto = new DataTransferObject();
-	        dto.setLocal(true);
-	        
+	        dto.setLocal(true);	    	
+	    	monitor.subTask("Adding Project Select page");  
 	        page1 = new ProjectSelectWizardPage(selection);
+	        addPage(page1);	        
+	    	monitor.subTask("Adding Dependencies Select Page page");  
 	        page2= new JarSelectPage(selection,page1,dto);
-	        addPage(page1);
-	        addPage(page2);
-	        
+	        addPage(page2);	        
+	    	monitor.subTask("Adding Application Jar Bucket Select page");  
 	        firstbpage = new LocalFileSelectWizardPage1(selection,dto,COMPARTMENT_ID);
-	        addPage(firstbpage);
+	        addPage(firstbpage);	        
+	    	monitor.subTask("Adding Archive Zip Bucket Select page");
 	        secondbpage = new LocalFileSelectWizardPage2(selection,dto,COMPARTMENT_ID);
-		    addPage(secondbpage);
+		    addPage(secondbpage);		    
+	    	monitor.subTask("Adding Previous Application Select page");  
 	        thirdbpage = new LocalFileSelectWizardPage3(selection,dto,COMPARTMENT_ID);
-		    addPage(thirdbpage);
-	        
+		    addPage(thirdbpage);		    
+	    	monitor.subTask("Adding Main page");    	
 	        firstpage = new CreateApplicationWizardPage(selection,dto,COMPARTMENT_ID);
-	        addPage(firstpage);      
+	        addPage(firstpage);  	       	
+	    	monitor.subTask("Adding Tags Page");
+	        tagpage= new TagsPage(selection,COMPARTMENT_ID);
+	        addPage(tagpage);  	        
+	        monitor.subTask("Adding Advanced Options page");
 	        thirdpage = new CreateApplicationWizardPage3(selection,dto);
 	        addPage(thirdpage);
-	        tagpage= new TagsPage(selection,COMPARTMENT_ID);
-	        addPage(tagpage);
 	    }
 	   
 	    @Override
@@ -120,6 +140,10 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	    	MakeJarAndZip.zipUri=null;
 	    	return true;
 	    }
+	    @Override
+	    public boolean canFinish() {
+	    	return canFinish;
+	    }
 	    
 	    @Override
 	    public boolean performFinish() {	
@@ -162,7 +186,7 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 			}
 
 			if(dto.applicationId != null) {				
-				Application applicationOld = ApplicationClient.getInstance().getApplicationDetails(dto.getApplicationId());				
+				Application applicationOld = DataflowClient.getInstance().getApplicationDetails(dto.getApplicationId());				
 		    	final String compartmentId = firstpage.getApplicationCompartmentId();
 		    	
 		    	if(firstpage.usesSparkSubmit()) {		    		
@@ -187,7 +211,7 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 		        	        IRunnableWithProgress op = new IRunnableWithProgress() {
 		        	            @Override
 		        	            public void run(IProgressMonitor monitor) throws InvocationTargetException {
-		        	            	ApplicationClient.getInstance().runApplication(createApplicationRequest);
+		        	            	DataflowClient.getInstance().runApplication(createApplicationRequest);
 		        	                monitor.done();
 		        	            }
 		        	        };
@@ -264,7 +288,7 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 		        		IRunnableWithProgress op = new IRunnableWithProgress() {	        	      
 		        		@Override		        	            
 		        		public void run(IProgressMonitor monitor) throws InvocationTargetException {
-		        	               application= ApplicationClient.getInstance().editApplication(dto.getApplicationId(),editApplicationRequest);       	               
+		        	               application= DataflowClient.getInstance().editApplication(dto.getApplicationId(),editApplicationRequest);       	               
 		        	               monitor.done();
 		        	            }
 		        	        };		        	        		        	        
@@ -297,7 +321,7 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	     	              IRunnableWithProgress oprun = new IRunnableWithProgress() {
 	     	                 @Override
 	     	                 public void run(IProgressMonitor monitor) throws InvocationTargetException {
-	     	                     ApplicationClient.getInstance().runApplication(runApplicationRequest);
+	     	                	DataflowClient.getInstance().runApplication(runApplicationRequest);
 	     	                     monitor.done();
 	     	                 }
 	     	             };
@@ -337,7 +361,7 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 		        	        IRunnableWithProgress op = new IRunnableWithProgress() {
 		        	            @Override
 		        	            public void run(IProgressMonitor monitor) throws InvocationTargetException {
-		        	            	ApplicationClient.getInstance().runApplication(createApplicationRequest);
+		        	            	DataflowClient.getInstance().runApplication(createApplicationRequest);
 		        	                monitor.done();
 		        	            }
 		        	        };
@@ -405,7 +429,7 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 		        	        IRunnableWithProgress op = new IRunnableWithProgress() {
 		        	            @Override
 		        	            public void run(IProgressMonitor monitor) throws InvocationTargetException {
-		        	               application= ApplicationClient.getInstance().createApplication(createApplicationRequest);       	               
+		        	               application= DataflowClient.getInstance().createApplication(createApplicationRequest);       	               
 		        	               monitor.done();
 		        	            }
 		        	        };		        	        
@@ -438,7 +462,7 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	     	              IRunnableWithProgress oprun = new IRunnableWithProgress() {
 	     	                 @Override
 	     	                 public void run(IProgressMonitor monitor) throws InvocationTargetException {
-	     	                     ApplicationClient.getInstance().runApplication(runApplicationRequest);
+	     	                	DataflowClient.getInstance().runApplication(runApplicationRequest);
 	     	                     monitor.done();
 	     	                 }
 	     	             };
@@ -464,7 +488,7 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	    	nameArray.add("description");
 
 	    	if(!firstpage.usesSparkSubmit()) {    		
-	        	objectArray.add(firstpage.getFileUri());
+	        	objectArray.add(firstbpage.getFileUri());
 	        	nameArray.add("fileuri");   		
 	    	}
 	    	if(!firstpage.usesSparkSubmit() && (firstpage.getLanguage() == ApplicationLanguage.Java )) {
@@ -484,8 +508,8 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	    	       nameArray.add("subnetid"); 
 	    	}
 	    	
-	    	if(!firstpage.usesSparkSubmit() && firstpage.getArchiveUri() != null && !firstpage.getArchiveUri().isEmpty()) {
-	    	       objectArray.add(firstpage.getArchiveUri());
+	    	if(!firstpage.usesSparkSubmit() && secondbpage.getArchiveUri() != null && !secondbpage.getArchiveUri().isEmpty()) {
+	    	       objectArray.add(secondbpage.getArchiveUri());
 	    	       nameArray.add("archiveuri"); 
 	    	}
 	    	

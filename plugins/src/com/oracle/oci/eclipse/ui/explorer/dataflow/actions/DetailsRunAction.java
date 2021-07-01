@@ -3,23 +3,15 @@ package com.oracle.oci.eclipse.ui.explorer.dataflow.actions;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
-
-//import com.oracle.bmc.core.model.Instance;
-//import com.oracle.bmc.core.model.Vnic;
-//import com.oracle.bmc.core.model.VolumeAttachment;
-
 import com.oracle.bmc.dataflow.model.Run;
 import com.oracle.bmc.dataflow.model.RunSummary;
-import com.oracle.oci.eclipse.ErrorHandler;
-import com.oracle.oci.eclipse.sdkclients.RunClient;
-//import com.oracle.oci.eclipse.sdkclients.InstanceWrapper;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseAction;
 import com.oracle.oci.eclipse.ui.explorer.common.DetailsTable;
 import com.oracle.oci.eclipse.ui.explorer.common.DetailsTable.TablePair;
@@ -53,7 +45,7 @@ public class DetailsRunAction extends BaseAction {
             runID = object.getId();
             
 			try {
-				runObject=RunClient.getInstance().getRunDetails(runID);
+				runObject=DataflowClient.getInstance().getRunDetails(runID);
 			} 
 			catch (Exception e) {
 				MessageDialog.openError(Display.getDefault().getActiveShell(),"Unable to get Run details: ",e.getMessage());

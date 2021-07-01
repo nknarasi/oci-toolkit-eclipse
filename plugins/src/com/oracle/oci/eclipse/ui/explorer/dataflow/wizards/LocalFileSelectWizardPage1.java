@@ -149,16 +149,26 @@ public class LocalFileSelectWizardPage1 extends WizardPage {
 	            public void widgetDefaultSelected(SelectionEvent e) {}
 	        });
 	        	     	        
-			Composite FileUriContainer = new Composite(container, SWT.NONE);
-	        GridLayout FileUriLayout = new GridLayout();
-	        FileUriLayout.numColumns = 2;
-	        FileUriContainer.setLayout(FileUriLayout);
-	        FileUriContainer.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			Label FileUriLabel = new Label(FileUriContainer, SWT.NULL);
-			FileUriLabel.setText("&File Uri :"); 
-			fileUriText = new Text(FileUriContainer, SWT.BORDER | SWT.SINGLE);
+			Composite fileUriContainer = new Composite(container, SWT.NONE);
+	        GridLayout fileUriLayout = new GridLayout();
+	        fileUriLayout.numColumns = 2;
+	        fileUriContainer.setLayout(fileUriLayout);
+	        fileUriContainer.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			
+	        Label fileUriLabel = new Label(fileUriContainer, SWT.NULL);
+			fileUriLabel.setText("&File Uri :"); 
+			fileUriText = new Text(fileUriContainer, SWT.BORDER | SWT.SINGLE);
 			fileUriText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			fileUriText.setText("");	        
+			fileUriText.setText("");
+			
+			Label messageLabel = new Label(fileUriContainer, SWT.NULL);
+			messageLabel.setText("&Format :"); 
+			messageLabel.setForeground(getShell().getDisplay().getSystemColor(SWT.COLOR_GRAY));
+			Label fileUriMessage = new Label(fileUriContainer, SWT.NULL);
+			fileUriMessage.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			fileUriMessage.setText("oci://<bucket_name>@<namespace_name>/<file_name>");
+			fileUriMessage.setForeground(getShell().getDisplay().getSystemColor(SWT.COLOR_GRAY));
+			
 	        setControl(container);
 	    }
 	    
@@ -227,7 +237,8 @@ public class LocalFileSelectWizardPage1 extends WizardPage {
 					if (compartment != null) {
 						selectedApplicationCompartment = compartment;
 						compartmentText.setText(selectedApplicationCompartment.getName());
-						 createBucketSection();
+						pagetoshow= null;
+						createBucketSection();
 					}
 				}
 			};

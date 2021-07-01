@@ -47,7 +47,7 @@ public class Validations {
 				
 			case "archiveuri":
 				String archiveUri=(String)obj[i];
-				if(!checkLogUri(archiveUri)) {
+				if(!checkArchiveUri(archiveUri)) {
 					message.append("Archive Uri format invalid.\n");
 				}
 				break;
@@ -113,6 +113,12 @@ public class Validations {
 		return (uri.length()>9)&&
 				(uri.substring(0,6).equals("oci://"))&&
 				(uri.endsWith("/"))&&
+				(uri.split("@").length==2);
+	}
+	
+	private static boolean checkArchiveUri(String uri) {
+		return (uri.length()>9)&&
+				(uri.substring(0,6).equals("oci://"))&&
 				(uri.split("@").length==2);
 	}
 	

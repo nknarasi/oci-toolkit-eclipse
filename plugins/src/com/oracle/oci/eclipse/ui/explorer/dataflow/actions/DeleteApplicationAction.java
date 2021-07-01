@@ -11,7 +11,7 @@ import org.eclipse.swt.widgets.Display;
 import com.oracle.bmc.dataflow.model.Application;
 import com.oracle.bmc.dataflow.model.ApplicationSummary;
 import com.oracle.oci.eclipse.ErrorHandler;
-import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.editor.ApplicationTable;
 
@@ -41,7 +41,7 @@ public class DeleteApplicationAction extends BaseAction{
 	        	ApplicationSummary object = applicationSelectionList.get(0);
 	        	applicationID = object.getId();
 	    		}
-	    	Application application = ApplicationClient.getInstance().getApplicationDetails(applicationID);
+	    	Application application = DataflowClient.getInstance().getApplicationDetails(applicationID);
 	    	String title = "Delete Dataflow Application Bucket";
 	    	String message = "Are you sure you want to delete Application: " + application.getDisplayName();
 	    	Dialog dialog =  new MessageDialog(Display.getDefault().getActiveShell(), title, null, message, MessageDialog.QUESTION, new String[] {"Yes","No"}, 1);
@@ -52,7 +52,7 @@ public class DeleteApplicationAction extends BaseAction{
 	            @Override
 	            protected IStatus run(IProgressMonitor monitor) {
 	                try {
-	                    ApplicationClient.getInstance().deleteApplication(application.getId());
+	                    DataflowClient.getInstance().deleteApplication(application.getId());
 	                    table.refresh(true);
 	                    return Status.OK_STATUS;
 	                } catch (Exception e) {

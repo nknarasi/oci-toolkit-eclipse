@@ -8,6 +8,7 @@ import java.util.Set;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -216,4 +217,5 @@ public class TagsPage extends WizardPage {
 		 }
 		 return true;
 	 }
+	 
 }

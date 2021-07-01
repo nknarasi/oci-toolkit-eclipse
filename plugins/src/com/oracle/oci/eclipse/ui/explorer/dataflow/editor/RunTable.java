@@ -72,7 +72,7 @@ public class RunTable extends BaseTable {
     @Override
     public List<RunSummary> getTableData() {
                 try {
-                	IRunnableWithProgress op = new GetRuns(compid,sortBy,sortOrder,pagetoshow);
+                	IRunnableWithProgress op = new GetRuns(sortBy,sortOrder,pagetoshow);
                     new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
                     listrunsresponse=((GetRuns)op).listrunsresponse;
                     runSummaryList=((GetRuns)op).runSummaryList;

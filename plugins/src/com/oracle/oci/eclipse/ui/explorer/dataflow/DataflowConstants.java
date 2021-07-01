@@ -1,18 +1,24 @@
 package com.oracle.oci.eclipse.ui.explorer.dataflow;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class DataflowConstants {
 
 	public static final int NUM_OF_EXECUTORS_MIN = 1;
 	public static final int NUM_OF_EXECUTORS_MAX = 10;
 	public static final int NUM_OF_EXECUTORS_DEFAULT = 1;
 	public static final int NUM_OF_EXECUTORS_INCREMENT = 1;
-	public static final String[] Versions = new String[] { "2.4.4","3.0.2" };	
-	public static String[] Shapes = new String[] {
-			"VM.Standard2.1" ,
-			"VM.Standard2.2" ,
-			"VM.Standard2.4" ,
-			"VM.Standard2.8" ,
-			"VM.Standard2.16"};			 
+	public static final String[] Versions = new String[] { "2.4.4","3.0.2" };			 
+			
+	public static String[] ShapesDetails = new String[] {
+			"VM.Standard2.1 (15 GB Memory, 1 OCPU, 175 GB Block Volume)" ,
+			"VM.Standard2.2 (30 GB Memory, 2 OCPU, 275 GB Block Volume)" ,
+			"VM.Standard2.4 (60 GB Memory, 4 OCPU, 475 GB Block Volume)" ,
+			"VM.Standard2.8 (120 GB Memory, 8 OCPU, 875 GB Block Volume)" ,
+			"VM.Standard2.16 (240 GB Memory, 16 OCPU, 1675 GB Block Volume)"
+	};
+	
 	public static final String[] Spark2PropertiesList =  {
        "spark.driver.maxResultSize",
        "spark.logConf",

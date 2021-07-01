@@ -10,7 +10,7 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 
 import com.oracle.bmc.dataflow.model.CreatePrivateEndpointDetails;
 import com.oracle.bmc.dataflow.requests.CreatePrivateEndpointRequest;
-import com.oracle.oci.eclipse.sdkclients.PrivateEndPointsClient;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 
 public class ScheduleCreatePrivateEndpointAction implements IRunnableWithProgress{
 	
@@ -50,7 +50,7 @@ public class ScheduleCreatePrivateEndpointAction implements IRunnableWithProgres
 				.createPrivateEndpointDetails(createPrivateEndpointDetails)
 				.build();
     // Send request to the Client 
-    PrivateEndPointsClient.getInstance().getDataFLowClient().createPrivateEndpoint(createPrivateEndpointRequest);
+		DataflowClient.getInstance().getDataFlowClient().createPrivateEndpoint(createPrivateEndpointRequest);
 
         // You are done
         monitor.done();

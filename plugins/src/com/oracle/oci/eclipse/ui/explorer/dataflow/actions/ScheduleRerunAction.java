@@ -11,7 +11,7 @@ import com.oracle.bmc.dataflow.DataFlowClient;
 import com.oracle.bmc.dataflow.model.ApplicationParameter;
 import com.oracle.bmc.dataflow.model.CreateRunDetails;
 import com.oracle.bmc.dataflow.requests.CreateRunRequest;
-import com.oracle.oci.eclipse.sdkclients.RunClient;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 
 public class ScheduleRerunAction implements IRunnableWithProgress{
 	
@@ -37,9 +37,7 @@ public class ScheduleRerunAction implements IRunnableWithProgress{
         monitor.beginTask("Re-run request processing", IProgressMonitor.UNKNOWN);
 
         // Do your work
-   		
-        //if(Window.OK==dialog.open()) {}
-        DataFlowClient client=RunClient.getInstance().getDataFlowClient();
+        DataFlowClient client=DataflowClient.getInstance().getDataFlowClient();
     	CreateRunDetails createRunDetails = CreateRunDetails.builder()
     		.applicationId((String)obj[0])
     		.archiveUri((String)obj[1])

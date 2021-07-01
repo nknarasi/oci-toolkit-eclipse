@@ -6,18 +6,20 @@ import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWizard;
 import com.oracle.bmc.dataflow.model.Application;
-import com.oracle.bmc.dataflow.model.ApplicationLanguage;
 import com.oracle.bmc.dataflow.model.CreateRunDetails;
 import com.oracle.bmc.dataflow.model.CreateRunDetails.Builder;
-import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddRunApplicationPagesAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.Validations;
 
 
@@ -31,17 +33,29 @@ public class CreateRunWizard  extends Wizard implements INewWizard{
 	public CreateRunWizard(String applicationId) {
 		super();
 		setNeedsProgressMonitor(true);
-		application = ApplicationClient.getInstance().getApplicationDetails(applicationId);
+		application = DataflowClient.getInstance().getApplicationDetails(applicationId);
 	}
     @Override
     public void addPages() {
+    	 try {
+           	IRunnableWithProgress op = new AddRunApplicationPagesAction(this);
+               new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+           } catch (Exception e) {
+           	MessageDialog.openError(getShell(), "Unable to add pages to Run Application wizard", e.getMessage());
+           }         
+    }
+    
+    public void addPagesWithProgress(IProgressMonitor monitor) {
     	DataTransferObject dto = new DataTransferObject();
-        firstpage = new CreateRunWizardPage1(selection,dto,application.getId());
+    	monitor.subTask("Adding Main page");    	
+    	firstpage = new CreateRunWizardPage1(selection,dto,application.getId());
         addPage(firstpage);
-        secondpage=new TagsPage(selection,application.getCompartmentId());
+    	monitor.subTask("Adding Tags Page");
+    	secondpage=new TagsPage(selection,application.getCompartmentId());
         addPage(secondpage);
+        monitor.subTask("Adding Advanced Options page");
         thirdpage = new CreateRunWizardPage3(selection,dto,application.getId());
-        addPage(thirdpage);       
+        addPage(thirdpage);
     }
         
 
@@ -81,7 +95,7 @@ public class CreateRunWizard  extends Wizard implements INewWizard{
         IRunnableWithProgress op = new IRunnableWithProgress() {
             @Override
             public void run(IProgressMonitor monitor) throws InvocationTargetException {
-                ApplicationClient.getInstance().runApplication(runApplicationRequest);
+            	DataflowClient.getInstance().runApplication(runApplicationRequest);
                 monitor.done();
             }
         };

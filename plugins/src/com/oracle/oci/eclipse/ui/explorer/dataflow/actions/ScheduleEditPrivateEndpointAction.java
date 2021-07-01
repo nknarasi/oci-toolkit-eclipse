@@ -10,7 +10,7 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 import com.oracle.bmc.dataflow.DataFlowClient;
 import com.oracle.bmc.dataflow.model.UpdatePrivateEndpointDetails;
 import com.oracle.bmc.dataflow.requests.UpdatePrivateEndpointRequest;
-import com.oracle.oci.eclipse.sdkclients.PrivateEndPointsClient;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 
 public class ScheduleEditPrivateEndpointAction implements IRunnableWithProgress{
 	
@@ -35,7 +35,7 @@ public class ScheduleEditPrivateEndpointAction implements IRunnableWithProgress{
         monitor.beginTask("Edit Private Endpoint request processing", IProgressMonitor.UNKNOWN);
 
         // Do your work
-        DataFlowClient client=PrivateEndPointsClient.getInstance().getDataFLowClient();
+        DataFlowClient client=DataflowClient.getInstance().getDataFlowClient();
         
         UpdatePrivateEndpointDetails updatePrivateEndpointDetails = UpdatePrivateEndpointDetails.builder()
         		.freeformTags(FT)

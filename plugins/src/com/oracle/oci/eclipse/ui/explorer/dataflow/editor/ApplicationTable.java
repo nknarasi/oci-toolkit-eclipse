@@ -74,8 +74,6 @@ public class ApplicationTable extends BaseTable{
     
     @Override
     public List<ApplicationSummary> getTableData() {  
-    	System.out.println(AuthProvider.getInstance().getCompartmentId());
-    	System.out.println(AuthProvider.getInstance().getCompartmentName());
     	if(AuthProvider.getInstance().getCompartmentId() == null) {
     		COMPARTMENT_ID = IdentClient.getInstance().getRootCompartment().getCompartmentId();
     	}
