@@ -18,7 +18,7 @@ import org.eclipse.ui.IWorkbenchWizard;
 import com.oracle.bmc.dataflow.model.Application;
 import com.oracle.bmc.dataflow.model.CreateRunDetails;
 import com.oracle.bmc.dataflow.model.CreateRunDetails.Builder;
-import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddRunApplicationPagesAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.Validations;
 
@@ -33,7 +33,7 @@ public class CreateRunWizard  extends Wizard implements INewWizard{
 	public CreateRunWizard(String applicationId) {
 		super();
 		setNeedsProgressMonitor(true);
-		application = ApplicationClient.getInstance().getApplicationDetails(applicationId);
+		application = DataflowClient.getInstance().getApplicationDetails(applicationId);
 	}
     @Override
     public void addPages() {
@@ -95,7 +95,7 @@ public class CreateRunWizard  extends Wizard implements INewWizard{
         IRunnableWithProgress op = new IRunnableWithProgress() {
             @Override
             public void run(IProgressMonitor monitor) throws InvocationTargetException {
-                ApplicationClient.getInstance().runApplication(runApplicationRequest);
+            	DataflowClient.getInstance().runApplication(runApplicationRequest);
                 monitor.done();
             }
         };

@@ -29,10 +29,9 @@ import com.oracle.bmc.dataflow.model.Application;
 import com.oracle.bmc.dataflow.model.PrivateEndpoint;
 import com.oracle.bmc.dataflow.model.PrivateEndpointSummary;
 import com.oracle.bmc.identity.model.Compartment;
-import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.oci.eclipse.sdkclients.IdentClient;
 import com.oracle.oci.eclipse.sdkclients.ObjStorageClient;
-import com.oracle.oci.eclipse.sdkclients.PrivateEndPointsClient;
 import com.oracle.oci.eclipse.ui.account.CompartmentSelectWizard;
 import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.DataflowConstants;
@@ -74,7 +73,7 @@ public class EditApplicationWizardPage2  extends WizardPage {
 		setDescription("Change Advanced Options for application if required.");
 		this.selection = selection;		
 		this.dto=dto;
-		application = ApplicationClient.getInstance().getApplicationDetails(applicationId);
+		application = DataflowClient.getInstance().getApplicationDetails(applicationId);
 		String compartmentId = application.getCompartmentId();	
 		Compartment rootCompartment = IdentClient.getInstance().getRootCompartment();
 		List<Compartment> allCompartments = IdentClient.getInstance().getCompartmentList(rootCompartment);
@@ -208,7 +207,7 @@ public class EditApplicationWizardPage2  extends WizardPage {
             innerTopLayout.numColumns = 1;
             privateEndpointSection.setLayout(innerTopLayout);
             privateEndpointSection.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-            PrivateEndPointsClient oci = PrivateEndPointsClient.getInstance();
+            DataflowClient oci = DataflowClient.getInstance();
             PrivateEndpoint current = oci.getPrivateEndpointDetails(application.getPrivateEndpointId());
     		Compartment rootCompartment = IdentClient.getInstance().getRootCompartment();
     		List<Compartment> Allcompartments = IdentClient.getInstance().getCompartmentList(rootCompartment);
@@ -316,7 +315,7 @@ public class EditApplicationWizardPage2  extends WizardPage {
 	
 	private void chooseSubnet(Composite currentcontainer, String compartmentId) {		
         
-		PrivateEndPointsClient oci = PrivateEndPointsClient.getInstance();
+		DataflowClient oci = DataflowClient.getInstance();
 		privateEndpoints = oci.getPrivateEndPoints(compartmentId);		
 
 		int sizeoflist= privateEndpoints.size();

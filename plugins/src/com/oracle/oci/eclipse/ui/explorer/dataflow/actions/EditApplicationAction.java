@@ -5,7 +5,7 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Display;
 import com.oracle.bmc.dataflow.model.Application;
 import com.oracle.bmc.dataflow.model.ApplicationSummary;
-import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseAction;
 import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.editor.ApplicationTable;
@@ -35,7 +35,7 @@ public class EditApplicationAction extends BaseAction{
 	        	ApplicationSummary object = applicationSelectionList.get(0);
 	        	applicationID = object.getId();
 	        }
-		 Application application = ApplicationClient.getInstance().getApplicationDetails(applicationID);
+		 Application application = DataflowClient.getInstance().getApplicationDetails(applicationID);
 	       CustomWizardDialog dialog = new CustomWizardDialog(Display.getDefault().getActiveShell(), new EditApplicationWizard(application.getId()));
 	        dialog.setFinishButtonText("Edit");
 	        if (Window.OK == dialog.open()) {

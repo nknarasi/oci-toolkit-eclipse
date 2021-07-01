@@ -9,12 +9,16 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -31,12 +35,14 @@ import com.oracle.bmc.dataflow.model.ApplicationLanguage;
 import com.oracle.bmc.identity.model.Compartment;
 import com.oracle.bmc.objectstorage.model.BucketSummary;
 import com.oracle.bmc.objectstorage.model.ObjectSummary;
+import com.oracle.bmc.objectstorage.responses.ListBucketsResponse;
 import com.oracle.oci.eclipse.Activator;
 import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.Icons;
 import com.oracle.oci.eclipse.sdkclients.IdentClient;
 import com.oracle.oci.eclipse.sdkclients.ObjStorageClient;
 import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetBuckets;
 
 public class BucketSelectWizardPage extends WizardPage {
 	
@@ -50,6 +56,9 @@ public class BucketSelectWizardPage extends WizardPage {
     private List<BucketSummary> buckets;
 	private Compartment selectedApplicationCompartment;
 	Map<BucketSummary, TreeItem> bucketTreeMap;
+	private ListBucketsResponse listbucketsresponse;
+	private String pagetoshow= null;
+	private Button previouspage,nextpage;
     
     public BucketSelectWizardPage(ISelection selection,String CompartmentId,ApplicationLanguage language) {
         super("wizardPage");
@@ -59,6 +68,7 @@ public class BucketSelectWizardPage extends WizardPage {
         this.language= language;
         IMAGE = Activator.getImage(Icons.BUCKET.getPath());
         Compartment rootCompartment = IdentClient.getInstance().getRootCompartment();
+        this.selectedApplicationCompartment = rootCompartment;
 		List<Compartment> Allcompartments = IdentClient.getInstance().getCompartmentList(rootCompartment);
 		for(Compartment compartment : Allcompartments) {
 			if(compartment.getId().equals(CompartmentId)) {
@@ -102,6 +112,38 @@ public class BucketSelectWizardPage extends WizardPage {
                 
         createBucketSection();
         
+        Composite page=new Composite(container,SWT.NONE);GridLayout gl=new GridLayout();gl.numColumns=2;
+        page.setLayout(gl);
+        previouspage=new Button(page,SWT.TRAVERSE_PAGE_PREVIOUS);
+        nextpage=new Button(page,SWT.TRAVERSE_PAGE_NEXT);
+        previouspage.setText("<");
+        nextpage.setText(">");
+        previouspage.setLayoutData(new GridData());
+        nextpage.setLayoutData(new GridData());
+        
+        nextpage.addSelectionListener(new SelectionListener() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {	                
+				pagetoshow=listbucketsresponse.getOpcNextPage();
+		        createBucketSection();	
+            }
+
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) {}
+        });
+        
+        previouspage.addSelectionListener(new SelectionListener() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                
+				pagetoshow = null;
+		        createBucketSection();	
+            }
+
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) {}
+        });
+        
         setControl(container);
     }
     
@@ -115,10 +157,14 @@ public class BucketSelectWizardPage extends WizardPage {
         		item.getValue().dispose();     		
         	}
     	}
-    	try {
-			buckets = ObjStorageClient.getInstance().getBucketsinCompartment(selectedApplicationCompartment.getId());
+    	try {	    		
+    		IRunnableWithProgress op = new GetBuckets(selectedApplicationCompartment.getId(),pagetoshow);
+            new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+            listbucketsresponse=((GetBuckets)op).listBucketsResponse;
+            buckets=((GetBuckets)op).bucketSummaryList;
+            
 		} catch (Exception e1) {
-			ErrorHandler.logError("Unable to list buckets: " + e1.getMessage());
+			MessageDialog.openError(Display.getDefault().getActiveShell(), "Unable to get list buckets", e1.getMessage());	     
 		}
     	
     	
@@ -190,7 +236,8 @@ public class BucketSelectWizardPage extends WizardPage {
 				if (compartment != null) {
 					selectedApplicationCompartment = compartment;
 					compartmentText.setText(selectedApplicationCompartment.getName());
-					 createBucketSection();
+					pagetoshow= null;
+					createBucketSection();
 				}
 			}
 		};

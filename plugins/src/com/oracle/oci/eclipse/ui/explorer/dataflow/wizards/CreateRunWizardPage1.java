@@ -19,7 +19,7 @@ import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 import com.oracle.bmc.dataflow.model.Application;
 import com.oracle.bmc.dataflow.model.ApplicationParameter;
-import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.DataflowConstants;
 
 public class CreateRunWizardPage1  extends WizardPage{
@@ -43,7 +43,7 @@ public class CreateRunWizardPage1  extends WizardPage{
 		this.selection = selection;
 		this.dto = dto;
 		this.parameterset = new HashSet<Parameters>();
-		application = ApplicationClient.getInstance().getApplicationDetails(applicationId);
+		application = DataflowClient.getInstance().getApplicationDetails(applicationId);
 	}	
 	
 	@Override
@@ -127,9 +127,9 @@ public class CreateRunWizardPage1  extends WizardPage{
 		driverShapeCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
 		GridData gd3 = new GridData(GridData.FILL_HORIZONTAL);
 		driverShapeCombo.setLayoutData(gd3);		 
-		driverShapeCombo.setItems(DataflowConstants.Shapes);
-		for(int i=0; i<DataflowConstants.Shapes.length ; i++) {
-			if(application.getDriverShape().equals(DataflowConstants.Shapes[i])) {
+		driverShapeCombo.setItems(DataflowConstants.ShapesDetails);
+		for(int i=0; i<DataflowConstants.ShapesDetails.length ; i++) {
+			if(application.getDriverShape().equals(DataflowConstants.ShapesDetails[i].split(" ")[0])) {
 				driverShapeCombo.select(i);
 			}
 		}		
@@ -139,9 +139,9 @@ public class CreateRunWizardPage1  extends WizardPage{
 		executorShapeCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
 		GridData gd4 = new GridData(GridData.FILL_HORIZONTAL);
 		executorShapeCombo.setLayoutData(gd4); 
-		executorShapeCombo.setItems(DataflowConstants.Shapes);
-		for(int i=0; i<DataflowConstants.Shapes.length ; i++) {
-			if(application.getExecutorShape().equals(DataflowConstants.Shapes[i])) {
+		executorShapeCombo.setItems(DataflowConstants.ShapesDetails);
+		for(int i=0; i<DataflowConstants.ShapesDetails.length ; i++) {
+			if(application.getExecutorShape().equals(DataflowConstants.ShapesDetails[i].split(" ")[0])) {
 				executorShapeCombo.select(i);
 			}
 		}		
@@ -167,11 +167,11 @@ public class CreateRunWizardPage1  extends WizardPage{
 	}
 	
 	public String getDriverShape() {		
-		return driverShapeCombo.getText();
+		return driverShapeCombo.getText().split(" ")[0];
 	}
 	
 	public String getExecutorShape() {		
-		return executorShapeCombo.getText();
+		return executorShapeCombo.getText().split(" ")[0];
 	}
 	
 	public String getNumofExecutors() {		

@@ -4,7 +4,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import com.oracle.bmc.dataflow.DataFlowClient;
 import com.oracle.bmc.dataflow.model.PrivateEndpointSummary;
 import com.oracle.bmc.dataflow.requests.DeletePrivateEndpointRequest;
-import com.oracle.oci.eclipse.sdkclients.PrivateEndPointsClient;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.editor.PrivateEndpointTable;
 
@@ -31,7 +31,7 @@ public class DeletePrivateEndpointAction extends BaseAction {
     	
 		if (result){
 			try{
-			DataFlowClient client = PrivateEndPointsClient.getInstance().getDataFLowClient();
+			DataFlowClient client = DataflowClient.getInstance().getDataFlowClient();
 			DeletePrivateEndpointRequest deletePrivateEndpointRequest = DeletePrivateEndpointRequest.builder()
 			.privateEndpointId(pep.getId())
 			.build();

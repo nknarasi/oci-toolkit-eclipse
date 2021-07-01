@@ -5,7 +5,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import com.oracle.bmc.dataflow.DataFlowClient;
 import com.oracle.bmc.dataflow.model.RunSummary;
 import com.oracle.bmc.dataflow.requests.DeleteRunRequest;
-import com.oracle.oci.eclipse.sdkclients.RunClient;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.editor.RunTable;
 
@@ -26,7 +26,7 @@ public class DeleteRunAction extends BaseAction {
     	boolean result = MessageDialog.openConfirm(runTable.getShell(), "Please Confirm", "Are you sure you want to cancel running of "+runSummary.getDisplayName()+".");
 		if (result){
 			try{
-			DataFlowClient client = RunClient.getInstance().getDataFlowClient();
+			DataFlowClient client = DataflowClient.getInstance().getDataFlowClient();
 			DeleteRunRequest deleteRunRequest = DeleteRunRequest.builder()
 					.runId(this.runSummary.getId())
 					.opcRequestId(this.runSummary.getOpcRequestId())

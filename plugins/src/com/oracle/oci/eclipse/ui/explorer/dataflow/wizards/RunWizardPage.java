@@ -18,7 +18,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 
-import com.oracle.oci.eclipse.sdkclients.RunClient;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.DataflowConstants;
 import com.oracle.bmc.dataflow.model.ApplicationParameter;
 import com.oracle.bmc.dataflow.model.Run;
@@ -41,7 +41,7 @@ public class RunWizardPage extends WizardPage {
         setDescription("This wizard creates a re-run request. Please enter the following details.");
         this.selection = selection;
 		try {
-			this.run=RunClient.getInstance().getRunDetails(runSum.getId());
+			this.run=DataflowClient.getInstance().getRunDetails(runSum.getId());
 		} 
 		catch (Exception e) {
 			MessageDialog.openError(getShell(), "Error fetching run details", e.getMessage());
@@ -76,13 +76,17 @@ public class RunWizardPage extends WizardPage {
 		dshapeCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		try {
-			dshapeCombo.setItems(DataflowConstants.Shapes);
+			dshapeCombo.setItems(DataflowConstants.ShapesDetails);
 		} 
 		catch (Exception e) {
 			MessageDialog.openError(getShell(), "Error", e.getMessage());
 		}
 		
-		dshapeCombo.setText(run.getDriverShape());
+		for(int i=0; i<DataflowConstants.ShapesDetails.length ; i++) {
+			if(run.getDriverShape().equals(DataflowConstants.ShapesDetails[i].split(" ")[0])) {
+				dshapeCombo.select(i);
+			}
+		}	
 		
 		Label eshapeLabel = new Label(container, SWT.NULL);
         eshapeLabel.setText("&Executor Shape:");
@@ -90,13 +94,17 @@ public class RunWizardPage extends WizardPage {
 		eshapeCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		try {
-			eshapeCombo.setItems(DataflowConstants.Shapes);
+			eshapeCombo.setItems(DataflowConstants.ShapesDetails);
 		} 
 		catch (Exception e) {
 			MessageDialog.openError(getShell(), "Error", e.getMessage());
 		}
 		
-		eshapeCombo.setText(run.getExecutorShape());
+		for(int i=0; i<DataflowConstants.ShapesDetails.length ; i++) {
+			if(run.getDriverShape().equals(DataflowConstants.ShapesDetails[i].split(" ")[0])) {
+				eshapeCombo.select(i);
+			}
+		}	
 		
 		Label numExecLabel = new Label(container, SWT.NULL);
         numExecLabel.setText("&Number of Executors:");
@@ -146,7 +154,7 @@ public class RunWizardPage extends WizardPage {
     public Object[] getDetails() {
         
 		return (new Object[]{run.getApplicationId(),run.getArchiveUri(),null,run.getCompartmentId(),null,null,
-				nameText.getText().trim(),dshapeCombo.getText(),run.getExecute(),eshapeCombo.getText(),null,
+				nameText.getText().trim(), dshapeCombo.getText().split(" ")[0],run.getExecute(),eshapeCombo.getText().split(" ")[0],null,
 				run.getLogsBucketUri(),numExecSpinner.getSelection(),getParameters(),run.getSparkVersion(),
 				run.getWarehouseBucketUri(),run.getOpcRequestId()
 				});

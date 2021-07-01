@@ -10,7 +10,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
-import com.oracle.oci.eclipse.sdkclients.PrivateEndPointsClient;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.bmc.dataflow.model.PrivateEndpoint;
 import com.oracle.bmc.dataflow.model.PrivateEndpointSummary;
 
@@ -27,7 +27,7 @@ public class EditPrivateEndpointPage extends WizardPage {
         setDescription("This wizard creates a edit private endpoint request. Please enter the following details.");
         this.selection = selection;
 		try {
-			this.pep=PrivateEndPointsClient.getInstance().getPrivateEndpointDetails(pepSum.getId());
+			this.pep=DataflowClient.getInstance().getPrivateEndpointDetails(pepSum.getId());
 		} 
 		catch (Exception e) {
 			MessageDialog.openError(getShell(), "Error fetching Private Endpoint", e.getMessage());		

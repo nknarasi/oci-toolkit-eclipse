@@ -24,15 +24,13 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-
 import com.oracle.bmc.dataflow.model.Application;
 import com.oracle.bmc.dataflow.model.PrivateEndpoint;
 import com.oracle.bmc.dataflow.model.PrivateEndpointSummary;
 import com.oracle.bmc.identity.model.Compartment;
-import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.oci.eclipse.sdkclients.IdentClient;
 import com.oracle.oci.eclipse.sdkclients.ObjStorageClient;
-import com.oracle.oci.eclipse.sdkclients.PrivateEndPointsClient;
 import com.oracle.oci.eclipse.ui.account.CompartmentSelectWizard;
 import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
 
@@ -75,7 +73,7 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 		this.selectedApplicationCompartment = rootCompartment;
 		if(dto.getApplicationId() != null)
 		{
-			Application application = ApplicationClient.getInstance().getApplicationDetails(dto.getApplicationId());
+			Application application = DataflowClient.getInstance().getApplicationDetails(dto.getApplicationId());
 			String compartmentId = application.getCompartmentId();	
 			List<Compartment> Allcompartments = IdentClient.getInstance().getCompartmentList(rootCompartment);
 			for(Compartment compartment : Allcompartments) {
@@ -259,8 +257,7 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 	}
 	
 	private void chooseSubnet(Composite currentcontainer, String compartmentId) {		     
-		PrivateEndPointsClient oci = PrivateEndPointsClient.getInstance();
-		privateEndpoints = oci.getPrivateEndPoints(compartmentId);		
+		privateEndpoints = DataflowClient.getInstance().getPrivateEndPoints(compartmentId);		
 		int sizeoflist= privateEndpoints.size();
 		String[] PrivateEndpointsList = new String[sizeoflist];
 		for(int i = 0; i < privateEndpoints.size(); i++){  
@@ -341,7 +338,7 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 		    String applicationId = dto.applicationId;
 		    
 		    if(applicationId != null) {
-		    		Application application = ApplicationClient.getInstance().getApplicationDetails(applicationId);
+		    		Application application = DataflowClient.getInstance().getApplicationDetails(applicationId);
 		    	   if(application.getConfiguration() != null) {        	
 		          	 for (Map.Entry<String,String> property : application.getConfiguration().entrySet()) {
 		          		 SparkProperty propertypresent = new SparkProperty(propertiesSection,advancedOptionsComposite,scrolledComposite,createdPropertiesSet,application.getSparkVersion());
@@ -377,8 +374,7 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 		            innerTopLayout.numColumns = 1;
 		            privateEndpointSection.setLayout(innerTopLayout);
 		            privateEndpointSection.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		            PrivateEndPointsClient oci = PrivateEndPointsClient.getInstance();
-		            PrivateEndpoint current = oci.getPrivateEndpointDetails(application.getPrivateEndpointId());
+		            PrivateEndpoint current = DataflowClient.getInstance().getPrivateEndpointDetails(application.getPrivateEndpointId());
 		    		Compartment rootCompartment = IdentClient.getInstance().getRootCompartment();
 		    		List<Compartment> Allcompartments = IdentClient.getInstance().getCompartmentList(rootCompartment);
 		    		for(Compartment compartment : Allcompartments) {
@@ -387,7 +383,7 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 		    				 break;
 		    			}
 		    		}	    		
-		    		privateEndpoints = oci.getPrivateEndPoints(selectedApplicationCompartment.getId());		
+		    		privateEndpoints = DataflowClient.getInstance().getPrivateEndPoints(selectedApplicationCompartment.getId());		
 		    		int sizeoflist= privateEndpoints.size();
 		    		String[] PrivateEndpointsList = new String[sizeoflist];
 		    		for(int i = 0; i < privateEndpoints.size(); i++)

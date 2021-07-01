@@ -20,8 +20,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import com.oracle.bmc.dataflow.model.RunSummary;
-import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
-import com.oracle.oci.eclipse.sdkclients.RunClient;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.bmc.dataflow.model.ApplicationSummary;
 
 public class AdvancedOptionsPage extends WizardPage {
@@ -108,14 +107,14 @@ public class AdvancedOptionsPage extends WizardPage {
         
         if(obj instanceof RunSummary) {
         	try {
-				s=RunClient.getInstance().getRunDetails(((RunSummary)obj).getId().toString()).getLogsBucketUri();
+				s=DataflowClient.getInstance().getRunDetails(((RunSummary)obj).getId().toString()).getLogsBucketUri();
 			} catch (Exception e1) {
 				MessageDialog.openError(Display.getDefault().getActiveShell(),"Unbale to fetch Logs Bucket Uri",e1.getMessage());
 			}
         }
         else {
         	try {
-				s=ApplicationClient.getInstance().getApplicationDetails(((ApplicationSummary)obj).getId()).getLogsBucketUri();
+				s=DataflowClient.getInstance().getApplicationDetails(((ApplicationSummary)obj).getId()).getLogsBucketUri();
 			} catch (Exception e1) {
 				MessageDialog.openError(Display.getDefault().getActiveShell(),"Unbale to fetch Logs Bucket Uri",e1.getMessage());
 			}
@@ -125,14 +124,14 @@ public class AdvancedOptionsPage extends WizardPage {
         
         if(obj instanceof RunSummary) {
         	try {
-				s=RunClient.getInstance().getRunDetails(((RunSummary)obj).getId().toString()).getWarehouseBucketUri();
+				s=DataflowClient.getInstance().getRunDetails(((RunSummary)obj).getId().toString()).getWarehouseBucketUri();
 			} catch (Exception e1) {
 				MessageDialog.openError(Display.getDefault().getActiveShell(),"Unbale to fetch Warehouse Bucket Uri",e1.getMessage());
 			}
         }
         else {
         	try {
-				s=ApplicationClient.getInstance().getApplicationDetails(((ApplicationSummary)obj).getId()).getWarehouseBucketUri();
+				s=DataflowClient.getInstance().getApplicationDetails(((ApplicationSummary)obj).getId()).getWarehouseBucketUri();
 			} catch (Exception e1) {
 				MessageDialog.openError(Display.getDefault().getActiveShell(),"Unbale to fetch Warehouse Bucket Uri",e1.getMessage());
 			}

@@ -11,8 +11,7 @@ import org.eclipse.swt.widgets.Display;
 import com.oracle.bmc.dataflow.model.Application;
 import com.oracle.bmc.dataflow.model.ApplicationLanguage;
 import com.oracle.bmc.dataflow.model.ApplicationSummary;
-import com.oracle.oci.eclipse.ErrorHandler;
-import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseAction;
 import com.oracle.oci.eclipse.ui.explorer.common.DetailsTable;
 import com.oracle.oci.eclipse.ui.explorer.common.DetailsTable.TablePair;
@@ -48,7 +47,7 @@ public class DetailsApplicationAction extends BaseAction {
 	            protected IStatus run(IProgressMonitor monitor) {
 
 	                try {
-	                	Application application = ApplicationClient.getInstance().getApplicationDetails(applicationID);
+	                	Application application = DataflowClient.getInstance().getApplicationDetails(applicationID);
 
 	                    Display.getDefault().asyncExec(new Runnable() {
 	                        @Override

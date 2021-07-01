@@ -7,7 +7,7 @@ import com.oracle.bmc.dataflow.model.ApplicationLanguage;
 import com.oracle.bmc.dataflow.model.CreateApplicationDetails;
 import com.oracle.bmc.dataflow.model.CreateRunDetails;
 import com.oracle.bmc.dataflow.model.CreateApplicationDetails.Builder;
-import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddCreateApplicationPagesAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.Validations;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -110,7 +110,7 @@ public class CreateApplicationWizard extends Wizard implements INewWizard {
         	        IRunnableWithProgress op = new IRunnableWithProgress() {
         	            @Override
         	            public void run(IProgressMonitor monitor) throws InvocationTargetException {
-        	            	ApplicationClient.getInstance().runApplication(createApplicationRequest);
+        	            	DataflowClient.getInstance().runApplication(createApplicationRequest);
         	                monitor.done();
         	            }
         	        };
@@ -176,7 +176,7 @@ public class CreateApplicationWizard extends Wizard implements INewWizard {
         	        IRunnableWithProgress op = new IRunnableWithProgress() {
         	            @Override
         	            public void run(IProgressMonitor monitor) throws InvocationTargetException {
-        	                ApplicationClient.getInstance().createApplication(createApplicationRequest);
+        	            	DataflowClient.getInstance().createApplication(createApplicationRequest);
         	                monitor.done();
         	            }
         	        };

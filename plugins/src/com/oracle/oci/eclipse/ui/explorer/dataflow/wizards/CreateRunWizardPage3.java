@@ -17,7 +17,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import com.oracle.bmc.dataflow.model.Application;
-import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 
 public class CreateRunWizardPage3 extends WizardPage  {
 
@@ -36,7 +36,7 @@ public class CreateRunWizardPage3 extends WizardPage  {
 		setTitle("Advanced Options for Runs");
 		setDescription("Set advanced options for run if required.");
 		this.dto = dto;
-		application = ApplicationClient.getInstance().getApplicationDetails(applicationId);
+		application = DataflowClient.getInstance().getApplicationDetails(applicationId);
 	}
 	
 	@Override

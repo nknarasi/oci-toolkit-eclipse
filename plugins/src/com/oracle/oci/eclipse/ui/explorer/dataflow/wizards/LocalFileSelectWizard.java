@@ -25,7 +25,7 @@ import com.oracle.bmc.dataflow.model.UpdateApplicationDetails;
 import com.oracle.bmc.dataflow.model.CreateApplicationDetails.Builder;
 import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.account.AuthProvider;
-import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.oci.eclipse.sdkclients.ObjStorageClient;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddCreateApplicationPagesAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddLocalProjectSelectPagesAction;
@@ -186,7 +186,7 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 			}
 
 			if(dto.applicationId != null) {				
-				Application applicationOld = ApplicationClient.getInstance().getApplicationDetails(dto.getApplicationId());				
+				Application applicationOld = DataflowClient.getInstance().getApplicationDetails(dto.getApplicationId());				
 		    	final String compartmentId = firstpage.getApplicationCompartmentId();
 		    	
 		    	if(firstpage.usesSparkSubmit()) {		    		
@@ -211,7 +211,7 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 		        	        IRunnableWithProgress op = new IRunnableWithProgress() {
 		        	            @Override
 		        	            public void run(IProgressMonitor monitor) throws InvocationTargetException {
-		        	            	ApplicationClient.getInstance().runApplication(createApplicationRequest);
+		        	            	DataflowClient.getInstance().runApplication(createApplicationRequest);
 		        	                monitor.done();
 		        	            }
 		        	        };
@@ -288,7 +288,7 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 		        		IRunnableWithProgress op = new IRunnableWithProgress() {	        	      
 		        		@Override		        	            
 		        		public void run(IProgressMonitor monitor) throws InvocationTargetException {
-		        	               application= ApplicationClient.getInstance().editApplication(dto.getApplicationId(),editApplicationRequest);       	               
+		        	               application= DataflowClient.getInstance().editApplication(dto.getApplicationId(),editApplicationRequest);       	               
 		        	               monitor.done();
 		        	            }
 		        	        };		        	        		        	        
@@ -321,7 +321,7 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	     	              IRunnableWithProgress oprun = new IRunnableWithProgress() {
 	     	                 @Override
 	     	                 public void run(IProgressMonitor monitor) throws InvocationTargetException {
-	     	                     ApplicationClient.getInstance().runApplication(runApplicationRequest);
+	     	                	DataflowClient.getInstance().runApplication(runApplicationRequest);
 	     	                     monitor.done();
 	     	                 }
 	     	             };
@@ -361,7 +361,7 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 		        	        IRunnableWithProgress op = new IRunnableWithProgress() {
 		        	            @Override
 		        	            public void run(IProgressMonitor monitor) throws InvocationTargetException {
-		        	            	ApplicationClient.getInstance().runApplication(createApplicationRequest);
+		        	            	DataflowClient.getInstance().runApplication(createApplicationRequest);
 		        	                monitor.done();
 		        	            }
 		        	        };
@@ -429,7 +429,7 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 		        	        IRunnableWithProgress op = new IRunnableWithProgress() {
 		        	            @Override
 		        	            public void run(IProgressMonitor monitor) throws InvocationTargetException {
-		        	               application= ApplicationClient.getInstance().createApplication(createApplicationRequest);       	               
+		        	               application= DataflowClient.getInstance().createApplication(createApplicationRequest);       	               
 		        	               monitor.done();
 		        	            }
 		        	        };		        	        
@@ -462,7 +462,7 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	     	              IRunnableWithProgress oprun = new IRunnableWithProgress() {
 	     	                 @Override
 	     	                 public void run(IProgressMonitor monitor) throws InvocationTargetException {
-	     	                     ApplicationClient.getInstance().runApplication(runApplicationRequest);
+	     	                	DataflowClient.getInstance().runApplication(runApplicationRequest);
 	     	                     monitor.done();
 	     	                 }
 	     	             };

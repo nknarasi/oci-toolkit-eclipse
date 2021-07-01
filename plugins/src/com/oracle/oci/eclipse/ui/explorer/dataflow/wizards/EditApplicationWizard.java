@@ -18,7 +18,7 @@ import com.oracle.bmc.dataflow.model.Application;
 import com.oracle.bmc.dataflow.model.ApplicationLanguage;
 import com.oracle.bmc.dataflow.model.UpdateApplicationDetails;
 import com.oracle.bmc.dataflow.model.UpdateApplicationDetails.Builder;
-import com.oracle.oci.eclipse.sdkclients.ApplicationClient;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddEditApplicationPagesAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.Validations;
 
@@ -33,7 +33,7 @@ public class EditApplicationWizard extends Wizard implements INewWizard {
 	public EditApplicationWizard(String applicationId) {
 		super();
 		setNeedsProgressMonitor(true);
-		application = ApplicationClient.getInstance().getApplicationDetails(applicationId);
+		application = DataflowClient.getInstance().getApplicationDetails(applicationId);
 	}
 	
     @Override
@@ -114,7 +114,7 @@ public class EditApplicationWizard extends Wizard implements INewWizard {
 	    	 			 IRunnableWithProgress op = new IRunnableWithProgress() {
 	     	 	            @Override
 	     	 	            public void run(IProgressMonitor monitor) throws InvocationTargetException {
-	     	 	                ApplicationClient.getInstance().editApplication(application.getId(),editApplicationRequest);
+	     	 	            	DataflowClient.getInstance().editApplication(application.getId(),editApplicationRequest);
 	     	 	                monitor.done();
 	     	 	            }
 	     	 	        };
@@ -176,7 +176,7 @@ public class EditApplicationWizard extends Wizard implements INewWizard {
     	 	        IRunnableWithProgress op = new IRunnableWithProgress() {
     	 	            @Override
     	 	            public void run(IProgressMonitor monitor) throws InvocationTargetException {
-    	 	                ApplicationClient.getInstance().editApplication(application.getId(),editApplicationRequest);
+    	 	            	DataflowClient.getInstance().editApplication(application.getId(),editApplicationRequest);
     	 	                monitor.done();
     	 	            }
     	 	        };
