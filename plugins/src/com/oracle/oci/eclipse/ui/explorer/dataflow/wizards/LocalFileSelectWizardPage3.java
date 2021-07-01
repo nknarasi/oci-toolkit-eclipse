@@ -240,13 +240,20 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 		public boolean canFlipToNextPage() {
 			return true;
 		}	    
+		
+		
 		 @Override
 		    public IWizardPage getNextPage() { 
-			    dto.setApplicationId(applicationIdSelected); 			   
+			    dto.setApplicationId(applicationIdSelected); 		
+			    LocalFileSelectWizard wizard = (LocalFileSelectWizard)getWizard();
+			    wizard.canFinish= true;
+			    wizard.canFinish();
 			    CreateApplicationWizardPage page = ((LocalFileSelectWizard)getWizard()).firstpage;
 			    page.onEnterPage();
+			    getWizard().getContainer().updateButtons();
 			    CreateApplicationWizardPage3 advpage = ((LocalFileSelectWizard)getWizard()).thirdpage;
 			    advpage.onEnterPage();	
+			    
 			    return page;       
 		    }
 

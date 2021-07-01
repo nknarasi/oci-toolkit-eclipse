@@ -746,15 +746,28 @@ public class CreateApplicationWizardPage extends WizardPage {
 	    container.pack();
 	    container.layout(true,true);
 	    scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
-	}
+		}
 	    	
 		@Override
 		public boolean canFlipToNextPage() {
 			return true;
-		}
-		
-	 @Override
-	    public IWizardPage getNextPage() {
+		}		
+    	
+   	 	@Override
+	    public IWizardPage getPreviousPage() {
+   		 	if(dto.isLocal()) {
+			    LocalFileSelectWizard wizard = (LocalFileSelectWizard)getWizard();
+			    wizard.canFinish= false;
+			    wizard.canFinish();
+		 	}	             
+	        return super.getPreviousPage();
+	    }
+   	 	   	 	
+   	 	@Override
+	    public IWizardPage getNextPage() {	
+		    LocalFileSelectWizard wizard = (LocalFileSelectWizard)getWizard();
+		    wizard.canFinish= true;
+		    wizard.canFinish();
 	        dto.setData(this.sparkVersionCombo.getText().toString());           
 	        return super.getNextPage();
 	    }

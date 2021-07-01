@@ -45,6 +45,8 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	protected CreateApplicationWizardPage3 thirdpage;
     private TagsPage tagpage;
     private Application application;
+    boolean canFinish = false;
+    
 	public LocalFileSelectWizard() {
 		super();
 		this.COMPARTMENT_ID= AuthProvider.getInstance().getCompartmentId();
@@ -137,6 +139,10 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	    	MakeJarAndZip.jarUri=null;
 	    	MakeJarAndZip.zipUri=null;
 	    	return true;
+	    }
+	    @Override
+	    public boolean canFinish() {
+	    	return canFinish;
 	    }
 	    
 	    @Override

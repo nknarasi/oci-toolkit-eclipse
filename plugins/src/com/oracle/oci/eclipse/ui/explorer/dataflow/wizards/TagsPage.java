@@ -218,12 +218,4 @@ public class TagsPage extends WizardPage {
 		 return true;
 	 }
 	 
-	 @Override
-	    public IWizardPage getNextPage() { 					   
-		    CreateApplicationWizardPage3 page = ((LocalFileSelectWizard)getWizard()).thirdpage;
-		    page.allow = true;
-		    page.isPageComplete();
-		    getWizard().getContainer().updateButtons();
-		    return page;       
-	    }
 }

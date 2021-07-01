@@ -64,7 +64,6 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 	private boolean networkSectionSelected=false;
 	private boolean usesAdvancedOptions=false;
 	private int intial = -1; 
-	boolean allow = false;
 	
 	public CreateApplicationWizardPage3(ISelection selection,DataTransferObject dto) {
 		super("Page 3");
@@ -411,20 +410,5 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 		    scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 		}
 	 
-    	@Override
-    	public boolean isPageComplete() {
-    		if(dto.isLocal()) {
-    			return allow;
-		 	}
-    		return true;
-    	}
-    	
-   	 @Override
-	    public IWizardPage getPreviousPage() {
-   		 	if(dto.isLocal()) {
-				allow = false;
-			    this.isPageComplete();
-		 	}	             
-	        return super.getPreviousPage();
-	    }
+
 }
