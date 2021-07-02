@@ -47,6 +47,7 @@ public class RunWizard extends Wizard implements INewWizard {
          } catch (Exception e) {
          	MessageDialog.openError(getShell(), "Unable to add pages to Re-run wizard", e.getMessage());
          }
+    	 getShell().setMaximumSize(1000, 800);
     }
     
     @Override

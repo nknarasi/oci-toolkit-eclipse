@@ -29,6 +29,7 @@ import com.oracle.bmc.dataflow.model.RunSummary;
 import com.oracle.bmc.dataflow.requests.ListRunsRequest;
 import com.oracle.bmc.dataflow.responses.ListRunsResponse;
 import com.oracle.bmc.identity.model.Compartment;
+import com.oracle.oci.eclipse.account.AuthProvider;
 import com.oracle.oci.eclipse.ui.account.CompartmentSelectWizard;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseTable;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseTableLabelProvider;
@@ -73,6 +74,9 @@ public class RunTable extends BaseTable {
     public List<RunSummary> getTableData() {
                 try {
                 	IRunnableWithProgress op = new GetRuns(sortBy,sortOrder,pagetoshow);
+                	String errorMessage=((GetRuns)op).getErrorMessage();
+                	if(errorMessage!=null) 
+                		throw new Exception(errorMessage);
                     new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
                     listrunsresponse=((GetRuns)op).listrunsresponse;
                     runSummaryList=((GetRuns)op).runSummaryList;
@@ -304,7 +308,11 @@ public class RunTable extends BaseTable {
             public void widgetDefaultSelected(SelectionEvent e) {}
         });
 		
-        Composite page=new Composite(right,SWT.NONE);
+        Composite page=new Composite(right.getParent(),SWT.NONE);
+        GridData gdpage = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_END);
+        gdpage.horizontalSpan = 2;
+        page.setLayoutData(gdpage);
+        
         GridLayout gl=new GridLayout();
         gl.numColumns=2;
         page.setLayout(gl);

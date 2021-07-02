@@ -26,7 +26,7 @@ import com.oracle.bmc.dataflow.model.RunSummary;
 
 
 public class RunWizardPage extends WizardPage {
-    private Text nameText;
+    private Text nameText,sparkSubmitText;
 	private Combo dshapeCombo;
 	private Combo eshapeCombo;
 	private Spinner numExecSpinner;
@@ -116,6 +116,16 @@ public class RunWizardPage extends WizardPage {
 		
 		numExecSpinner.setIncrement(1);
 		
+		if(run.getExecute()!=null&!run.getExecute().isEmpty()) {
+			//adding spark submit
+			Label sparkSubmit=new Label(container, SWT.NULL);
+			sparkSubmit.setText("&Use Spark Submit options:");
+			sparkSubmitText=new Text(container, SWT.BORDER);
+			sparkSubmitText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			sparkSubmitText.setText(run.getExecute());
+			//
+		}
+		
 		Label argLabel = new Label(container, SWT.NULL);
         argLabel.setText("&Arguments:");
         Text argText = new Text(container, SWT.BORDER | SWT.SINGLE | SWT.READ_ONLY);
@@ -142,6 +152,7 @@ public class RunWizardPage extends WizardPage {
         	 	}         	
         } 
         
+        scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
       	container.layout(true,true);
 		setControl(scrolledComposite);
     }
@@ -156,7 +167,7 @@ public class RunWizardPage extends WizardPage {
 		return (new Object[]{run.getApplicationId(),run.getArchiveUri(),null,run.getCompartmentId(),null,null,
 				nameText.getText().trim(), dshapeCombo.getText().split(" ")[0],run.getExecute(),eshapeCombo.getText().split(" ")[0],null,
 				run.getLogsBucketUri(),numExecSpinner.getSelection(),getParameters(),run.getSparkVersion(),
-				run.getWarehouseBucketUri(),run.getOpcRequestId()
+				run.getWarehouseBucketUri(),run.getOpcRequestId(),(sparkSubmitText==null?null:sparkSubmitText.getText())
 				});
     }
 	

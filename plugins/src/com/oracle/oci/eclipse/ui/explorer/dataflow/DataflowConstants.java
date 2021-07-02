@@ -1,5 +1,8 @@
 package com.oracle.oci.eclipse.ui.explorer.dataflow;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class DataflowConstants {
 
 	public static final int NUM_OF_EXECUTORS_MIN = 1;

@@ -76,6 +76,8 @@ public class EditApplicationWizardPage2  extends WizardPage {
 		application = DataflowClient.getInstance().getApplicationDetails(applicationId);
 		String compartmentId = application.getCompartmentId();	
 		Compartment rootCompartment = IdentClient.getInstance().getRootCompartment();
+		this.selectedApplicationCompartmentId= rootCompartment.getId();
+		this.selectedApplicationCompartmentId= rootCompartment.getName();
 		List<Compartment> allCompartments = IdentClient.getInstance().getCompartmentList(rootCompartment);
 		for(Compartment compartment : allCompartments) {
 			if(compartment.getId().equals(compartmentId)) {
@@ -124,34 +126,36 @@ public class EditApplicationWizardPage2  extends WizardPage {
      	    	advancedOptionsComposite.setVisible(usesAdvancedOptions);  
      	    }
      	});
-		
-        propertiesSection = new Composite(advancedOptionsComposite, SWT.NONE);
-        GridLayout innerTopLayout3 = new GridLayout();
-        innerTopLayout3.numColumns = 1;
-        propertiesSection.setLayout(innerTopLayout3);
-        propertiesSection.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-        
-        Button addProperty = new Button(propertiesSection,SWT.PUSH);
-        addProperty.setText("Add a Spark Property");
-        
-        if(application.getConfiguration() != null) {        	
-        	 for (Map.Entry<String,String> property : application.getConfiguration().entrySet()) {
-        		 SparkProperty propertyPresent = new SparkProperty(propertiesSection,advancedOptionsComposite,scrolledComposite,createdPropertiesSet,application.getSparkVersion());
-        		 createdPropertiesSet.add(propertyPresent);
-        		 propertyPresent.tagKey.setText(property.getKey());
-				 propertyPresent.tagValue.setText(property.getValue());
-        	 }         	
-    		 container.layout(true,true);
-         	 scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
-        	
-        }       
-        addProperty.addSelectionListener(new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent e) {
-             createdPropertiesSet.add(new SparkProperty(propertiesSection,advancedOptionsComposite,scrolledComposite,createdPropertiesSet,dto.getData()));
-    		 container.layout(true,true);
-         	 scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
-            }
-          });
+		if(application.getExecute() == null) {
+	        propertiesSection = new Composite(advancedOptionsComposite, SWT.NONE);
+	        GridLayout innerTopLayout3 = new GridLayout();
+	        innerTopLayout3.numColumns = 1;
+	        propertiesSection.setLayout(innerTopLayout3);
+	        propertiesSection.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	        
+	        Button addProperty = new Button(propertiesSection,SWT.PUSH);
+	        addProperty.setText("Add a Spark Property");
+	        
+	        if(application.getConfiguration() != null) {        	
+	        	 for (Map.Entry<String,String> property : application.getConfiguration().entrySet()) {
+	        		 SparkProperty propertyPresent = new SparkProperty(propertiesSection,advancedOptionsComposite,scrolledComposite,createdPropertiesSet,application.getSparkVersion());
+	        		 createdPropertiesSet.add(propertyPresent);
+	        		 propertyPresent.tagKey.setText(property.getKey());
+					 propertyPresent.tagValue.setText(property.getValue());
+	        	 }         	
+	    		 container.layout(true,true);
+	         	 scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
+	        	
+	        }       
+	        	addProperty.addSelectionListener(new SelectionAdapter() {
+	            public void widgetSelected(SelectionEvent e) {
+	             createdPropertiesSet.add(new SparkProperty(propertiesSection,advancedOptionsComposite,scrolledComposite,createdPropertiesSet,dto.getData()));
+	    		 container.layout(true,true);
+	         	 scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
+	            }
+	          });
+		}
+
 
 		Label logLocationlabel = new Label(advancedOptionsComposite, SWT.NULL);
 		logLocationlabel.setText("&Application Log Location:");
@@ -217,9 +221,8 @@ public class EditApplicationWizardPage2  extends WizardPage {
     				 selectedApplicationCompartmentName = compartment.getName();
     				 break;
     			}
-    		}
-    		
-    		privateEndpoints = oci.getPrivateEndPoints(selectedApplicationCompartmentId);		
+    		}    		
+    		privateEndpoints = oci.getPrivateEndPoints(selectedApplicationCompartmentId);	    		
     		int sizeoflist= privateEndpoints.size();
     		String[] PrivateEndpointsList = new String[sizeoflist];
     		for(int i = 0; i < privateEndpoints.size(); i++){  

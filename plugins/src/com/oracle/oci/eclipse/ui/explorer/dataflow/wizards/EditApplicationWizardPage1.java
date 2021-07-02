@@ -95,6 +95,7 @@ public class EditApplicationWizardPage1  extends WizardPage {
 	@Override
 	public void createControl(Composite parent) {
 		
+        parent.setSize(1000,800);
 		scrolledComposite=new ScrolledComposite(parent,SWT.V_SCROLL| SWT.H_SCROLL);
 		scrolledComposite.setExpandHorizontal( true );
 		scrolledComposite.setExpandVertical( true );       

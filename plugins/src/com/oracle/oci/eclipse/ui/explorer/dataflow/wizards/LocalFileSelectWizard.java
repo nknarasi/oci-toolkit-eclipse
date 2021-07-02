@@ -60,6 +60,7 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	          } catch (Exception e) {
 	          	MessageDialog.openError(getShell(), "Unable to add pages to Local Project Select wizard", e.getMessage());
 	          }   
+			getShell().setMaximumSize(1000, 1000);
 	    }
 	   
 	    public void addPagesWithProgress(IProgressMonitor monitor) {
@@ -202,7 +203,6 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 		        			.definedTags(tagpage.getOT())
 		        			.freeformTags(tagpage.getFT())   
 		        			.execute(firstpage.getSparkSubmit())
-		        	        .configuration(thirdpage.getSparkProperties())
 		        	        .logsBucketUri(thirdpage.getApplicationLogLocation())
 		        	        .warehouseBucketUri(thirdpage.getWarehouseUri());
 		        			
@@ -352,7 +352,6 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 		        			.definedTags(tagpage.getOT())
 		        			.freeformTags(tagpage.getFT())   
 		        			.execute(firstpage.getSparkSubmit())
-		        	        .configuration(thirdpage.getSparkProperties())
 		        	        .logsBucketUri(thirdpage.getApplicationLogLocation())
 		        	        .warehouseBucketUri(thirdpage.getWarehouseUri());
 		        			
@@ -513,7 +512,7 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	    	       nameArray.add("archiveuri"); 
 	    	}
 	    	
-	    	if(thirdpage.getSparkProperties() != null) {
+	    	if(!firstpage.usesSparkSubmit() && thirdpage.getSparkProperties() != null) {
 	 	       objectArray.add(thirdpage.getSparkProperties().keySet());
 	 	       nameArray.add("sparkprop" + firstpage.getSparkVersion().charAt(0));         
 	    	}

@@ -44,6 +44,7 @@ public class EditApplicationWizard extends Wizard implements INewWizard {
            } catch (Exception e) {
            	MessageDialog.openError(getShell(), "Unable to add pages to Edit Application wizard", e.getMessage());
            }    
+    	 getShell().setMaximumSize(1000, 800);
     }
     
     public void addPagesWithProgress(IProgressMonitor monitor) {
@@ -94,7 +95,7 @@ public class EditApplicationWizard extends Wizard implements INewWizard {
 	    	 	 		final UpdateApplicationDetails editApplicationRequest;	    	 	    	
 	    	 			final boolean usesAdvancedOptions = secondPage.usesAdvancedOptions();
 	    	 			if (usesAdvancedOptions) {
-	    	 				editApplicationRequestBuilder = editApplicationRequestBuilder.configuration(secondPage.getSparkProperties())
+	    	 				editApplicationRequestBuilder = editApplicationRequestBuilder
 	    	 						.logsBucketUri(secondPage.getApplicationLogLocation())
 	    	 						.warehouseBucketUri(secondPage.getWarehouseUri());	    	 				
 	    	 				if(secondPage.usesPrivateSubnet()) {
@@ -227,7 +228,7 @@ public class EditApplicationWizard extends Wizard implements INewWizard {
     	       nameArray.add("archiveuri"); 
     	}
     	
-    	if(secondPage.getSparkProperties() != null) {
+    	if(!firstPage.usesSparkSubmit() && secondPage.getSparkProperties() != null) {
  	       objectArray.add(secondPage.getSparkProperties().keySet());
  	       nameArray.add("sparkprop" + firstPage.getSparkVersion().charAt(0));         
     	}

@@ -7,6 +7,7 @@ import com.oracle.bmc.dataflow.model.ApplicationLanguage;
 import com.oracle.bmc.dataflow.model.CreateApplicationDetails;
 import com.oracle.bmc.dataflow.model.CreateRunDetails;
 import com.oracle.bmc.dataflow.model.CreateApplicationDetails.Builder;
+import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddCreateApplicationPagesAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.Validations;
@@ -26,7 +27,7 @@ import org.eclipse.ui.IWorkbenchWizard;
 public class CreateApplicationWizard extends Wizard implements INewWizard {	
 	private String COMPARTMENT_ID;
     private CreateApplicationWizardPage firstpage;
-    private CreateApplicationWizardPage3 thirdpage;
+    protected CreateApplicationWizardPage3 thirdpage;
     private TagsPage tagpage;
     private ISelection selection;
     
@@ -44,6 +45,7 @@ public class CreateApplicationWizard extends Wizard implements INewWizard {
           } catch (Exception e) {
           	MessageDialog.openError(getShell(), "Unable to add pages to Create Application wizard", e.getMessage());
           }   
+    	 getShell().setMaximumSize(1000, 800);
     }
     
     public void addPagesWithProgress(IProgressMonitor monitor) {
@@ -101,7 +103,6 @@ public class CreateApplicationWizard extends Wizard implements INewWizard {
         			.definedTags(tagpage.getOT())
         			.freeformTags(tagpage.getFT())   
         			.execute(firstpage.getSparkSubmit())
-        	        .configuration(thirdpage.getSparkProperties())
         	        .logsBucketUri(thirdpage.getApplicationLogLocation())
         	        .warehouseBucketUri(thirdpage.getWarehouseUri());
         			
@@ -118,6 +119,7 @@ public class CreateApplicationWizard extends Wizard implements INewWizard {
         	            getContainer().run(true, false, op);
         	        } 
         	        catch (Exception e) {
+        	        	ErrorHandler.logError("Unable to create applications: " + e.getMessage());
         	            MessageDialog.openError(getShell(), "Failed to Create Application ", e.getMessage());
         	            return false;
         	        }
@@ -224,7 +226,7 @@ public class CreateApplicationWizard extends Wizard implements INewWizard {
     	       nameArray.add("archiveuri"); 
     	}
     	
-    	if(thirdpage.getSparkProperties() != null) {
+    	if(!firstpage.usesSparkSubmit() && thirdpage.getSparkProperties() != null) {
  	       objectArray.add(thirdpage.getSparkProperties().keySet());
  	       nameArray.add("sparkprop" + firstpage.getSparkVersion().charAt(0));         
     	}

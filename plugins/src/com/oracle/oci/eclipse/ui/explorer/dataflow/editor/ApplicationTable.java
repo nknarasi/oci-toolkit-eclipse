@@ -74,19 +74,22 @@ public class ApplicationTable extends BaseTable{
     
     @Override
     public List<ApplicationSummary> getTableData() {  
-    	if(AuthProvider.getInstance().getCompartmentId() == null) {
+    	if(COMPARTMENT_ID != AuthProvider.getInstance().getCompartmentId()) {
+    		COMPARTMENT_ID = AuthProvider.getInstance().getCompartmentId();
+    	}
+    	if(COMPARTMENT_ID== null) {
     		COMPARTMENT_ID = IdentClient.getInstance().getRootCompartment().getCompartmentId();
     	}
-                try {
-                	IRunnableWithProgress op = new GetApplications(COMPARTMENT_ID,sortBy,sortOrder,pageToShow);
-                    new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
-                    listApplicationsResponse = ((GetApplications)op).listApplicationsResponse;
-                    applicationList=((GetApplications)op).applicationSummaryList;
-                    tableDataSize = applicationList.size();
-                } catch (Exception e) {
-                	MessageDialog.openError(Display.getDefault().getActiveShell(),"Unable to get applications: ",e.getMessage());               
-                }
-                refresh(false);            
+        try {
+        	IRunnableWithProgress op = new GetApplications(COMPARTMENT_ID,sortBy,sortOrder,pageToShow);
+        	new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+            listApplicationsResponse = ((GetApplications)op).listApplicationsResponse;
+            applicationList=((GetApplications)op).applicationSummaryList;
+            tableDataSize = applicationList.size();
+       } catch (Exception e) {
+           MessageDialog.openError(Display.getDefault().getActiveShell(),"Unable to get applications: ",e.getMessage());               
+        }
+        refresh(false);            
         return applicationList;
     }
 
@@ -235,8 +238,14 @@ public class ApplicationTable extends BaseTable{
             public void widgetDefaultSelected(SelectionEvent e) {}
         });	
         
-        Composite page=new Composite(right,SWT.NONE);GridLayout gl=new GridLayout();gl.numColumns=2;
+        Composite page=new Composite(right.getParent(),SWT.NONE);
+        GridLayout gl=new GridLayout();
+        gl.numColumns=2;
         page.setLayout(gl);
+        GridData gdpage = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_END);
+        gdpage.horizontalSpan = 2;
+        page.setLayoutData(gdpage);
+        
         previouspage=new Button(page,SWT.TRAVERSE_PAGE_PREVIOUS);
         nextpage=new Button(page,SWT.TRAVERSE_PAGE_NEXT);
         previouspage.setText("<");
