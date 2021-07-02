@@ -52,7 +52,9 @@ public class ScheduleRerunAction implements IRunnableWithProgress{
     		.logsBucketUri((String)obj[11])
     		.numExecutors((Integer)obj[12])
     		.parameters((List<ApplicationParameter>)obj[13])
-    		.warehouseBucketUri((String)obj[15]).build();
+    		.warehouseBucketUri((obj[15]==null)?null:(String)obj[15])
+    		.execute((String)obj[17])
+    		.build();
     	
     	CreateRunRequest createRunRequest;
     	createRunRequest = CreateRunRequest.builder().createRunDetails(createRunDetails).opcRequestId((String)obj[16]).build();

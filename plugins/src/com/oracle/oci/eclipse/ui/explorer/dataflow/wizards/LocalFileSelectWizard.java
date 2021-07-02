@@ -202,7 +202,6 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 		        			.definedTags(tagpage.getOT())
 		        			.freeformTags(tagpage.getFT())   
 		        			.execute(firstpage.getSparkSubmit())
-		        	        .configuration(thirdpage.getSparkProperties())
 		        	        .logsBucketUri(thirdpage.getApplicationLogLocation())
 		        	        .warehouseBucketUri(thirdpage.getWarehouseUri());
 		        			
@@ -352,7 +351,6 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 		        			.definedTags(tagpage.getOT())
 		        			.freeformTags(tagpage.getFT())   
 		        			.execute(firstpage.getSparkSubmit())
-		        	        .configuration(thirdpage.getSparkProperties())
 		        	        .logsBucketUri(thirdpage.getApplicationLogLocation())
 		        	        .warehouseBucketUri(thirdpage.getWarehouseUri());
 		        			
@@ -513,7 +511,7 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	    	       nameArray.add("archiveuri"); 
 	    	}
 	    	
-	    	if(thirdpage.getSparkProperties() != null) {
+	    	if(!firstpage.usesSparkSubmit() && thirdpage.getSparkProperties() != null) {
 	 	       objectArray.add(thirdpage.getSparkProperties().keySet());
 	 	       nameArray.add("sparkprop" + firstpage.getSparkVersion().charAt(0));         
 	    	}

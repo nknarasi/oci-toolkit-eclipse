@@ -26,7 +26,7 @@ import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.Validations;
 public class CreateRunWizard  extends Wizard implements INewWizard{	
     private CreateRunWizardPage1 firstpage;
     private TagsPage secondpage;
-    private CreateRunWizardPage3 thirdpage;
+    protected CreateRunWizardPage3 thirdpage;
     private ISelection selection;
     private Application application;
     
@@ -78,18 +78,23 @@ public class CreateRunWizard  extends Wizard implements INewWizard{
         CreateRunDetails.builder()
         .compartmentId(application.getCompartmentId())
         .applicationId(application.getId())
-        .displayName(firstpage.getDisplayName())
-        .arguments(application.getArguments())
-        .parameters(firstpage.getParameters())
+        .displayName(firstpage.getDisplayName())        
         .driverShape(firstpage.getDriverShape())
         .executorShape(firstpage.getExecutorShape())
         .numExecutors(Integer.valueOf(firstpage.getNumofExecutors()))       
         .definedTags(secondpage.getOT())
-        .freeformTags(secondpage.getFT())               
-        .configuration(thirdpage.getSparkProperties())
+        .freeformTags(secondpage.getFT())              
         .logsBucketUri(thirdpage.getApplicationLogLocation())
         .warehouseBucketUri(thirdpage.getWarehouseUri());
 		
+    	if(application.getExecute() != null) {
+    		runApplicationRequestBuilder = runApplicationRequestBuilder.execute(firstpage.getSparkSubmit());
+    	}
+    	else {
+    		runApplicationRequestBuilder = runApplicationRequestBuilder.arguments(application.getArguments())
+    		        .parameters(firstpage.getParameters())
+    		        .configuration(thirdpage.getSparkProperties());
+    	}
 		final CreateRunDetails runApplicationRequest;		
 		runApplicationRequest = runApplicationRequestBuilder.build();		
         IRunnableWithProgress op = new IRunnableWithProgress() {

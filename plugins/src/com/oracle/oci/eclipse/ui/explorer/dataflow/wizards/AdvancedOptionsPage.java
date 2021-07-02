@@ -22,6 +22,7 @@ import org.eclipse.swt.widgets.Text;
 import com.oracle.bmc.dataflow.model.RunSummary;
 import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.bmc.dataflow.model.ApplicationSummary;
+import com.oracle.bmc.dataflow.model.Run;
 
 public class AdvancedOptionsPage extends WizardPage {
     private ISelection selection;
@@ -32,6 +33,7 @@ public class AdvancedOptionsPage extends WizardPage {
     private RunWizardPage page;
     private Button add,show;
     private Text text1,text2;
+    private Run run;
 
     public AdvancedOptionsPage(ISelection selection,Object obj,RunWizardPage page) {
         super("wizardPage");
@@ -40,6 +42,11 @@ public class AdvancedOptionsPage extends WizardPage {
         this.selection = selection;
         this.obj=obj;
         this.page=page;
+        try {
+			this.run=DataflowClient.getInstance().getRunDetails(((RunSummary)obj).getId());
+		} catch (Exception e) {
+			MessageDialog.openError(getShell(), "Error fetching run details", e.getMessage());
+		}
     }
 
     @Override
@@ -98,6 +105,9 @@ public class AdvancedOptionsPage extends WizardPage {
             	set.add(new SparkProperty(comp3,comp1,scrollComp,set,(String)page.getDetails()[14]));
             }
           });
+        
+        if(run.getExecute()!=null&!run.getExecute().isEmpty())
+        	comp3.dispose();
         
         Label label1=new Label(comp2,SWT.NONE);
         label1.setText("Application Log Location");

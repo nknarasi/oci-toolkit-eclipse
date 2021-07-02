@@ -771,7 +771,20 @@ public class CreateApplicationWizardPage extends WizardPage {
    			    LocalFileSelectWizard wizard = (LocalFileSelectWizard)getWizard();
    			    wizard.canFinish= true;
    			    wizard.canFinish();
-		 	}	
+   			 CreateApplicationWizardPage3 advpage = wizard.thirdpage;
+   	   		 	if(usesSparkSubmit)    			    
+   	   			    advpage.usesSparkSubmit(true);
+   	   		 	else
+   	   		 		advpage.usesSparkSubmit(false);
+		 	}
+   		 	else {
+   	   		 CreateApplicationWizardPage3 advpage =((CreateApplicationWizard)getWizard()).thirdpage;
+	   		 	if(usesSparkSubmit)    	   			    
+	   			    advpage.usesSparkSubmit(true);
+	   		 	else 
+	   		 		advpage.usesSparkSubmit(false);
+   		 	}
+
 	        dto.setData(this.sparkVersionCombo.getText().toString());           
 	        return super.getNextPage();
 	    }

@@ -34,6 +34,7 @@ public class CreateRunWizardPage1  extends WizardPage{
 	private Spinner numofExecutorsSpinner;		
 	private Text argumentsText;
 	private Text archiveUriText;
+	private Text sparkSubmitText;
     private Set<Parameters> parameterset;
     
 	public CreateRunWizardPage1(ISelection selection,DataTransferObject dto, String applicationId) {
@@ -93,33 +94,47 @@ public class CreateRunWizardPage1  extends WizardPage{
 		NumofExecutorslabel.setText("&Number of Executors:");
 		createNumofExecutorsSpinner(container);
 		
-		Label Argumentslabel = new Label(container, SWT.NULL);
-		Argumentslabel.setText("&Arguments:");
-		argumentsText = new Text(container, SWT.BORDER | SWT.SINGLE);
-		argumentsText.setText(application.getArguments().toString());
-		argumentsText.setEditable(false);
-		GridData gd8 = new GridData(GridData.FILL_HORIZONTAL);
-		argumentsText.setLayoutData(gd8);
-		
-		Composite parametercontainer = new Composite(container, SWT.NULL);
-		GridData grid1 = new GridData(GridData.FILL_HORIZONTAL);
-		grid1.horizontalSpan = 2;
-		parametercontainer.setLayoutData(grid1);
-        GridLayout layout1 = new GridLayout();
-        parametercontainer.setLayout(layout1);
-        layout1.numColumns = 1;
-		
-        if(application.getParameters() != null)
-        {
-        	 for (ApplicationParameter parameter : application.getParameters()) {
-             	Parameters newparameter = new Parameters(parametercontainer,container,scrolledComposite, parameterset);
-             	parameterset.add(newparameter);
-        		newparameter.tagKey.setText(parameter.getName());
-        		newparameter.tagKey.setEditable(false);
-     			newparameter.tagValue.setText(parameter.getValue());
-     			newparameter.closeButton.setEnabled(false);
-        	 	}         	
-        }          
+		if(application.getExecute() == null) {
+			Label Argumentslabel = new Label(container, SWT.NULL);
+			Argumentslabel.setText("&Arguments:");
+			argumentsText = new Text(container, SWT.BORDER | SWT.SINGLE);
+			
+			if(!application.getArguments().isEmpty())
+				argumentsText.setText(application.getArguments().toString());
+			else 
+				argumentsText.setText("");
+			
+			argumentsText.setEditable(false);
+			GridData gd8 = new GridData(GridData.FILL_HORIZONTAL);
+			argumentsText.setLayoutData(gd8);
+			
+			Composite parametercontainer = new Composite(container, SWT.NULL);
+			GridData grid1 = new GridData(GridData.FILL_HORIZONTAL);
+			grid1.horizontalSpan = 2;
+			parametercontainer.setLayoutData(grid1);
+	        GridLayout layout1 = new GridLayout();
+	        parametercontainer.setLayout(layout1);
+	        layout1.numColumns = 1;
+			
+	        if(application.getParameters() != null)
+	        {
+	        	 for (ApplicationParameter parameter : application.getParameters()) {
+	             	Parameters newparameter = new Parameters(parametercontainer,container,scrolledComposite, parameterset);
+	             	parameterset.add(newparameter);
+	        		newparameter.tagKey.setText(parameter.getName());
+	        		newparameter.tagKey.setEditable(false);
+	     			newparameter.tagValue.setText(parameter.getValue());
+	     			newparameter.closeButton.setEnabled(false);
+	        	 	}         	
+	        }          
+		}
+		else {
+			Label sparkSubmitlabel = new Label(container, SWT.NULL);
+			sparkSubmitlabel.setText("&Spark Submit Command:");
+			sparkSubmitText = new Text(container, SWT.BORDER | SWT.SINGLE);
+			sparkSubmitText.setText(application.getExecute());
+		}
+
       	container.layout(true,true);
 		setControl(scrolledComposite);
 	}
@@ -182,6 +197,10 @@ public class CreateRunWizardPage1  extends WizardPage{
 		return archiveUriText.getText();
 	}
 	
+	public String getSparkSubmit() {		
+		return sparkSubmitText.getText();
+	}
+	
 	public  List<ApplicationParameter> getParameters(){
 		List<ApplicationParameter> Parameters = new ArrayList<ApplicationParameter>();	 
 		 for(Parameters parameter : parameterset) {	
@@ -195,6 +214,10 @@ public class CreateRunWizardPage1  extends WizardPage{
 	
 	 @Override
 	    public IWizardPage getNextPage() {
+		 	if(application.getExecute() != null) {
+		 		 CreateRunWizardPage3 advpage =((CreateRunWizard)getWizard()).thirdpage;
+		 		 advpage.usesSparkSubmit();
+		 	}
 	        dto.setData(this.sparkVersionCombo.getText().toString());	        
 	        return super.getNextPage();
 	    }

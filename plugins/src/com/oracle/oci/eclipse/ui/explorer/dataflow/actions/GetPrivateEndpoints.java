@@ -13,10 +13,12 @@ import com.oracle.bmc.dataflow.model.PrivateEndpointSummary;
 import com.oracle.bmc.dataflow.responses.ListPrivateEndpointsResponse;
 import com.oracle.oci.eclipse.account.AuthProvider;
 import com.oracle.oci.eclipse.sdkclients.DataflowClient;
+import com.oracle.oci.eclipse.sdkclients.IdentClient;
 
 public class GetPrivateEndpoints implements IRunnableWithProgress{
 	
 	private String page=null;
+	private static String compid=IdentClient.getInstance().getRootCompartment().getId();
 	public List<PrivateEndpointSummary> pepSummaryList = new ArrayList<PrivateEndpointSummary>();
 	public ListPrivateEndpointsResponse listpepsresponse;
 	
@@ -32,9 +34,16 @@ public class GetPrivateEndpoints implements IRunnableWithProgress{
         monitor.beginTask("Getting Private Endpoints", IProgressMonitor.UNKNOWN);
 
         // Do your work
+        
+        String currentcompid=AuthProvider.getInstance().getCompartmentId();
+        if(currentcompid!=null&&!compid.equals(currentcompid)) {
+         	compid=currentcompid;
+         	page=null;
+         }
+        
    		pepSummaryList = new ArrayList<PrivateEndpointSummary>();
         try {
-            Object[] getPrivateEndpoints=DataflowClient.getInstance().getPrivateEndPoints(AuthProvider.getInstance().getCompartmentId(), 20, page);
+            Object[] getPrivateEndpoints=DataflowClient.getInstance().getPrivateEndPoints(compid, 20, page);
             pepSummaryList=(List<PrivateEndpointSummary>)getPrivateEndpoints[0];
             listpepsresponse=(ListPrivateEndpointsResponse)getPrivateEndpoints[1];
         } 

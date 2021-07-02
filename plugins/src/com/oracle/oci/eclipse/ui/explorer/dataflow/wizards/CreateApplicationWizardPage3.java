@@ -61,7 +61,8 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 	private  DataTransferObject dto; 	
 	private boolean networkSectionSelected=false;
 	private boolean usesAdvancedOptions=false;
-	private int intial = -1; 
+	private int intial = -1;
+	private Button addProperty;
 	
 	public CreateApplicationWizardPage3(ISelection selection,DataTransferObject dto) {
 		super("Page 3");
@@ -134,11 +135,11 @@ public class CreateApplicationWizardPage3   extends WizardPage {
         propertiesSection.setLayout(innerTopLayout3);
         propertiesSection.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         
-        Button addProperty = new Button(propertiesSection,SWT.PUSH);
+        addProperty = new Button(propertiesSection,SWT.PUSH);
         addProperty.setText("Add a Spark Property");       
         addProperty.addSelectionListener(new SelectionAdapter() {      	
             public void widgetSelected(SelectionEvent e) {
-            createdPropertiesSet.add(new SparkProperty(propertiesSection,advancedOptionsComposite,scrolledComposite,createdPropertiesSet,dto.getData()));
+             createdPropertiesSet.add(new SparkProperty(propertiesSection,advancedOptionsComposite,scrolledComposite,createdPropertiesSet,dto.getData()));
     		 container.layout(true,true);
          	 scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
             }
@@ -402,6 +403,22 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 				}		    	   
 		    }		    
 		    container.pack();
+		    container.layout(true,true);
+		    scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
+		}
+		
+		public void usesSparkSubmit(boolean allowed) {
+			if(allowed) {
+				addProperty.setEnabled(false);
+				if(!createdPropertiesSet.isEmpty()) {
+					for(SparkProperty item : createdPropertiesSet) {
+						item.composite.dispose();
+					}
+				}			
+			}
+			else {
+				addProperty.setEnabled(true);
+			}
 		    container.layout(true,true);
 		    scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 		}

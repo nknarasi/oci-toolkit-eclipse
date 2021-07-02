@@ -30,6 +30,7 @@ public class CreateRunWizardPage3 extends WizardPage  {
     private Set<SparkProperty> createdPropertiesSet=new HashSet<SparkProperty>();
 	private Composite propertiesSection;
 	private  DataTransferObject dto; 
+	private  Button addProperty;
 	
 	public CreateRunWizardPage3(ISelection selection,DataTransferObject dto,String applicationId) {
 		super("Page 3");
@@ -58,7 +59,7 @@ public class CreateRunWizardPage3 extends WizardPage  {
         propertiesSection.setLayout(innerTopLayout4);
         propertiesSection.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         
-        Button addProperty = new Button(propertiesSection,SWT.PUSH);
+        addProperty = new Button(propertiesSection,SWT.PUSH);
         addProperty.setText("Add a Spark Property");        
         addProperty.addSelectionListener(new SelectionAdapter() {       	
             public void widgetSelected(SelectionEvent e) {           	
@@ -101,4 +102,15 @@ public class CreateRunWizardPage3 extends WizardPage  {
 		 }		 
 		 return SparkProperties;
 	 }
+	
+	 public void usesSparkSubmit() {
+		 
+		 addProperty.setEnabled(false);
+			if(!createdPropertiesSet.isEmpty()) {
+				for(SparkProperty item : createdPropertiesSet) {
+					item.composite.dispose();
+				}
+			}			
+	 }
+
 }
