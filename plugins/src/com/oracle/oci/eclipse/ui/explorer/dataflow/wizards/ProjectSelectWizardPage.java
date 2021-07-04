@@ -82,14 +82,16 @@ public class ProjectSelectWizardPage extends WizardPage{
 	                        try {
 
 	                            for (IJavaProject p : getProjects()) {
-	                                                try {
-	                                                    TreeItem treeItem = new TreeItem(tree, 0);
-	                                                    treeItem.setText(p.getElementName());
-	                                                    treeItem.setImage(IMAGE);
-	                                                    treeItem.setData("project", p);
-	                                                } catch(Exception e) {}
+	                            	File projectDirectory = new File(p.getProject().getLocation().toString()+File.separator+"bin");
+	                            	if(!projectDirectory.exists()) continue;
+	                                TreeItem treeItem = new TreeItem(tree, 0);
+	                                treeItem.setText(p.getElementName());
+	                                treeItem.setImage(IMAGE);
+	                                treeItem.setData("project", p);
 	                            }
-	                        } catch(Exception e) {}
+	                        } catch(Exception e) {
+	                        	MessageDialog.openError(getShell(),"Unable to get projects" , e.getMessage());
+	                        }
 	                    }
 	                });
 	                return Status.OK_STATUS;

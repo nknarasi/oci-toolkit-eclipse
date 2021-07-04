@@ -8,7 +8,6 @@ import java.util.Set;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -19,7 +18,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import com.oracle.bmc.identity.IdentityClient;
@@ -33,7 +31,6 @@ import com.oracle.oci.eclipse.sdkclients.IdentClient;
 
 public class TagsPage extends WizardPage {
     private ISelection selection;
-    private String compid;
     private Composite container;
     private ScrolledComposite sc;
     private Set<Tags> set=new HashSet<Tags>();
@@ -44,7 +41,6 @@ public class TagsPage extends WizardPage {
         setTitle("Tag Wizard");
         setDescription("This wizard lets you add Tags.");
         this.selection = selection;
-        this.compid=compid;
         this.namespacesList=getNamespaces();
     }
 
@@ -155,7 +151,7 @@ public class TagsPage extends WizardPage {
 	 String[] getNamespaces() {
 		 IdentityClient client = new IdentityClient(AuthProvider.getInstance().getProvider());
 		 
-		compid=IdentClient.getInstance().getRootCompartment().getId();
+		String compid=IdentClient.getInstance().getRootCompartment().getId();
 		ListTagNamespacesRequest listTagNamespacesRequest = ListTagNamespacesRequest.builder().compartmentId(compid)
 			//.limit(570)
 			.includeSubcompartments(true).lifecycleState(TagNamespace.LifecycleState.Active)

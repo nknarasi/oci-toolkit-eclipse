@@ -10,6 +10,7 @@ import com.oracle.oci.eclipse.ui.explorer.dataflow.wizards.EditPrivateEndpointWi
 public class AddEditPrivateEndpointPagesAction implements IRunnableWithProgress{
 	
 	private EditPrivateEndpointWizard wizard;
+	private String errorMessage=null;
 	
     public AddEditPrivateEndpointPagesAction(EditPrivateEndpointWizard wizard)
     {
@@ -19,6 +20,7 @@ public class AddEditPrivateEndpointPagesAction implements IRunnableWithProgress{
     @Override
     public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException
     {
+    	try {
         // Tell the user what you are doing
         monitor.beginTask("Opening Edit Private Endpoint Wizard", IProgressMonitor.UNKNOWN);
 
@@ -28,5 +30,13 @@ public class AddEditPrivateEndpointPagesAction implements IRunnableWithProgress{
 
         // You are done
         monitor.done();
+    	}
+    	catch (Exception e) {
+    		errorMessage=e.getMessage();
+    	}
+    }
+    
+    public String getErrorMessage() {
+    	return errorMessage;
     }
 }

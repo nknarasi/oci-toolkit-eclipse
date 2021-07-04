@@ -3,7 +3,6 @@
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.Separator;
@@ -11,7 +10,6 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -28,12 +26,8 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import com.oracle.bmc.dataflow.model.RunSummary;
 import com.oracle.bmc.dataflow.requests.ListRunsRequest;
 import com.oracle.bmc.dataflow.responses.ListRunsResponse;
-import com.oracle.bmc.identity.model.Compartment;
-import com.oracle.oci.eclipse.account.AuthProvider;
-import com.oracle.oci.eclipse.ui.account.CompartmentSelectWizard;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseTable;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseTableLabelProvider;
-import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DeleteRunAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DetailsRunAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetRuns;
@@ -51,8 +45,6 @@ public class RunTable extends BaseTable {
 	private static final int TOTAL_OCPU_COL = 6;
 	private static final int DATA_READ_COL = 8;
 	private static final int DATA_WRITTEN_COL = 7;
-	private static String compid;
-	private static String compname;
 	private List<RunSummary> runSummaryList = new ArrayList<RunSummary>();
 	private ListRunsRequest.SortBy sortBy=ListRunsRequest.SortBy.TimeCreated;
 	private ListRunsRequest.SortOrder sortOrder=ListRunsRequest.SortOrder.Desc;
@@ -74,10 +66,10 @@ public class RunTable extends BaseTable {
     public List<RunSummary> getTableData() {
                 try {
                 	IRunnableWithProgress op = new GetRuns(sortBy,sortOrder,pagetoshow);
-                	String errorMessage=((GetRuns)op).getErrorMessage();
+                    new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+                    String errorMessage=((GetRuns)op).getErrorMessage();
                 	if(errorMessage!=null) 
                 		throw new Exception(errorMessage);
-                    new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
                     listrunsresponse=((GetRuns)op).listrunsresponse;
                     runSummaryList=((GetRuns)op).runSummaryList;
                     tableDataSize = runSummaryList.size();
@@ -280,33 +272,6 @@ public class RunTable extends BaseTable {
 	
 	@Override
     protected void addTableLabels(FormToolkit toolkit, Composite left, Composite right) {
-
-		changeCompartmentButton.setText("Change Compartment");
-		changeCompartmentButton.setVisible(true);
-		changeCompartmentButton.addSelectionListener(new SelectionListener() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                
-				Consumer<Compartment> consumer=new Consumer<Compartment>() {
-
-				@Override
-				public void accept(Compartment comp) {
-					compid = comp.getId();
-					compname = comp.getName();
-				}
-				};
-				CustomWizardDialog dialog = new CustomWizardDialog(Display.getDefault().getActiveShell(),
-						new CompartmentSelectWizard(consumer, false));
-				dialog.setFinishButtonText("Select");
-				if (Window.OK == dialog.open()) {
-					setCompartmentName(new String(compname));
-					refresh(true);
-				}
-            }
-
-            @Override
-            public void widgetDefaultSelected(SelectionEvent e) {}
-        });
 		
         Composite page=new Composite(right.getParent(),SWT.NONE);
         GridData gdpage = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_END);

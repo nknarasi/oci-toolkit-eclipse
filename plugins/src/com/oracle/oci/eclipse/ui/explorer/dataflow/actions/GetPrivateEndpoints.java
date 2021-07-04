@@ -21,8 +21,9 @@ public class GetPrivateEndpoints implements IRunnableWithProgress{
 	private static String compid=IdentClient.getInstance().getRootCompartment().getId();
 	public List<PrivateEndpointSummary> pepSummaryList = new ArrayList<PrivateEndpointSummary>();
 	public ListPrivateEndpointsResponse listpepsresponse;
+	private String errorMessage=null;
 	
-    public GetPrivateEndpoints(String compid,String page)
+    public GetPrivateEndpoints(String page)
     {
         this.page=page;
     }
@@ -30,6 +31,7 @@ public class GetPrivateEndpoints implements IRunnableWithProgress{
     @Override
     public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException
     {
+    	try {
         // Tell the user what you are doing
         monitor.beginTask("Getting Private Endpoints", IProgressMonitor.UNKNOWN);
 
@@ -42,18 +44,24 @@ public class GetPrivateEndpoints implements IRunnableWithProgress{
          }
         
    		pepSummaryList = new ArrayList<PrivateEndpointSummary>();
-        try {
             Object[] getPrivateEndpoints=DataflowClient.getInstance().getPrivateEndPoints(compid, 20, page);
             pepSummaryList=(List<PrivateEndpointSummary>)getPrivateEndpoints[0];
             listpepsresponse=(ListPrivateEndpointsResponse)getPrivateEndpoints[1];
-        } 
-        catch(Exception e) {
-            MessageDialog.openInformation(Display.getDefault().getActiveShell(),"Unable to get Private Endpoints",e.getMessage());
-        }
-        
 
         // You are done
         monitor.done();
+    	 } 
+        catch(Exception e) {
+            MessageDialog.openInformation(Display.getDefault().getActiveShell(),"Unable to get Private Endpoints",e.getMessage());
+        }
+    }
+    
+    public String getCompid() {
+    	return compid;
+    }
+    
+    public String getErrorMessage() {
+    	return errorMessage;
     }
 }
 

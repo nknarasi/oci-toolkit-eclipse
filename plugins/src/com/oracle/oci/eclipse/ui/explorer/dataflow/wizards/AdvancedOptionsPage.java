@@ -99,6 +99,12 @@ public class AdvancedOptionsPage extends WizardPage {
         add=new Button(comp3,SWT.PUSH);add.setLayoutData(new GridData());
         add.setText("Add Spark Property");
         
+        for(Map.Entry<String,String> entry:run.getConfiguration().entrySet()) {
+    		SparkProperty sp=new SparkProperty(comp3,comp1,scrollComp,set,(String)page.getDetails()[14]);
+    		sp.tagKey.setText(entry.getKey());
+    		sp.tagValue.setText(entry.getValue());
+    	}
+        
         add.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
             	

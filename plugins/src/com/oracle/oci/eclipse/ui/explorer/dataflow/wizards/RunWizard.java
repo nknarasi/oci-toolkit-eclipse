@@ -15,6 +15,7 @@ import org.eclipse.ui.IWorkbenchWizard;
 import com.oracle.bmc.dataflow.model.ApplicationSummary;
 import com.oracle.bmc.dataflow.model.RunSummary;
 import com.oracle.bmc.dataflow.requests.ListRunsRequest;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddEditPrivateEndpointPagesAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddRunPagesAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.ScheduleRerunAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.Validations;
@@ -44,6 +45,9 @@ public class RunWizard extends Wizard implements INewWizard {
     	 try {
          	IRunnableWithProgress op = new AddRunPagesAction(this);
              new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+             String errorMessage=((AddRunPagesAction)op).getErrorMessage();
+             if(errorMessage!=null)
+             	throw new Exception(errorMessage);
          } catch (Exception e) {
          	MessageDialog.openError(getShell(), "Unable to add pages to Re-run wizard", e.getMessage());
          }
@@ -80,6 +84,10 @@ public class RunWizard extends Wizard implements INewWizard {
         	IRunnableWithProgress op = new ScheduleRerunAction(obj,page2.getOT(),page2.getFT(),page3.getconfig(),page3.ischecked());
             new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
         	
+            String errorMessage=((ScheduleRerunAction)op).getErrorMessage();
+            if(errorMessage!=null)
+            	throw new Exception(errorMessage);
+            
         	MessageDialog.openInformation(getShell(),"Re-Run Succesful","A re-run of application is scheduled.");
         	
         	runTable.setSortBy(ListRunsRequest.SortBy.TimeCreated);

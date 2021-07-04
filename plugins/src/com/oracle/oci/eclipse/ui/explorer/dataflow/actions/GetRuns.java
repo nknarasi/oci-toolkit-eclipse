@@ -34,12 +34,11 @@ public class GetRuns implements IRunnableWithProgress{
     @Override
     public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException
     {
+    	try {
         // Tell the user what you are doing
         monitor.beginTask("Getting Runs", IProgressMonitor.UNKNOWN);
 
         // Do your work
-        try {
-        	
        String currentcompid=AuthProvider.getInstance().getCompartmentId();
        if(currentcompid!=null&&!compid.equals(currentcompid)) {
         	compid=currentcompid;
@@ -48,13 +47,13 @@ public class GetRuns implements IRunnableWithProgress{
         Object[] getRuns=DataflowClient.getInstance().getRuns(compid, sortBy, sortOrder, 20, page);
         runSummaryList=(List<RunSummary>)getRuns[0];
         listrunsresponse=(ListRunsResponse)getRuns[1];
+        
+        // You are done
+        monitor.done();
         }
         catch (Exception e) {
         	errorMessage=e.getMessage();
         }
-        
-        // You are done
-        monitor.done();
     }
     
     public String getErrorMessage() {

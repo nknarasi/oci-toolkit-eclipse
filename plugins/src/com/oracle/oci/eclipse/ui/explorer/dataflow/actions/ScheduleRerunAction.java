@@ -20,6 +20,7 @@ public class ScheduleRerunAction implements IRunnableWithProgress{
 	private Map<String,String> FT;
 	private Map<String,String> config;
 	private boolean isChecked;
+	private String errorMessage=null;
 	
     public ScheduleRerunAction(Object[] obj,Map<String,Map<String,Object>> OT,Map<String,String> FT,Map<String,String> config,boolean isChecked)
     {
@@ -33,6 +34,7 @@ public class ScheduleRerunAction implements IRunnableWithProgress{
     @Override
     public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException
     {
+    	try {
         // Tell the user what you are doing
         monitor.beginTask("Re-run request processing", IProgressMonitor.UNKNOWN);
 
@@ -62,5 +64,13 @@ public class ScheduleRerunAction implements IRunnableWithProgress{
 
         // You are done
         monitor.done();
+    	}
+    	catch (Exception e) {
+    		errorMessage=e.getMessage();
+    	}
+    }
+    
+    public String getErrorMessage() {
+    	return errorMessage;
     }
 }

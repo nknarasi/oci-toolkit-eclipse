@@ -18,7 +18,7 @@ public class ScheduleCreatePrivateEndpointAction implements IRunnableWithProgres
 	private Map<String,Map<String,Object>> OT;
 	private Map<String,String> FT;
 	private ArrayList<String> nsgs;
-	private String compid;
+	private String compid,errorMessage=null;
 	
     public ScheduleCreatePrivateEndpointAction(Object[] obj,Map<String,Map<String,Object>> OT,Map<String,String> FT,ArrayList<String> nsgs,String compid)
     {
@@ -32,12 +32,15 @@ public class ScheduleCreatePrivateEndpointAction implements IRunnableWithProgres
     @Override
     public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException
     {
+    	try {
         // Tell the user what you are doing
         monitor.beginTask("Create Private Endpoint request processing", IProgressMonitor.UNKNOWN);
 
         // Do your work
+        	System.out.println(compid);
+        	
         CreatePrivateEndpointDetails createPrivateEndpointDetails = CreatePrivateEndpointDetails.builder()
-				.compartmentId(compid==null?(String)obj[0]:compid)
+				.compartmentId(compid)
 				.definedTags(OT)
 				.displayName((String)obj[3])
 				.dnsZones(Arrays.asList((String[])obj[4]))
@@ -51,9 +54,16 @@ public class ScheduleCreatePrivateEndpointAction implements IRunnableWithProgres
 				.build();
     // Send request to the Client 
 		DataflowClient.getInstance().getDataFlowClient().createPrivateEndpoint(createPrivateEndpointRequest);
-
         // You are done
         monitor.done();
+        }
+        catch (Exception e) {
+        	errorMessage=e.getMessage();
+        }
+    }
+    
+    public String getErrorMessage() {
+    	return errorMessage;
     }
 }
 

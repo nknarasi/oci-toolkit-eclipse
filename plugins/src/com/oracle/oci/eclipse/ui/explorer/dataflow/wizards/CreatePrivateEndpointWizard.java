@@ -13,6 +13,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddEditPrivateEndpointPagesAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddPrivateEndpointPagesAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.ScheduleCreatePrivateEndpointAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.Validations;
@@ -37,9 +38,13 @@ public class CreatePrivateEndpointWizard extends Wizard implements INewWizard {
     	try {
          	IRunnableWithProgress op = new AddPrivateEndpointPagesAction(this);
              new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+             String errorMessage=((AddPrivateEndpointPagesAction)op).getErrorMessage();
+             if(errorMessage!=null)
+             	throw new Exception(errorMessage);
          } catch (Exception e) {
          	MessageDialog.openError(getShell(), "Unable to add pages to Re-run wizard", e.getMessage());
          }
+    	getShell().setMaximumSize(1000, 800);
     }
 
     /**
@@ -64,8 +69,11 @@ public class CreatePrivateEndpointWizard extends Wizard implements INewWizard {
         	
         	IRunnableWithProgress op = new ScheduleCreatePrivateEndpointAction(obj,page3.getOT(),page3.getFT(),page2.getnsgs(),pepTable.compid);
             new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
-        	
-        	
+            
+            String errorMessage=((ScheduleCreatePrivateEndpointAction)op).getErrorMessage();
+        	if(errorMessage!=null)
+        		throw new Exception(errorMessage);
+            
         MessageDialog.openInformation(getShell(),"Succesful","Private Endpoint created successfully.");
         }
         catch (Exception e) {

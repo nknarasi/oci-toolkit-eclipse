@@ -39,10 +39,13 @@ public class EditPrivateEndpointWizard extends Wizard implements INewWizard {
     	try {
          	IRunnableWithProgress op = new AddEditPrivateEndpointPagesAction(this);
              new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+            String errorMessage=((AddEditPrivateEndpointPagesAction)op).getErrorMessage();
+            if(errorMessage!=null)
+            	throw new Exception(errorMessage);
          } catch (Exception e) {
          	MessageDialog.openError(getShell(), "Unable to add pages to Edit Private Endpoint wizard", e.getMessage());
          }
-        
+    	getShell().setMaximumSize(1000, 800);
     }
     /**
      * This method is called when 'Finish' button is pressed in
@@ -63,7 +66,11 @@ public class EditPrivateEndpointWizard extends Wizard implements INewWizard {
         
         	IRunnableWithProgress op = new ScheduleEditPrivateEndpointAction(page2.getOT(),page2.getFT(),page.getDNS(),page.getName(),pepSum.getId());
             new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
-        
+            
+            String errorMessage=((ScheduleEditPrivateEndpointAction)op).getErrorMessage();
+            if(errorMessage!=null)
+            	throw new Exception(errorMessage);
+            
 		pepTable.refresh(true);
         }
         catch (Exception e) {

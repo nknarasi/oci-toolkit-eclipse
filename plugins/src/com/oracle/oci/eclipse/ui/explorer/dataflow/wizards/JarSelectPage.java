@@ -15,7 +15,6 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
@@ -39,11 +38,12 @@ public class JarSelectPage extends WizardPage{
 	    private Tree tree;
 	    private Image IMAGE;
 	    private Composite pc,container;
-	    private ScrolledComposite sc;
 	    private DataTransferObject dto;
 	    private ProjectSelectWizardPage page;
 	    boolean fileCreated = false;
 	    protected Job job;
+	    private IJavaProject project=null;
+	    private Button createJar,createArchive,selDesel;
 
 	    public JarSelectPage(ISelection selection,ProjectSelectWizardPage page,DataTransferObject dto) {
 	        super("wizardPage");
@@ -52,6 +52,7 @@ public class JarSelectPage extends WizardPage{
 	        IMAGE = Activator.getImage(Icons.COMPARTMENT.getPath());
 	        this.page=page;
 	        this.dto= dto;
+	        this.selection=selection;
 	    }
 
 	    @Override
@@ -69,8 +70,23 @@ public class JarSelectPage extends WizardPage{
 	                    @Override
 	                    public void run() {
 	                        try {
+	                        	
+	                        	IJavaProject newProj=page.getSelectedProject();
+	                        	if(project!=null&&project.equals(newProj)) {
+	                        		return;
+	                        	}
+	                        	project=newProj;
+	                        	createJar.setEnabled(true);
+	                        	createArchive.setEnabled(true);
+	                        	selDesel.setText("Deselect All");
+	                        	MakeJarAndZip.jarUri=null;
+                        		MakeJarAndZip.zipUri=null;
+                        		dto.archivedir=null;
+                        		dto.filedir=null;
+                        		fileCreated=false;
+                        		getWizard().getContainer().updateButtons();
 	                        	tree.removeAll();
-	                            for (IClasspathEntry p : page.getSelectedProject().getRawClasspath()) {
+	                            for (IClasspathEntry p : project.getRawClasspath()) {
 	                                                try {
 	                                                	String path=p.getPath().toString();
 	                                                    if(!path.endsWith(".jar")) continue;
@@ -101,7 +117,7 @@ public class JarSelectPage extends WizardPage{
 	        pc.setLayout(gl);
 	        pc.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-	        Button selDesel=new Button(pc,SWT.PUSH);
+	        selDesel=new Button(pc,SWT.PUSH);
 	        selDesel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 	        selDesel.setText("Deselect All");
 	        selDesel.addSelectionListener(new SelectionListener() {
@@ -140,10 +156,10 @@ public class JarSelectPage extends WizardPage{
 	        dComp.setLayout(gl2);
 	        dComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 	        
-	        Button createJar=new Button(dComp,SWT.PUSH);
+	        createJar=new Button(dComp,SWT.PUSH);
 	        createJar.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 	        
-	        Button createArchive=new Button(dComp,SWT.PUSH);
+	        createArchive=new Button(dComp,SWT.PUSH);
 	        createJar.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 	        createJar.setText("Create Application Jar File");
 	        createArchive.setText("Create Archive Zip File");
@@ -185,7 +201,6 @@ public class JarSelectPage extends WizardPage{
 	            	catch (Exception e1) {
 	            		MessageDialog.openError(getShell(), "Error", e1.getMessage());
 	            	}
-	            	createArchive.setEnabled(false);
 	            }
 
 				@Override
