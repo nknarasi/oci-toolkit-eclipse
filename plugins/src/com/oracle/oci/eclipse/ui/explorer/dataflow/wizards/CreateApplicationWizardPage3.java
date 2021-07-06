@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.IWizardPage;
@@ -57,24 +59,22 @@ public class CreateApplicationWizardPage3   extends WizardPage {
     private Set<SparkProperty> createdPropertiesSet=new HashSet<SparkProperty>();    
 	private Composite propertiesSection;
 	private Composite buttonComposite;
-	private Composite advancedOptionsComposite;
-	private  DataTransferObject dto; 	
+	private Composite advancedOptionsComposite;	
 	private boolean networkSectionSelected=false;
 	private boolean usesAdvancedOptions=false;
 	private int intial = -1;
 	private Button addProperty;
 	
-	public CreateApplicationWizardPage3(ISelection selection,DataTransferObject dto) {
+	public CreateApplicationWizardPage3(ISelection selection) {
 		super("Page 3");
 		setTitle("Create Application Advanced Options");
 		setDescription("Add Advanced Options for application if required.");
 		this.selection = selection;		
-		this.dto=dto;
 		Compartment rootCompartment = IdentClient.getInstance().getRootCompartment();
 		this.selectedApplicationCompartment = rootCompartment;
-		if(dto.getApplicationId() != null)
+		if(DataTransferObject.applicationId != null)
 		{
-			Application application = DataflowClient.getInstance().getApplicationDetails(dto.getApplicationId());
+			Application application = DataflowClient.getInstance().getApplicationDetails(DataTransferObject.applicationId);
 			String compartmentId = application.getCompartmentId();	
 			List<Compartment> Allcompartments = IdentClient.getInstance().getCompartmentList(rootCompartment);
 			for(Compartment compartment : Allcompartments) {
@@ -139,7 +139,7 @@ public class CreateApplicationWizardPage3   extends WizardPage {
         addProperty.setText("Add a Spark Property");       
         addProperty.addSelectionListener(new SelectionAdapter() {      	
             public void widgetSelected(SelectionEvent e) {
-             createdPropertiesSet.add(new SparkProperty(propertiesSection,advancedOptionsComposite,scrolledComposite,createdPropertiesSet,dto.getData()));
+             createdPropertiesSet.add(new SparkProperty(propertiesSection,advancedOptionsComposite,scrolledComposite,createdPropertiesSet));
     		 container.layout(true,true);
          	 scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
             }
@@ -170,6 +170,7 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 		advancedOptionsComposite.setVisible(usesAdvancedOptions);
 		container.layout(true,true);
 		
+	    scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 		setControl(scrolledComposite);
 	}
 	
@@ -257,8 +258,12 @@ public class CreateApplicationWizardPage3   extends WizardPage {
         container.pack();                
 	}
 	
-	private void chooseSubnet(Composite currentcontainer, String compartmentId) {		     
-		privateEndpoints = DataflowClient.getInstance().getPrivateEndPoints(compartmentId);		
+	private void chooseSubnet(Composite currentcontainer, String compartmentId) {			
+		try {
+			 privateEndpoints = DataflowClient.getInstance().getPrivateEndPoints(compartmentId);		
+	    }catch (Exception e) {        	        
+	            MessageDialog.openError(getShell(), "Failed to get private endpoints ", e.getMessage());
+	    }				
 		int sizeoflist= privateEndpoints.size();
 		String[] PrivateEndpointsList = new String[sizeoflist];
 		for(int i = 0; i < privateEndpoints.size(); i++){  
@@ -335,14 +340,13 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 
 		void onEnterPage()
 		{
-		    final DataTransferObject dto = ((LocalFileSelectWizard) getWizard()).dto;
-		    String applicationId = dto.applicationId;
+		    String applicationId = DataTransferObject.applicationId;
 		    
 		    if(applicationId != null) {
 		    		Application application = DataflowClient.getInstance().getApplicationDetails(applicationId);
 		    	   if(application.getConfiguration() != null) {        	
 		          	 for (Map.Entry<String,String> property : application.getConfiguration().entrySet()) {
-		          		 SparkProperty propertypresent = new SparkProperty(propertiesSection,advancedOptionsComposite,scrolledComposite,createdPropertiesSet,application.getSparkVersion());
+		          		 SparkProperty propertypresent = new SparkProperty(propertiesSection,advancedOptionsComposite,scrolledComposite,createdPropertiesSet);
 		          		 createdPropertiesSet.add(propertypresent);
 		          		 propertypresent.tagKey.setText(property.getKey());
 		  				 propertypresent.tagValue.setText(property.getValue());

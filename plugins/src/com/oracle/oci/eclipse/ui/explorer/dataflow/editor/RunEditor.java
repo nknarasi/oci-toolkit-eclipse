@@ -16,7 +16,7 @@ import com.oracle.oci.eclipse.ui.explorer.common.BaseEditor;
 public class RunEditor extends BaseEditor implements PropertyChangeListener {
 
     public final static String ID = RunEditor.class.getName();
-    public final static String TITLE = "Run Log";
+    public final static String TITLE = "Dataflow Runs";
 
     RunEditor classReference = this;
     RunTable table;

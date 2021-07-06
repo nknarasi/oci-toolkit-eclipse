@@ -106,7 +106,9 @@ public class Validations {
 	}
 	
 	private static boolean checkName(String name) {
-		return (name!=null&&!name.isEmpty());
+		if( (name == null || name.isEmpty() || name.length()>255))
+			return false;
+		return true;
 	}
 	
 	private static boolean checkLogUri(String uri) {
@@ -123,6 +125,8 @@ public class Validations {
 	}
 	
 	private static boolean checkWarehouseUri(String uri) {
+		if(uri == null || uri.isEmpty())
+			return true; 
 		return (uri.length()>9)&&
 				(uri.substring(0,6).equals("oci://"))&&
 				(!uri.endsWith("/"))&&
@@ -132,8 +136,8 @@ public class Validations {
 	private static boolean checkSparkProperties(int version,Set<String> list) {
     	 
 		String[] l;
-    	if(version==3) l=DataflowConstants.Spark3PropertiesList;
-    	else l=DataflowConstants.Spark2PropertiesList;
+    	if(version==3) l=DataflowConstants.spark3PropertiesList;
+    	else l=DataflowConstants.spark2PropertiesList;
     	boolean b;
     	for(String e:list) {
     		b=false;

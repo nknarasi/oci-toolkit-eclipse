@@ -40,7 +40,7 @@ public class CreatePrivateEndpointWizardPage extends WizardPage {
 
     public CreatePrivateEndpointWizardPage(ISelection selection,String compid) {
         super("wizardPage");
-        setTitle("Create Private Endpoint Wizard");
+        setTitle("Create Private Endpoint");
         setDescription("This wizard creates a Private Endpoint. Please enter the following details.");
         this.selection = selection;
         this.compid=compid;

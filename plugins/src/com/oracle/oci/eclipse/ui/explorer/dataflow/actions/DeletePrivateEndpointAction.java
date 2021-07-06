@@ -24,10 +24,10 @@ public class DeletePrivateEndpointAction extends BaseAction {
     protected void runAction() {
     	if(pep.getLifecycleState().toString()=="Creating") {
     		
-    		MessageDialog.openInformation(pepTable.getShell(), "Failed to Delete Private Endpoint", "Still in the create state");
+    		MessageDialog.openInformation(pepTable.getShell(), "Failed to Delete Private Endpoint", "Private endpoint is still in creating state and hence cannot be deleted");
     		return;
     	}
-    	boolean result = MessageDialog.openConfirm(pepTable.getShell(), "Please Confirm", "Are you sure you want to delete "+pep.getDisplayName()+".");
+    	boolean result = MessageDialog.openConfirm(pepTable.getShell(), "Please Confirm", "Are you sure you want to delete the Private Endpoint named "+pep.getDisplayName()+"?");
     	
 		if (result){
 			try{
@@ -37,11 +37,11 @@ public class DeletePrivateEndpointAction extends BaseAction {
 			.build();
 
 			client.deletePrivateEndpoint(deletePrivateEndpointRequest);
-			MessageDialog.openInformation(pepTable.getShell(), "Successful", "Private Endpoint Deleting...");
+			MessageDialog.openInformation(pepTable.getShell(), "Successful", "Private endpoint successfully deleted");
 			pepTable.refresh(true);
 			}
 			catch (Exception e){
-				MessageDialog.openError(pepTable.getShell(), "Failed to Delete Private Endpoint ", e.getMessage());
+				MessageDialog.openError(pepTable.getShell(), "Error while deleting private endpoint", e.getMessage());
 			}
 		} else {
 			// Cancel Button selected do something

@@ -37,7 +37,7 @@ public class AdvancedOptionsPage extends WizardPage {
 
     public AdvancedOptionsPage(ISelection selection,Object obj,RunWizardPage page) {
         super("wizardPage");
-        setTitle("Advanced Options Wizard");
+        setTitle("Choose advanced options");
         setDescription("This wizard lets you choose certain advanced functionalities.");
         this.selection = selection;
         this.obj=obj;
@@ -100,7 +100,7 @@ public class AdvancedOptionsPage extends WizardPage {
         add.setText("Add Spark Property");
         
         for(Map.Entry<String,String> entry:run.getConfiguration().entrySet()) {
-    		SparkProperty sp=new SparkProperty(comp3,comp1,scrollComp,set,(String)page.getDetails()[14]);
+    		SparkProperty sp=new SparkProperty(comp3,comp1,scrollComp,set);
     		sp.tagKey.setText(entry.getKey());
     		sp.tagValue.setText(entry.getValue());
     	}
@@ -108,7 +108,7 @@ public class AdvancedOptionsPage extends WizardPage {
         add.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
             	
-            	set.add(new SparkProperty(comp3,comp1,scrollComp,set,(String)page.getDetails()[14]));
+            	set.add(new SparkProperty(comp3,comp1,scrollComp,set));
             }
           });
         

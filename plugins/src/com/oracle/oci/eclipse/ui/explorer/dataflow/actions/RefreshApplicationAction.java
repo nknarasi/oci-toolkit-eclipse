@@ -4,10 +4,10 @@ import com.oracle.oci.eclipse.ui.explorer.common.BaseAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.editor.ApplicationTable;
 
 public class RefreshApplicationAction extends BaseAction {	
-	 private final ApplicationTable objectTable;
+	 private final ApplicationTable applicationTable;
 	
 	 public RefreshApplicationAction (ApplicationTable table){
-	        objectTable = table;
+		 applicationTable = table;
 	 }
 	   
 	 @Override
@@ -17,6 +17,6 @@ public class RefreshApplicationAction extends BaseAction {
 	
 	 @Override
 	 protected void runAction() {
-	        objectTable.refresh(true);
+		 applicationTable.refresh(true);
 	 }		
 }

@@ -76,14 +76,14 @@ public class RunWizardPage extends WizardPage {
 		dshapeCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		try {
-			dshapeCombo.setItems(DataflowConstants.ShapesDetails);
+			dshapeCombo.setItems(DataflowConstants.shapesDetails);
 		} 
 		catch (Exception e) {
 			MessageDialog.openError(getShell(), "Error", e.getMessage());
 		}
 		
-		for(int i=0; i<DataflowConstants.ShapesDetails.length ; i++) {
-			if(run.getDriverShape().equals(DataflowConstants.ShapesDetails[i].split(" ")[0])) {
+		for(int i=0; i<DataflowConstants.shapesDetails.length ; i++) {
+			if(run.getDriverShape().equals(DataflowConstants.shapesDetails[i].split(" ")[0])) {
 				dshapeCombo.select(i);
 			}
 		}	
@@ -94,14 +94,14 @@ public class RunWizardPage extends WizardPage {
 		eshapeCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		try {
-			eshapeCombo.setItems(DataflowConstants.ShapesDetails);
+			eshapeCombo.setItems(DataflowConstants.shapesDetails);
 		} 
 		catch (Exception e) {
 			MessageDialog.openError(getShell(), "Error", e.getMessage());
 		}
 		
-		for(int i=0; i<DataflowConstants.ShapesDetails.length ; i++) {
-			if(run.getDriverShape().equals(DataflowConstants.ShapesDetails[i].split(" ")[0])) {
+		for(int i=0; i<DataflowConstants.shapesDetails.length ; i++) {
+			if(run.getDriverShape().equals(DataflowConstants.shapesDetails[i].split(" ")[0])) {
 				eshapeCombo.select(i);
 			}
 		}	

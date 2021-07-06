@@ -28,7 +28,6 @@ public class CreateRunWizardPage1  extends WizardPage{
 	private Application application;
 	private DataTransferObject dto;
 	private Text displayNameText;
-	private Combo sparkVersionCombo;
 	private Combo driverShapeCombo;
 	private Combo executorShapeCombo;
 	private Spinner numofExecutorsSpinner;		
@@ -39,8 +38,8 @@ public class CreateRunWizardPage1  extends WizardPage{
     
 	public CreateRunWizardPage1(ISelection selection,DataTransferObject dto, String applicationId) {
 		super("page");
-		setTitle("Start Run for Application");
-		setDescription("This wizard starts a run for the DataFlow Application. Please enter the required details.");
+		setTitle("Create run for Dataflow application");
+		setDescription("This wizard creates a run for DataFlow application. Please enter the required details.");
 		this.selection = selection;
 		this.dto = dto;
 		this.parameterset = new HashSet<Parameters>();
@@ -70,18 +69,6 @@ public class CreateRunWizardPage1  extends WizardPage{
 		displayNameText.setLayoutData(gd);
 		displayNameText.setText(defaultRunName);
 		
-		Label SparkVersionLabel = new Label(container, SWT.NULL);
-		SparkVersionLabel.setText("&Spark Version:");
-		GridData gd2 = new GridData(GridData.FILL_HORIZONTAL);
-		sparkVersionCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
-		sparkVersionCombo.setLayoutData(gd2);		 
-		sparkVersionCombo.setItems(DataflowConstants.Versions);
-		for(int i=0; i<DataflowConstants.Versions.length ; i++) {
-			if(application.getSparkVersion().equals(DataflowConstants.Versions[i])) {
-				sparkVersionCombo.select(i);
-			}
-		}
-		
 		Label DriverShapeLabel = new Label(container, SWT.NULL);
 		DriverShapeLabel.setText("&Driver Shape:");
 		createDriverShapeCombo(container);		
@@ -94,7 +81,7 @@ public class CreateRunWizardPage1  extends WizardPage{
 		NumofExecutorslabel.setText("&Number of Executors:");
 		createNumofExecutorsSpinner(container);
 		
-		if(application.getExecute() == null) {
+		if(application.getExecute() == null || application.getExecute().equals("")) {
 			Label Argumentslabel = new Label(container, SWT.NULL);
 			Argumentslabel.setText("&Arguments:");
 			argumentsText = new Text(container, SWT.BORDER | SWT.SINGLE);
@@ -131,20 +118,24 @@ public class CreateRunWizardPage1  extends WizardPage{
 		else {
 			Label sparkSubmitlabel = new Label(container, SWT.NULL);
 			sparkSubmitlabel.setText("&Spark Submit Command:");
-			sparkSubmitText = new Text(container, SWT.BORDER | SWT.SINGLE);
-			sparkSubmitText.setText(application.getExecute());
+			sparkSubmitText = new Text(container, SWT.BORDER | SWT.MULTI);
+			 GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+			 gridData.heightHint = 5 * sparkSubmitText.getLineHeight();
+			 sparkSubmitText.setLayoutData(gridData);
+			 sparkSubmitText.setText(application.getExecute());
 		}
 
       	container.layout(true,true);
+	    scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 		setControl(scrolledComposite);
 	}
 	private void createDriverShapeCombo(Composite container) {		
 		driverShapeCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
 		GridData gd3 = new GridData(GridData.FILL_HORIZONTAL);
 		driverShapeCombo.setLayoutData(gd3);		 
-		driverShapeCombo.setItems(DataflowConstants.ShapesDetails);
-		for(int i=0; i<DataflowConstants.ShapesDetails.length ; i++) {
-			if(application.getDriverShape().equals(DataflowConstants.ShapesDetails[i].split(" ")[0])) {
+		driverShapeCombo.setItems(DataflowConstants.shapesDetails);
+		for(int i=0; i<DataflowConstants.shapesDetails.length ; i++) {
+			if(application.getDriverShape().equals(DataflowConstants.shapesDetails[i].split(" ")[0])) {
 				driverShapeCombo.select(i);
 			}
 		}		
@@ -154,9 +145,9 @@ public class CreateRunWizardPage1  extends WizardPage{
 		executorShapeCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
 		GridData gd4 = new GridData(GridData.FILL_HORIZONTAL);
 		executorShapeCombo.setLayoutData(gd4); 
-		executorShapeCombo.setItems(DataflowConstants.ShapesDetails);
-		for(int i=0; i<DataflowConstants.ShapesDetails.length ; i++) {
-			if(application.getExecutorShape().equals(DataflowConstants.ShapesDetails[i].split(" ")[0])) {
+		executorShapeCombo.setItems(DataflowConstants.shapesDetails);
+		for(int i=0; i<DataflowConstants.shapesDetails.length ; i++) {
+			if(application.getExecutorShape().equals(DataflowConstants.shapesDetails[i].split(" ")[0])) {
 				executorShapeCombo.select(i);
 			}
 		}		
@@ -166,19 +157,15 @@ public class CreateRunWizardPage1  extends WizardPage{
 		numofExecutorsSpinner = new Spinner(container, SWT.BORDER | SWT.SINGLE);
 		GridData gd5 = new GridData(GridData.FILL_HORIZONTAL);
 		numofExecutorsSpinner.setLayoutData(gd5);
-		numofExecutorsSpinner.setMinimum(DataflowConstants.NUM_OF_EXECUTORS_MIN);
-		numofExecutorsSpinner.setMaximum(DataflowConstants.NUM_OF_EXECUTORS_MAX);
-		numofExecutorsSpinner.setIncrement(DataflowConstants.NUM_OF_EXECUTORS_INCREMENT);
+		numofExecutorsSpinner.setMinimum(DataflowConstants.numOfExecutorsMin);
+		numofExecutorsSpinner.setMaximum(DataflowConstants.numOfExecutorsMax);
+		numofExecutorsSpinner.setIncrement(DataflowConstants.numOfExecutorsIncrement);
 		// default value
 		numofExecutorsSpinner.setSelection(application.getNumExecutors());
 	}
 		
 	public String getDisplayName() {
 		return displayNameText.getText();
-	}
-	
-	public String getSparkVersion() {		
-		return sparkVersionCombo.getText();
 	}
 	
 	public String getDriverShape() {		
@@ -217,8 +204,7 @@ public class CreateRunWizardPage1  extends WizardPage{
 		 	if(application.getExecute() != null) {
 		 		 CreateRunWizardPage3 advpage =((CreateRunWizard)getWizard()).thirdpage;
 		 		 advpage.usesSparkSubmit();
-		 	}
-	        dto.setData(this.sparkVersionCombo.getText().toString());	        
+		 	}       
 	        return super.getNextPage();
 	    }
 	 

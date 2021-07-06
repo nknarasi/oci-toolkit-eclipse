@@ -42,6 +42,8 @@ public class DetailsApplicationAction extends BaseAction {
 	        	ApplicationSummary object = applicationSelectionList.get(0);
 	        	applicationID = object.getId();
 	        }
+	        else
+	        	return;
 	        new Job("Get Application Details") {
 	            @Override
 	            protected IStatus run(IProgressMonitor monitor) {
@@ -86,13 +88,9 @@ public class DetailsApplicationAction extends BaseAction {
 	        	data.add(new TablePair("Archive URL", application.getArchiveUri()));
 	        
 	        if(application.getLanguage() == ApplicationLanguage.Java)
-	        	data.add(new TablePair("Main Class Name", application.getClassName()));
+	        	data.add(new TablePair("Main Class Name", application.getClassName()));	        
 	        
-	        
-	        if(application.getArguments() == null || application.getArguments().size() == 0) {
-	        	data.add(new TablePair("Arguments", "NO VALUE"));
-	        }
-	        else
+	        if(application.getArguments() != null && !application.getArguments().isEmpty()) 
 	        	data.add(new TablePair("Arguments", application.getArguments().toString()));
 	        
         	if(application.getParameters() != null && application.getParameters().size() != 0 ) {

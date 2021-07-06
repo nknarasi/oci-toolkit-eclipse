@@ -38,8 +38,9 @@ public class TagsPage extends WizardPage {
 
     public TagsPage(ISelection selection,String compid) {
         super("wizardPage");
-        setTitle("Tag Wizard");
-        setDescription("This wizard lets you add Tags.");
+        setTitle("Tags");
+        setDescription("Tagging is a metadata system that allows you to organize and track resources within your tenancy. Tags are composed of keys and values that can be attached to resources.\r\n"
+        		+ "<a href=\"/https://docs.oracle.com/en-us/iaas/Content/Tagging/Concepts/taggingoverview.htm\">Learn more about tagging </a>");
         this.selection = selection;
         this.namespacesList=getNamespaces();
     }
@@ -175,7 +176,7 @@ public class TagsPage extends WizardPage {
 	   return client.getTagNamespace(getTagNamespaceRequest).getTagNamespace();
 	 }
 	 
-	 Map<String,Map<String,Object>> getOT(){
+	 public Map<String,Map<String,Object>> getOT(){
 		 
 		 Map<String,Map<String,Object>> ots=new HashMap<String,Map<String,Object>>();
 		 Map<String,Object> m=new HashMap<String,Object>();
@@ -189,7 +190,7 @@ public class TagsPage extends WizardPage {
 		 return ots;
 	 }
 	 
-	 Map<String,String> getFT(){
+	 public Map<String,String> getFT(){
 		 Map<String,String> m=new HashMap<String,String>();
 		 
 		 for(Tags t:set) {

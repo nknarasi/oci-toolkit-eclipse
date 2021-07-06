@@ -60,7 +60,7 @@ public class EditPrivateEndpointWizard extends Wizard implements INewWizard {
         	String[] objType=new String[] {"name","dnszones"};
         	String message=Validations.check(validObjects, objType);
         	if(!message.isEmpty()) {
-        		open("Improper Entries",message);
+        		open("Validation errors",message);
         		return false;
         	}
         
@@ -74,7 +74,7 @@ public class EditPrivateEndpointWizard extends Wizard implements INewWizard {
 		pepTable.refresh(true);
         }
         catch (Exception e) {
-        	MessageDialog.openError(getShell(), "Failed to Update Private Endpoint", e.getMessage());
+        	MessageDialog.openError(getShell(), "Error while creating private endpoint", e.getMessage());
         	return false;
         }
         return true;

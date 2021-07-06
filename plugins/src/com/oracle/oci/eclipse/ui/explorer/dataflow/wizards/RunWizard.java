@@ -77,7 +77,7 @@ public class RunWizard extends Wizard implements INewWizard {
         	String message=Validations.check(validObjects, objectType);
         	
         	if(!message.isEmpty()) {
-        		open("Improper Entries",message);
+        		open("Validation errors",message);
         		return false;
         	}
 

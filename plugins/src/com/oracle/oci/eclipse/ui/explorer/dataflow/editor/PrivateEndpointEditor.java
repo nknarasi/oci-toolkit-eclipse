@@ -16,7 +16,7 @@ import com.oracle.oci.eclipse.ui.explorer.common.BaseEditor;
 public class PrivateEndpointEditor extends BaseEditor implements PropertyChangeListener {
 
     public final static String ID = PrivateEndpointEditor.class.getName();
-    public final static String TITLE = "Private Endpoint Log";
+    public final static String TITLE = "Dataflow Private Endpoint";
 
     PrivateEndpointEditor classReference = this;
     PrivateEndpointTable table;

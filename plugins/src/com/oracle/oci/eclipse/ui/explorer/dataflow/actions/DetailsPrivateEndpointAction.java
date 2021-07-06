@@ -50,8 +50,11 @@ public class DetailsPrivateEndpointAction extends BaseAction {
 				privateEndpointObject=DataflowClient.getInstance().getPrivateEndpointDetails(pepID);
 			} 
 			catch (Exception e) {
-				MessageDialog.openError(Display.getDefault().getActiveShell(),"Unable to get Private Endpoint details: ",e.getMessage());
+				MessageDialog.openError(Display.getDefault().getActiveShell(),"Unable to get private endpoint details : ",e.getMessage());
 			}
+        }
+        else {
+        	return;
         }
         new Job("Get PrivateEndpoint Details") {
             @Override
@@ -69,7 +72,7 @@ public class DetailsPrivateEndpointAction extends BaseAction {
 
                 }
                 catch (Exception e) {
-                	MessageDialog.openError(Display.getDefault().getActiveShell(),"Unable to get Private Endpoint details:",e.getMessage());
+                	MessageDialog.openError(Display.getDefault().getActiveShell(),"Error while getting private endpoint details :",e.getMessage());
                 }
                 return Status.OK_STATUS;
             }

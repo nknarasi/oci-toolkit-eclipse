@@ -18,7 +18,7 @@ public class SparkProperty {
 	 Text tagKey;
 	 Button closeButton;
 	 
-	 SparkProperty(Composite current,Composite container, ScrolledComposite scrolledcomposite,Set<SparkProperty> CreatedPropertiesSet,String Version){
+	 SparkProperty(Composite current,Composite container, ScrolledComposite scrolledcomposite,Set<SparkProperty> CreatedPropertiesSet){
 		 
 		 composite=new Composite(current,SWT.NONE);
 		 composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));

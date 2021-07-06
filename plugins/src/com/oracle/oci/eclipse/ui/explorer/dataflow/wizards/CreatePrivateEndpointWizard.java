@@ -77,7 +77,7 @@ public class CreatePrivateEndpointWizard extends Wizard implements INewWizard {
         MessageDialog.openInformation(getShell(),"Succesful","Private Endpoint created successfully.");
         }
         catch (Exception e) {
-        	MessageDialog.openError(getShell(), "Failed to Create Private Endpoint ", e.getMessage());
+        	MessageDialog.openError(getShell(), "Error while creating private endpoint ", e.getMessage());
         	return false;
         }
         

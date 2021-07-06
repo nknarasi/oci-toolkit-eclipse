@@ -10,25 +10,23 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 import com.oracle.bmc.dataflow.model.RunSummary;
 import com.oracle.bmc.dataflow.requests.ListRunsRequest;
 import com.oracle.bmc.dataflow.responses.ListRunsResponse;
-import com.oracle.oci.eclipse.account.AuthProvider;
 import com.oracle.oci.eclipse.sdkclients.DataflowClient;
-import com.oracle.oci.eclipse.sdkclients.IdentClient;
 
 public class GetRuns implements IRunnableWithProgress{
 	
 	private ListRunsRequest.SortBy sortBy;
 	private ListRunsRequest.SortOrder sortOrder;
-	private String page=null;
-	private static String compid=IdentClient.getInstance().getRootCompartment().getId();
+	private String page=null,compid;
 	public List<RunSummary> runSummaryList = new ArrayList<RunSummary>();
 	public ListRunsResponse listrunsresponse;
 	private String errorMessage=null;
 	
-    public GetRuns(ListRunsRequest.SortBy sortBy,ListRunsRequest.SortOrder sortOrder,String page)
+    public GetRuns(String compid,ListRunsRequest.SortBy sortBy,ListRunsRequest.SortOrder sortOrder,String page)
     {
         this.sortBy=sortBy;
         this.sortOrder=sortOrder;
         this.page=page;
+        this.compid=compid;
     }
 
     @Override
@@ -39,11 +37,6 @@ public class GetRuns implements IRunnableWithProgress{
         monitor.beginTask("Getting Runs", IProgressMonitor.UNKNOWN);
 
         // Do your work
-       String currentcompid=AuthProvider.getInstance().getCompartmentId();
-       if(currentcompid!=null&&!compid.equals(currentcompid)) {
-        	compid=currentcompid;
-        	page=null;
-        }
         Object[] getRuns=DataflowClient.getInstance().getRuns(compid, sortBy, sortOrder, 20, page);
         runSummaryList=(List<RunSummary>)getRuns[0];
         listrunsresponse=(ListRunsResponse)getRuns[1];

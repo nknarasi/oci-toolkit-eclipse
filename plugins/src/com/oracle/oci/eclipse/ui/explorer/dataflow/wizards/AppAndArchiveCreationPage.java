@@ -27,31 +27,25 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
-import com.oracle.oci.eclipse.Activator;
-import com.oracle.oci.eclipse.Icons;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.CreateFiles;
-import com.oracle.oci.eclipse.ui.explorer.objectstorage.actions.MakeJarAndZip;
 
-public class JarSelectPage extends WizardPage{
+public class AppAndArchiveCreationPage extends WizardPage{
 	
 	    private ISelection selection;
 	    private Tree tree;
 	    private Image IMAGE;
 	    private Composite pc,container;
-	    private DataTransferObject dto;
 	    private ProjectSelectWizardPage page;
 	    boolean fileCreated = false;
 	    protected Job job;
 	    private IJavaProject project=null;
 	    private Button createJar,createArchive,selDesel;
 
-	    public JarSelectPage(ISelection selection,ProjectSelectWizardPage page,DataTransferObject dto) {
+	    public AppAndArchiveCreationPage(ISelection selection,ProjectSelectWizardPage page) {
 	        super("wizardPage");
-	        setTitle("Add Dependencies to Application");
-	        setDescription("Choose the the external dependencies you want to include in the application.");
-	        IMAGE = Activator.getImage(Icons.COMPARTMENT.getPath());
+	        setTitle("Application dependencies selection");
+	        setDescription("Select the external dependencies required to run this project as Dataflow application");
 	        this.page=page;
-	        this.dto= dto;
 	        this.selection=selection;
 	    }
 
@@ -79,10 +73,8 @@ public class JarSelectPage extends WizardPage{
 	                        	createJar.setEnabled(true);
 	                        	createArchive.setEnabled(true);
 	                        	selDesel.setText("Deselect All");
-	                        	MakeJarAndZip.jarUri=null;
-                        		MakeJarAndZip.zipUri=null;
-                        		dto.archivedir=null;
-                        		dto.filedir=null;
+	                        	DataTransferObject.filedir=null;
+	                        	DataTransferObject.archivedir=null;
                         		fileCreated=false;
                         		getWizard().getContainer().updateButtons();
 	                        	tree.removeAll();
@@ -134,7 +126,6 @@ public class JarSelectPage extends WizardPage{
 	            			for(TreeItem te:tree.getItems()) {
                             	te.setChecked(false);
                             }
-	            			selDesel.setText("Select All");
 	            		}
 						
 					} catch (Exception e1) {
@@ -162,7 +153,7 @@ public class JarSelectPage extends WizardPage{
 	        createArchive=new Button(dComp,SWT.PUSH);
 	        createJar.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 	        createJar.setText("Create Application Jar File");
-	        createArchive.setText("Create Archive Zip File");
+	        createArchive.setText("Create Dependency archive file");
 	        createArchive.setEnabled(false);
 	        
 	        createJar.addSelectionListener(new SelectionListener() {
@@ -194,7 +185,7 @@ public class JarSelectPage extends WizardPage{
 	            public void widgetSelected(SelectionEvent e) {
 	            	try {
 	            		setJars();
-	            		IRunnableWithProgress op = new CreateFiles(MakeJarAndZip.jarList.size()+1);
+	            		IRunnableWithProgress op = new CreateFiles(DataTransferObject.jarList.size()+1);
 	                    new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
 						
 					} 
@@ -212,11 +203,11 @@ public class JarSelectPage extends WizardPage{
 	    }
 
 		public List<String> setJars() throws Exception{
-			MakeJarAndZip.jarList=new ArrayList<String>();
+			DataTransferObject.jarList=new ArrayList<String>();
 			for(TreeItem e:tree.getItems()) {
-				if(e.getChecked()) MakeJarAndZip.jarList.add(e.getData("path").toString());
+				if(e.getChecked()) DataTransferObject.jarList.add(e.getData("path").toString());
 			}
-			return MakeJarAndZip.jarList;
+			return DataTransferObject.jarList;
 		}
 		 
 		@Override
@@ -226,11 +217,9 @@ public class JarSelectPage extends WizardPage{
 		   
 		@Override
 		public IWizardPage getNextPage() { 		 				   			   
-			dto.setFiledir(MakeJarAndZip.jarUri);
-			dto.setArchivedir(MakeJarAndZip.zipUri);
-			LocalFileSelectWizardPage1 firstpage = ((LocalFileSelectWizard)getWizard()).firstbpage;
+			LocalFileSelectWizardPage1 firstpage = ((RunAsDataflowApplicationWizard)getWizard()).firstbpage;
 			firstpage.onEnterPage();
-			LocalFileSelectWizardPage2 secondpage = ((LocalFileSelectWizard)getWizard()).secondbpage;
+			LocalFileSelectWizardPage2 secondpage = ((RunAsDataflowApplicationWizard)getWizard()).secondbpage;
 			secondpage.onEnterPage();
 			return firstpage;       
 		}

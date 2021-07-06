@@ -23,7 +23,7 @@ public class DeleteRunAction extends BaseAction {
     @Override
     protected void runAction() {
     	
-    	boolean result = MessageDialog.openConfirm(runTable.getShell(), "Please Confirm", "Are you sure you want to cancel running of "+runSummary.getDisplayName()+".");
+    	boolean result = MessageDialog.openConfirm(runTable.getShell(), "Please Confirm", "Are you sure you wish to cancel the run "+runSummary.getDisplayName()+"?");
 		if (result){
 			try{
 			DataFlowClient client = DataflowClient.getInstance().getDataFlowClient();
@@ -32,11 +32,11 @@ public class DeleteRunAction extends BaseAction {
 					.opcRequestId(this.runSummary.getOpcRequestId())
 					.build();
 			        client.deleteRun(deleteRunRequest);
-			MessageDialog.openInformation(runTable.getShell(), "Successful", "Run Cancelling...");
+			MessageDialog.openInformation(runTable.getShell(), "Successful", "Successfully cancelled the run");
 			runTable.refresh(true);
 			}
 			catch (Exception e){
-				MessageDialog.openError(runTable.getShell(), "Failed to Cancel Run ", e.getMessage());
+				MessageDialog.openError(runTable.getShell(), "Error while cancelling the run "+ this.runSummary.getDisplayName(), e.getMessage());
 			}
 		} else {
 			// Cancel Button selected do something

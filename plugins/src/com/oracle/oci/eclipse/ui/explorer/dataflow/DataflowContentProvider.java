@@ -18,8 +18,8 @@ public class DataflowContentProvider extends BaseContentProvider
 	Object dataflowApplicationElement;
 	List<ApplicationSummary> applicationList = new ArrayList<ApplicationSummary>();
 	List<PrivateEndpointSummary> privateendpointsList = new ArrayList<PrivateEndpointSummary>();
-    boolean foundApplications = true;
-    boolean foundPrivateEndpoints = true;
+    private boolean foundApplications = true;
+    private boolean foundPrivateEndpoints = true;
         
     public DataflowContentProvider() {
         instance = this;

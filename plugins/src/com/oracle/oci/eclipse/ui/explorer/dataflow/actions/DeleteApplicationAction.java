@@ -37,29 +37,31 @@ public class DeleteApplicationAction extends BaseAction{
 	    
 	    @Override
 	 	protected void runAction() {
+	    	ApplicationSummary application;
 	    	if (applicationSelectionList.size() > 0) {
-	        	ApplicationSummary object = applicationSelectionList.get(0);
-	        	applicationID = object.getId();
-	    		}
-	    	Application application = DataflowClient.getInstance().getApplicationDetails(applicationID);
-	    	String title = "Delete Dataflow Application Bucket";
-	    	String message = "Are you sure you want to delete Application: " + application.getDisplayName();
-	    	Dialog dialog =  new MessageDialog(Display.getDefault().getActiveShell(), title, null, message, MessageDialog.QUESTION, new String[] {"Yes","No"}, 1);
-	        	if (dialog.open() != Dialog.OK) {
-	        		return;
-	        	}
-	        	new Job("Deleting Application") {
-	            @Override
-	            protected IStatus run(IProgressMonitor monitor) {
-	                try {
-	                    DataflowClient.getInstance().deleteApplication(application.getId());
-	                    table.refresh(true);
-	                    return Status.OK_STATUS;
-	                } catch (Exception e) {
-	                	MessageDialog.openError(table.getShell(), "Failed to Delete Application ", e.getMessage());
-	                	return Status.CANCEL_STATUS;
-	                }
-	            }
-	        }.schedule();     
+	    		application = applicationSelectionList.get(0);
+	        	applicationID = application.getId();
+	        	final String title = "Delete Dataflow Application";
+		    	final String message = "Are you sure you want to delete Application: " + application.getDisplayName();
+		    	
+		    	Dialog dialog =  new MessageDialog(Display.getDefault().getActiveShell(), title, null, message, MessageDialog.QUESTION, new String[] {"Yes","No"}, 1);
+		        	if (dialog.open() != Dialog.OK) {
+		        		return;
+		        	}
+		        	new Job("Deleting Application") {
+		            @Override
+		            protected IStatus run(IProgressMonitor monitor) {
+		                try {
+		                    DataflowClient.getInstance().deleteApplication(application.getId());
+		                    table.refresh(true);
+		                    return Status.OK_STATUS;
+		                } catch (Exception e) {
+		                	MessageDialog.openError(table.getShell(), "Failed to Delete Application ", e.getMessage());
+		                	return Status.CANCEL_STATUS;
+		                }
+		            }
+		        }.schedule();     	
+	    	}
+
 	}
 }

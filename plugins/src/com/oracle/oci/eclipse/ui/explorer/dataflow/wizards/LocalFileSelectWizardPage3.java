@@ -49,7 +49,6 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
     private Text compartmentText;
     private Image IMAGE;
     private List<ApplicationSummary> applications;
-    private DataTransferObject dto;
 	private Compartment selectedApplicationCompartment;
 	private Map<ApplicationSummary, TreeItem> applicationTreeMap;
 	private String applicationIdSelected = null;
@@ -59,13 +58,12 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 	private String pagetoshow= null;
 	private Button previouspage,nextpage;
 	
-	   public LocalFileSelectWizardPage3(ISelection selection, DataTransferObject dto, String COMPARTMENT_ID) {
+	   public LocalFileSelectWizardPage3(ISelection selection, String COMPARTMENT_ID) {
 	        super("wizardPage");
 	        setTitle("Choose an Application to edit or Create new.");     
 	        setDescription("To edit a previously created application, select an application. Ignore this page"
 	        		+ " if you want to create a new application.");
 	        this.selection = selection;
-	        this.dto = dto;
 	        IMAGE = Activator.getImage(Icons.BUCKET.getPath());
 	        
 	        this.selectedApplicationCompartment = IdentClient.getInstance().getRootCompartment();
@@ -244,14 +242,14 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 		
 		 @Override
 		    public IWizardPage getNextPage() { 
-			    dto.setApplicationId(applicationIdSelected); 		
-			    LocalFileSelectWizard wizard = (LocalFileSelectWizard)getWizard();
+			 	DataTransferObject.applicationId=applicationIdSelected; 		
+			    RunAsDataflowApplicationWizard wizard = (RunAsDataflowApplicationWizard)getWizard();
 			    wizard.canFinish= true;
 			    wizard.canFinish();
-			    CreateApplicationWizardPage page = ((LocalFileSelectWizard)getWizard()).firstpage;
+			    CreateApplicationWizardPage page = ((RunAsDataflowApplicationWizard)getWizard()).firstpage;
 			    page.onEnterPage();
 			    getWizard().getContainer().updateButtons();
-			    CreateApplicationWizardPage3 advpage = ((LocalFileSelectWizard)getWizard()).thirdpage;
+			    CreateApplicationWizardPage3 advpage = ((RunAsDataflowApplicationWizard)getWizard()).thirdpage;
 			    advpage.onEnterPage();	
 			    
 			    return page;       

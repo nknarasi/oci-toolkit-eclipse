@@ -42,7 +42,8 @@ public class CreateRunWizard  extends Wizard implements INewWizard{
                new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
            } catch (Exception e) {
            	MessageDialog.openError(getShell(), "Unable to add pages to Run Application wizard", e.getMessage());
-           }         
+           }    
+    	 getShell().setMaximumSize(1000, 800);
     }
     
     public void addPagesWithProgress(IProgressMonitor monitor) {
@@ -69,7 +70,7 @@ public class CreateRunWizard  extends Wizard implements INewWizard{
     	String message=Validations.check(validObjects.toArray(),objectType.toArray(new String[1]));
     	
     	if(!message.isEmpty()) {
-    		open("Improper Entries",message);
+    		open("Validation errors",message);
     		return false;
     	}
     	
@@ -130,7 +131,7 @@ public class CreateRunWizard  extends Wizard implements INewWizard{
        
     	if(thirdpage.getSparkProperties() != null) {
  	       objectArray.add(thirdpage.getSparkProperties().keySet());
- 	       nameArray.add("sparkprop" + firstpage.getSparkVersion().charAt(0));         
+ 	       nameArray.add("sparkprop" + application.getSparkVersion().charAt(0));         
     	}
 
     }

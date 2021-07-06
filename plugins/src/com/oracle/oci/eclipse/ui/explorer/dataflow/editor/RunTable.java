@@ -1,6 +1,8 @@
  package com.oracle.oci.eclipse.ui.explorer.dataflow.editor;
 
+import java.text.CharacterIterator;
 import java.text.SimpleDateFormat;
+import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,10 +24,11 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.forms.widgets.FormToolkit;
-
 import com.oracle.bmc.dataflow.model.RunSummary;
 import com.oracle.bmc.dataflow.requests.ListRunsRequest;
 import com.oracle.bmc.dataflow.responses.ListRunsResponse;
+import com.oracle.oci.eclipse.account.AuthProvider;
+import com.oracle.oci.eclipse.sdkclients.IdentClient;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseTable;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseTableLabelProvider;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DeleteRunAction;
@@ -46,11 +49,12 @@ public class RunTable extends BaseTable {
 	private static final int DATA_READ_COL = 8;
 	private static final int DATA_WRITTEN_COL = 7;
 	private List<RunSummary> runSummaryList = new ArrayList<RunSummary>();
-	private ListRunsRequest.SortBy sortBy=ListRunsRequest.SortBy.TimeCreated;
-	private ListRunsRequest.SortOrder sortOrder=ListRunsRequest.SortOrder.Desc;
-	private String pagetoshow=null;
+	private ListRunsRequest.SortBy sortBy;
+	private ListRunsRequest.SortOrder sortOrder;
+	private String pagetoshow=null,nextPageStr;
 	private ListRunsResponse listrunsresponse;
 	private Button previousPage,nextPage;
+	private static String compid=IdentClient.getInstance().getRootCompartment().getId();
 	
     public RunTable(Composite parent, int style) {
         super(parent, style);
@@ -65,7 +69,12 @@ public class RunTable extends BaseTable {
     @Override
     public List<RunSummary> getTableData() {
                 try {
-                	IRunnableWithProgress op = new GetRuns(sortBy,sortOrder,pagetoshow);
+                	String currentcompid=AuthProvider.getInstance().getCompartmentId();
+                    if(currentcompid!=null&&!compid.equals(currentcompid)) {
+                     	compid=currentcompid;
+                     	pagetoshow=null;
+                     }
+                	IRunnableWithProgress op = new GetRuns(compid,sortBy,sortOrder,pagetoshow);
                     new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
                     String errorMessage=((GetRuns)op).getErrorMessage();
                 	if(errorMessage!=null) 
@@ -76,6 +85,15 @@ public class RunTable extends BaseTable {
                 } catch (Exception e) {
                 	MessageDialog.openError(getShell(), "Unable to get Runs list", e.getMessage());
                 }
+                
+               nextPageStr=listrunsresponse.getOpcNextPage();
+				if(nextPageStr!=null&&!nextPageStr.isEmpty()) {
+					nextPage.setEnabled(true);
+				}
+				else {
+					nextPage.setEnabled(false);
+				}
+                
                 refresh(false);
         return runSummaryList;
     }
@@ -109,13 +127,13 @@ public class RunTable extends BaseTable {
 				case CREATED_COL:
 					return (new SimpleDateFormat("dd-M-yyyy hh:mm:ss")).format(s.getTimeCreated());
 				case DURATION_COL:
-                    return Long.toString(s.getRunDurationInMilliseconds()/1000);
+                    return formatSecondDateTime(s.getRunDurationInMilliseconds()/1000);
 				case TOTAL_OCPU_COL:
                     return s.getTotalOCpu().toString();
 				case DATA_WRITTEN_COL:
-                    return s.getDataWrittenInBytes().toString();
+                    return humanReadableByteCountSI(s.getDataWrittenInBytes());
 				case DATA_READ_COL:
-                    return s.getDataReadInBytes().toString();
+                    return humanReadableByteCountSI(s.getDataReadInBytes());
                 }
             } catch (Exception ex) {
                 MessageDialog.openError(getShell(), "Unable to form table", ex.getMessage());
@@ -137,10 +155,7 @@ public class RunTable extends BaseTable {
             public void widgetSelected(SelectionEvent e) {
             	pagetoshow=null;
                 sortBy=ListRunsRequest.SortBy.DisplayName;
-                if(sortOrder==ListRunsRequest.SortOrder.Desc) 
-                	sortOrder=ListRunsRequest.SortOrder.Asc;
-                else 
-                	sortOrder=ListRunsRequest.SortOrder.Desc;
+                sortOrder = changeSortOrder(sortOrder);
                 refresh(true);
               }
             });
@@ -152,10 +167,7 @@ public class RunTable extends BaseTable {
             public void widgetSelected(SelectionEvent e) {
             	pagetoshow=null;
             	sortBy=ListRunsRequest.SortBy.Language;
-                if(sortOrder==ListRunsRequest.SortOrder.Desc) 
-                	sortOrder=ListRunsRequest.SortOrder.Asc;
-                else 
-                	sortOrder=ListRunsRequest.SortOrder.Desc;
+            	sortOrder = changeSortOrder(sortOrder);
                 refresh(true);
               }
             });
@@ -167,10 +179,7 @@ public class RunTable extends BaseTable {
             public void widgetSelected(SelectionEvent e) {
             	pagetoshow=null;
             	sortBy=ListRunsRequest.SortBy.LifecycleState;
-                if(sortOrder==ListRunsRequest.SortOrder.Desc) 
-                	sortOrder=ListRunsRequest.SortOrder.Asc;
-                else 
-                	sortOrder=ListRunsRequest.SortOrder.Desc;
+            	sortOrder = changeSortOrder(sortOrder);
                 refresh(true);
               }
             });
@@ -185,10 +194,7 @@ public class RunTable extends BaseTable {
             public void widgetSelected(SelectionEvent e) {
             	pagetoshow=null;
             	sortBy=ListRunsRequest.SortBy.TimeCreated;
-                if(sortOrder==ListRunsRequest.SortOrder.Desc) 
-                	sortOrder=ListRunsRequest.SortOrder.Asc;
-                else 
-                	sortOrder=ListRunsRequest.SortOrder.Desc;
+            	sortOrder = changeSortOrder(sortOrder);
                 refresh(true);
               }
             });
@@ -200,10 +206,7 @@ public class RunTable extends BaseTable {
             public void widgetSelected(SelectionEvent e) {
             	pagetoshow=null;
             	sortBy=ListRunsRequest.SortBy.RunDurationInMilliseconds;
-                if(sortOrder==ListRunsRequest.SortOrder.Desc) 
-                	sortOrder=ListRunsRequest.SortOrder.Asc;
-                else 
-                	sortOrder=ListRunsRequest.SortOrder.Desc;
+            	sortOrder = changeSortOrder(sortOrder);
                 refresh(true);
               }
             });
@@ -215,10 +218,7 @@ public class RunTable extends BaseTable {
             public void widgetSelected(SelectionEvent e) {
             	pagetoshow=null;
             	sortBy=ListRunsRequest.SortBy.TotalOCpu;
-                if(sortOrder==ListRunsRequest.SortOrder.Desc) 
-                	sortOrder=ListRunsRequest.SortOrder.Asc;
-                else 
-                	sortOrder=ListRunsRequest.SortOrder.Desc;
+            	sortOrder = changeSortOrder(sortOrder);
                 refresh(true);
               }
             });
@@ -230,10 +230,7 @@ public class RunTable extends BaseTable {
             public void widgetSelected(SelectionEvent e) {
             	pagetoshow=null;
             	sortBy=ListRunsRequest.SortBy.DataWrittenInBytes;
-                if(sortOrder==ListRunsRequest.SortOrder.Desc) 
-                	sortOrder=ListRunsRequest.SortOrder.Asc;
-                else 
-                	sortOrder=ListRunsRequest.SortOrder.Desc;
+            	sortOrder = changeSortOrder(sortOrder);
                 refresh(true);
               }
             });
@@ -245,10 +242,7 @@ public class RunTable extends BaseTable {
             public void widgetSelected(SelectionEvent e) {
             	pagetoshow=null;
             	sortBy=ListRunsRequest.SortBy.DataReadInBytes;
-                if(sortOrder==ListRunsRequest.SortOrder.Desc) 
-                	sortOrder=ListRunsRequest.SortOrder.Asc;
-                else 
-                	sortOrder=ListRunsRequest.SortOrder.Desc;
+            	sortOrder = changeSortOrder(sortOrder);
                 refresh(true);
               }
             });
@@ -272,6 +266,19 @@ public class RunTable extends BaseTable {
 	
 	@Override
     protected void addTableLabels(FormToolkit toolkit, Composite left, Composite right) {
+		
+		Button refreshTable=new Button(right,SWT.PUSH);
+		refreshTable.setText("Refresh");
+		refreshTable.setLayoutData(new GridData());
+		refreshTable.addSelectionListener(new SelectionListener() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+				refresh(true);
+            }
+
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) {}
+        });
 		
         Composite page=new Composite(right.getParent(),SWT.NONE);
         GridData gdpage = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_END);
@@ -323,5 +330,39 @@ public class RunTable extends BaseTable {
 	public void setSortOrder(ListRunsRequest.SortOrder sortOrder) {
 		this.sortOrder=sortOrder;
 	}
+	
+	public static String humanReadableByteCountSI(long bytes) {
+	    if (-1000 < bytes && bytes < 1000) {
+	        return bytes + " B";
+	    }
+	    CharacterIterator ci = new StringCharacterIterator("kMGTPE");
+	    while (bytes <= -999_950 || bytes >= 999_950) {
+	        bytes /= 1000;
+	        ci.next();
+	    }
+	    return String.format("%.1f %cB", bytes / 1000.0, ci.current());
+	}
+	
+	public static String formatSecondDateTime(long second) {
+        if(second <= 0)return "";
+        long h = second / 3600;
+        long m = second % 3600 / 60;
+        long s = second % 60;
+        String value ="";
+        if(h!=0)
+        	value += h + "h";
+        if(m!=0)
+        	value += m + "m";
+        value+= s + "s";
+        return value;
+    }
+	
+	public static ListRunsRequest.SortOrder changeSortOrder(ListRunsRequest.SortOrder sortOrder) {		
+		if(sortOrder==ListRunsRequest.SortOrder.Desc) 
+        	sortOrder=ListRunsRequest.SortOrder.Asc;
+        else 
+        	sortOrder=ListRunsRequest.SortOrder.Desc;		
+		return sortOrder;
+    }
 
 }

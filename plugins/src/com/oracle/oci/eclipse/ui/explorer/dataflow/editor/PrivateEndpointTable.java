@@ -23,6 +23,8 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 
 import com.oracle.bmc.dataflow.model.PrivateEndpointSummary;
 import com.oracle.bmc.dataflow.responses.ListPrivateEndpointsResponse;
+import com.oracle.oci.eclipse.account.AuthProvider;
+import com.oracle.oci.eclipse.sdkclients.IdentClient;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseTable;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseTableLabelProvider;
 
@@ -31,7 +33,6 @@ import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DeletePrivateEndpoint
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DetailsPrivateEndpointAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.EditPrivateEndpointAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetPrivateEndpoints;
-import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetRuns;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RefreshPrivateEndpointAction;
 
 public class PrivateEndpointTable extends BaseTable {
@@ -40,14 +41,13 @@ public class PrivateEndpointTable extends BaseTable {
     private static final int STATE_COL = 1;
 	private static final int CREATED_COL = 2;
 	private List<PrivateEndpointSummary> pepSummaryList = new ArrayList<PrivateEndpointSummary>();
-	private String pagetoshow=null;
+	private String pagetoshow=null,nextPageStr;
 	private ListPrivateEndpointsResponse listpepsresponse;
 	private Button previousPage,nextPage;
-	public String compid;
+	public static String compid=IdentClient.getInstance().getRootCompartment().getId();
 
     public PrivateEndpointTable(Composite parent, int style) {
         super(parent, style);
-
         viewer.setLabelProvider(new TableLabelProvider());
         viewer.setInput(getTableData());
         viewer.setItemCount(getTableDataSize());
@@ -57,18 +57,31 @@ public class PrivateEndpointTable extends BaseTable {
     public List<PrivateEndpointSummary> getTableData() {
     	
     	 try {
-         	IRunnableWithProgress op = new GetPrivateEndpoints(pagetoshow);
+    		 String currentcompid=AuthProvider.getInstance().getCompartmentId();
+    	        if(currentcompid!=null&&!compid.equals(currentcompid)) {
+    	         	compid=currentcompid;
+    	         	pagetoshow=null;
+    	         }
+         	IRunnableWithProgress op = new GetPrivateEndpoints(compid,pagetoshow);
             new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
             String errorMessage=((GetPrivateEndpoints)op).getErrorMessage();
         	if(errorMessage!=null) 
         		throw new Exception(errorMessage);
-            compid=((GetPrivateEndpoints)op).getCompid();
             listpepsresponse=((GetPrivateEndpoints)op).listpepsresponse;
             pepSummaryList=((GetPrivateEndpoints)op).pepSummaryList;
             tableDataSize = pepSummaryList.size();
          } catch (Exception e) {
          	MessageDialog.openError(getShell(), "Unable to get Private Endpoints list", e.getMessage());
          }
+    	 
+    	 nextPageStr=listpepsresponse.getOpcNextPage();
+		 if(nextPageStr!=null&&!nextPageStr.isEmpty()) {
+			 nextPage.setEnabled(true);
+		 }
+		 else {
+		     nextPage.setEnabled(false);
+		 }
+    	 
          refresh(false);
         
         return pepSummaryList;
@@ -127,9 +140,9 @@ public class PrivateEndpointTable extends BaseTable {
            manager.add(new Separator());
            if(!pepState.equals("Creating")) 
         	   manager.add(new DetailsPrivateEndpointAction(PrivateEndpointTable.this));
-           if(!pepState.equals("Creating")&&!pepState.equals("Deleting")) 
+           if(!(pepState.equals("Creating") || pepState.equals("Deleting") || pepState.equals("Updating"))) 
         	   manager.add(new DeletePrivateEndpointAction(PrivateEndpointTable.this,(PrivateEndpointSummary)getSelectedObjects().get(0)));
-		   if(pepState.equals("Active")||pepState.equals("Inactive"))
+		   if((pepState.equals("Active")||pepState.equals("Inactive")))
 			   manager.add(new EditPrivateEndpointAction((PrivateEndpointSummary)getSelectedObjects().get(0),PrivateEndpointTable.this));
         }
 
@@ -138,7 +151,11 @@ public class PrivateEndpointTable extends BaseTable {
 	@Override
     protected void addTableLabels(FormToolkit toolkit, Composite left, Composite right) {
 		
-		Composite page=new Composite(right,SWT.NONE);
+		Composite page=new Composite(right.getParent(),SWT.NONE);
+        GridData gdpage = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_END);
+        gdpage.horizontalSpan = 2;
+        page.setLayoutData(gdpage);
+        
         GridLayout gl=new GridLayout();
         gl.numColumns=2;
         page.setLayout(gl);

@@ -68,7 +68,6 @@ public class CreateApplicationWizardPage extends WizardPage {
 	private Text argumentsText;
 	private Text archiveUriText;
 	private Text fileUriText;
-	private DataTransferObject dto;	
 	private boolean usesSparkSubmit=false;
 	private Button fileSelectButton;
 	private Label fileUriLabel;
@@ -79,18 +78,16 @@ public class CreateApplicationWizardPage extends WizardPage {
 	private Text sparkSubmitText;
 	boolean allow = false;
 	
-	public CreateApplicationWizardPage(ISelection selection,DataTransferObject dto,String COMPARTMENT_ID) {
+	public CreateApplicationWizardPage(ISelection selection,String COMPARTMENT_ID) {
 		super("page");
 		setTitle("Create DataFlow Application");
 		setDescription("This wizard creates a new DataFlow Application. Please enter the required details.");
 		this.selection = selection;
-		
-		this.dto=dto;
 
 		Compartment rootCompartment = IdentClient.getInstance().getRootCompartment();
-		if(dto.getApplicationId()!=null)
+		if(DataTransferObject.applicationId!=null)
 		{
-			Application app= DataflowClient.getInstance().getApplicationDetails(dto.applicationId);
+			Application app= DataflowClient.getInstance().getApplicationDetails(DataTransferObject.applicationId);
 			COMPARTMENT_ID = app.getId();
 		}
 		List<Compartment> Allcompartments = IdentClient.getInstance().getCompartmentList(rootCompartment);
@@ -160,7 +157,7 @@ public class CreateApplicationWizardPage extends WizardPage {
 		GridData gd2 = new GridData(GridData.FILL_HORIZONTAL);
 		sparkVersionCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
 		sparkVersionCombo.setLayoutData(gd2);		 
-		sparkVersionCombo.setItems(DataflowConstants.Versions);
+		sparkVersionCombo.setItems(DataflowConstants.versions);
 		sparkVersionCombo.select(0);		      
 		
 		Label DriverShapeLabel = new Label(container, SWT.NULL);
@@ -198,14 +195,17 @@ public class CreateApplicationWizardPage extends WizardPage {
 	        	        
 	     Label dummy = new Label(container, SWT.NULL);	   				
 	     withoutSparkSubmit(container);	 
+	     scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 		 setControl(scrolledComposite);		
 	}
 	
 	private void withSparkSubmit(Composite container) {		
 		 sparkSubmitLabel = new Label(container, SWT.NULL);
 		 sparkSubmitLabel.setText("&Spark Submit Command:");
-		 sparkSubmitText = new Text(container, SWT.BORDER | SWT.SINGLE);
-		 sparkSubmitText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));          		        
+		 sparkSubmitText = new Text(container, SWT.BORDER | SWT.MULTI);
+		 GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+		 gridData.heightHint = 5 * sparkSubmitText.getLineHeight();
+		 sparkSubmitText.setLayoutData(gridData);      		        
 	}
 	
 	private void withoutSparkSubmit(Composite container){
@@ -281,7 +281,7 @@ public class CreateApplicationWizardPage extends WizardPage {
 		driverShapeCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
 		GridData gd3 = new GridData(GridData.FILL_HORIZONTAL);
 		driverShapeCombo.setLayoutData(gd3);
-		driverShapeCombo.setItems(DataflowConstants.ShapesDetails);		
+		driverShapeCombo.setItems(DataflowConstants.shapesDetails);		
 		driverShapeCombo.select(0);
 		
 	}
@@ -290,7 +290,7 @@ public class CreateApplicationWizardPage extends WizardPage {
 		executorShapeCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
 		GridData gd4 = new GridData(GridData.FILL_HORIZONTAL);
 		executorShapeCombo.setLayoutData(gd4);	 
-		executorShapeCombo.setItems(DataflowConstants.ShapesDetails);		
+		executorShapeCombo.setItems(DataflowConstants.shapesDetails);		
 		executorShapeCombo.select(0);
 		
 	}
@@ -299,11 +299,11 @@ public class CreateApplicationWizardPage extends WizardPage {
 		numofExecutorsSpinner = new Spinner(container, SWT.BORDER | SWT.SINGLE);
 		GridData gd5 = new GridData(GridData.FILL_HORIZONTAL);
 		numofExecutorsSpinner.setLayoutData(gd5);
-		numofExecutorsSpinner.setMinimum(DataflowConstants.NUM_OF_EXECUTORS_MIN);
-		numofExecutorsSpinner.setMaximum(DataflowConstants.NUM_OF_EXECUTORS_MAX);
-		numofExecutorsSpinner.setIncrement(DataflowConstants.NUM_OF_EXECUTORS_INCREMENT);
+		numofExecutorsSpinner.setMinimum(DataflowConstants.numOfExecutorsMin);
+		numofExecutorsSpinner.setMaximum(DataflowConstants.numOfExecutorsMax);
+		numofExecutorsSpinner.setIncrement(DataflowConstants.numOfExecutorsIncrement);
 		// default value
-		numofExecutorsSpinner.setSelection(DataflowConstants.NUM_OF_EXECUTORS_DEFAULT);
+		numofExecutorsSpinner.setSelection(DataflowConstants.numOfExecutorsDefault);
 	}
 	
 	private void createLanguageCombo(Composite currentcontainer) {
@@ -323,7 +323,7 @@ public class CreateApplicationWizardPage extends WizardPage {
             public void widgetSelected(SelectionEvent e) {
             	if(languageUsed != ApplicationLanguage.Java )
             	{
-            		if(!dto.isLocal())
+            		if(!DataTransferObject.local)
             			fileUriText.setText("");
             		disposePrevious();
             		languageUsed  = ApplicationLanguage.Java;            		
@@ -347,7 +347,7 @@ public class CreateApplicationWizardPage extends WizardPage {
             	if(languageUsed != ApplicationLanguage.Python )
             	{
             		disposePrevious();
-            		if(!dto.isLocal())
+            		if(!DataTransferObject.local)
             			fileUriText.setText("");
             		languageUsed  = ApplicationLanguage.Python;            		
             		PythonLanguageSelected(container);  
@@ -370,7 +370,7 @@ public class CreateApplicationWizardPage extends WizardPage {
             	if(languageUsed != ApplicationLanguage.Sql )
             	{
             		disposePrevious();
-            		if(!dto.isLocal())
+            		if(!DataTransferObject.local)
             			fileUriText.setText("");
             		languageUsed  = ApplicationLanguage.Sql;            		
             		SQLLanguageSelected(container);   
@@ -391,7 +391,7 @@ public class CreateApplicationWizardPage extends WizardPage {
             	if(languageUsed != ApplicationLanguage.Scala )
             	{
             		disposePrevious();
-            		if(!dto.isLocal())
+            		if(!DataTransferObject.local)
             			fileUriText.setText("");
             		languageUsed  = ApplicationLanguage.Scala;            		
             		JavaLanguageSelected(container); 
@@ -628,6 +628,13 @@ public class CreateApplicationWizardPage extends WizardPage {
 	   }
 	  if(currentword!="")
 		   arguments.add(currentword);
+	  
+	  if(!parameterSet.isEmpty()) {
+		  for(Parameters parameter : parameterSet) {	
+			  	if(!arguments.contains("${"+parameter.tagKey.getText()+"}"))
+			  		arguments.add("${"+parameter.tagKey.getText()+"}");
+			 }		 
+	  }
 		   
 	    return arguments;		
 	}
@@ -636,8 +643,7 @@ public class CreateApplicationWizardPage extends WizardPage {
 	{
 		setPageComplete(true);
 		getWizard().getContainer().updateButtons();
-	    final DataTransferObject dto = ((LocalFileSelectWizard) getWizard()).dto;
-	    String applicationId = dto.applicationId;
+	    String applicationId = DataTransferObject.applicationId;
 	    if(applicationId != null) {
 	    	Application application = DataflowClient.getInstance().getApplicationDetails(applicationId);
 	    	
@@ -646,21 +652,21 @@ public class CreateApplicationWizardPage extends WizardPage {
 	    	if(application.getDescription()!= null)
 	    		applicationDescriptionText.setText(application.getDescription());
 	    	
-	    	if(application.getSparkVersion().equals(DataflowConstants.Versions[0])) {
+	    	if(application.getSparkVersion().equals(DataflowConstants.versions[0])) {
 	    		sparkVersionCombo.select(0);
 			}
 			else {
 				sparkVersionCombo.select(1);
 			}		
 	    	
-	    	for(int i=0; i<DataflowConstants.ShapesDetails.length ; i++) {
-				if(application.getDriverShape().equals(DataflowConstants.ShapesDetails[i])) {
+	    	for(int i=0; i<DataflowConstants.shapesDetails.length ; i++) {
+				if(application.getDriverShape().equals(DataflowConstants.shapesDetails[i])) {
 					driverShapeCombo.select(i);
 				}
 			}	
 	    	
-	    	for(int i=0; i<DataflowConstants.ShapesDetails.length ; i++) {
-				if(application.getExecutorShape().equals(DataflowConstants.ShapesDetails[i])) {
+	    	for(int i=0; i<DataflowConstants.shapesDetails.length ; i++) {
+				if(application.getExecutorShape().equals(DataflowConstants.shapesDetails[i])) {
 					executorShapeCombo.select(i);
 				}
 			}		    	
@@ -675,19 +681,21 @@ public class CreateApplicationWizardPage extends WizardPage {
 	    		usesSparkSubmit=true; 
 	    		withSparkSubmit(container);
 	    		useSparkSubmitButton.setSelection(true);
+	    		useSparkSubmitButton.setVisible(false);
 	    		sparkSubmitText.setText(application.getExecute());    		
 	    	 }
 	    	 else {
 	    		 usesSparkSubmit=false; 	    		 
 	    		 useSparkSubmitButton.setSelection(false);
+	    		 useSparkSubmitButton.setVisible(false);
 	    		 withoutSparkSubmit(container);	 
-	 	        if(dto.isLocal()) {
-	 	        	LocalFileSelectWizardPage1 page1 = ((LocalFileSelectWizard)getWizard()).firstbpage;
+	 	        if(DataTransferObject.local) {
+	 	        	LocalFileSelectWizardPage1 page1 = ((RunAsDataflowApplicationWizard)getWizard()).firstbpage;
     				fileUriText.setText(page1.getFileUri());
     				fileUriText.setEditable(false);
     				fileSelectButton.setEnabled(false);
     				
-    				LocalFileSelectWizardPage2 page2 = ((LocalFileSelectWizard)getWizard()).secondbpage;
+    				LocalFileSelectWizardPage2 page2 = ((RunAsDataflowApplicationWizard)getWizard()).secondbpage;
     				archiveUriText.setText(page2.getArchiveUri());
     				archiveUriText.setEditable(false);
 		        }
@@ -757,8 +765,8 @@ public class CreateApplicationWizardPage extends WizardPage {
     	
    	 	@Override
 	    public IWizardPage getPreviousPage() {
-   		 	if(dto.isLocal()) {
-			    LocalFileSelectWizard wizard = (LocalFileSelectWizard)getWizard();
+   		 	if(DataTransferObject.local) {
+   		 	RunAsDataflowApplicationWizard wizard = (RunAsDataflowApplicationWizard)getWizard();
 			    wizard.canFinish= false;
 			    wizard.canFinish();
 		 	}	             
@@ -767,8 +775,8 @@ public class CreateApplicationWizardPage extends WizardPage {
    	 	   	 	
    	 	@Override
 	    public IWizardPage getNextPage() {	
-   		 	if(dto.isLocal()) {
-   			    LocalFileSelectWizard wizard = (LocalFileSelectWizard)getWizard();
+   		 	if(DataTransferObject.local) {
+   		 	RunAsDataflowApplicationWizard wizard = (RunAsDataflowApplicationWizard)getWizard();
    			    wizard.canFinish= true;
    			    wizard.canFinish();
    			 CreateApplicationWizardPage3 advpage = wizard.thirdpage;
@@ -783,9 +791,7 @@ public class CreateApplicationWizardPage extends WizardPage {
 	   			    advpage.usesSparkSubmit(true);
 	   		 	else 
 	   		 		advpage.usesSparkSubmit(false);
-   		 	}
-
-	        dto.setData(this.sparkVersionCombo.getText().toString());           
+   		 	}          
 	        return super.getNextPage();
 	    }
 	 	 

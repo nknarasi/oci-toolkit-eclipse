@@ -27,26 +27,26 @@ import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.account.AuthProvider;
 import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.oci.eclipse.sdkclients.ObjStorageClient;
-import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddLocalProjectSelectPagesAction;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddRunAsDataflowApplicationPagesAction;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.ScheduleRerunAction;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.ScheduleUploadObjectAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.Validations;
-import com.oracle.oci.eclipse.ui.explorer.objectstorage.actions.MakeJarAndZip;
 
-public class LocalFileSelectWizard extends Wizard implements INewWizard  {	
+public class RunAsDataflowApplicationWizard extends Wizard implements INewWizard  {	
 	private ProjectSelectWizardPage page1;
-	private JarSelectPage page2;	 
+	private AppAndArchiveCreationPage page2;	 
     protected LocalFileSelectWizardPage1 firstbpage;
     protected LocalFileSelectWizardPage2 secondbpage;
     protected LocalFileSelectWizardPage3 thirdbpage;
     private ISelection selection;
 	private String COMPARTMENT_ID;
-	protected DataTransferObject dto;
 	protected CreateApplicationWizardPage firstpage;
 	protected CreateApplicationWizardPage3 thirdpage;
     private TagsPage tagpage;
     private Application application;
     boolean canFinish = false;
     
-	public LocalFileSelectWizard() {
+	public RunAsDataflowApplicationWizard() {
 		super();
 		this.COMPARTMENT_ID= AuthProvider.getInstance().getCompartmentId();
 		setNeedsProgressMonitor(true);
@@ -54,39 +54,38 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	   @Override
 	    public void addPages() {	   
 		   try {
-	          	IRunnableWithProgress op = new AddLocalProjectSelectPagesAction(this);
+	          	IRunnableWithProgress op = new AddRunAsDataflowApplicationPagesAction(this);
 	              new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
 	          } catch (Exception e) {
-	          	MessageDialog.openError(getShell(), "Unable to add pages to Local Project Select wizard", e.getMessage());
+	          	MessageDialog.openError(getShell(), "Unable to add pages to Run as Dataflow Application wizard", e.getMessage());
 	          }   
 	    }
 	   
 	    public void addPagesWithProgress(IProgressMonitor monitor) {
-	        dto = new DataTransferObject();
-	        dto.setLocal(true);	    	
+	    	DataTransferObject.local=true;	    	
 	    	monitor.subTask("Adding Project Select page");  
 	        page1 = new ProjectSelectWizardPage(selection);
 	        addPage(page1);	        
 	    	monitor.subTask("Adding Dependencies Select Page page");  
-	        page2= new JarSelectPage(selection,page1,dto);
+	        page2= new AppAndArchiveCreationPage(selection,page1);
 	        addPage(page2);	        
 	    	monitor.subTask("Adding Application Jar Bucket Select page");  
-	        firstbpage = new LocalFileSelectWizardPage1(selection,dto,COMPARTMENT_ID);
+	        firstbpage = new LocalFileSelectWizardPage1(selection,COMPARTMENT_ID);
 	        addPage(firstbpage);	        
 	    	monitor.subTask("Adding Archive Zip Bucket Select page");
-	        secondbpage = new LocalFileSelectWizardPage2(selection,dto,COMPARTMENT_ID);
+	        secondbpage = new LocalFileSelectWizardPage2(selection,COMPARTMENT_ID);
 		    addPage(secondbpage);		    
 	    	monitor.subTask("Adding Previous Application Select page");  
-	        thirdbpage = new LocalFileSelectWizardPage3(selection,dto,COMPARTMENT_ID);
+	        thirdbpage = new LocalFileSelectWizardPage3(selection,COMPARTMENT_ID);
 		    addPage(thirdbpage);		    
 	    	monitor.subTask("Adding Main page");    	
-	        firstpage = new CreateApplicationWizardPage(selection,dto,COMPARTMENT_ID);
+	        firstpage = new CreateApplicationWizardPage(selection,COMPARTMENT_ID);
 	        addPage(firstpage);  	       	
 	    	monitor.subTask("Adding Tags Page");
 	        tagpage= new TagsPage(selection,COMPARTMENT_ID);
 	        addPage(tagpage);  	        
 	        monitor.subTask("Adding Advanced Options page");
-	        thirdpage = new CreateApplicationWizardPage3(selection,dto);
+	        thirdpage = new CreateApplicationWizardPage3(selection);
 	        addPage(thirdpage);
 	    }
 	   
@@ -101,11 +100,11 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	    		return firstbpage;
 	    	}
 	    	
-	    	if(dto.getArchivedir() == null && page.equals(firstbpage)) {
+	    	if(DataTransferObject.archivedir == null && page.equals(firstbpage)) {
 	    		return thirdbpage;
 	    	}
 	    	
-	    	if (dto.getArchivedir() != null && page.equals(firstbpage)) {
+	    	if (DataTransferObject.archivedir != null && page.equals(firstbpage)) {
        		return secondbpage;
 	    	}     
 	    	
@@ -134,11 +133,13 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	     * the wizard. We will create an operation and run it
 	     * using wizard as execution context.
 	     */
+	    @Override
 	    public boolean performCancel() {
-	    	MakeJarAndZip.jarUri=null;
-	    	MakeJarAndZip.zipUri=null;
+	    	DataTransferObject.local=false;
+            DataTransferObject.applicationId=null;
 	    	return true;
 	    }
+	    
 	    @Override
 	    public boolean canFinish() {
 	    	return canFinish;
@@ -147,6 +148,8 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	    @Override
 	    public boolean performFinish() {	
 	    	
+	    	DataTransferObject.local=false;
+	    	
 	    	List<Object> validObjects = new ArrayList<Object>();
 	    	List<String> objectType = new ArrayList<String>();
 	    	
@@ -154,45 +157,60 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	    	String message=Validations.check(validObjects.toArray(),objectType.toArray(new String[1]));
 	    	
 	    	if(!message.isEmpty()) {
-	    		open("Improper Entries",message);
+	    		open("Validation errors",message);
 	    		return false;
 	    	}	    	
 	    	
 	    	String bucketName = firstbpage.getBucketSelected();
-	    	File applicationFile = new File(dto.getFiledir());
-	    	String newfileName = dto.getFiledir().substring(0,dto.getFiledir().lastIndexOf('\\')+1);
+	    	File applicationFile = new File(DataTransferObject.filedir);
+	    	String newfileName = DataTransferObject.filedir.substring(0,DataTransferObject.filedir.lastIndexOf('\\')+1);
 	    	File applicationFileNew = new File(newfileName+firstbpage.getnewName());
 	    	applicationFile.renameTo(applicationFileNew);
-	    	try {
-				ObjStorageClient.getInstance().uploadObject(bucketName, applicationFileNew);
-				
-			} catch (Exception e) {
-				ErrorHandler.logError("Unable to upload application .jar to bucket: " + e.getMessage());
-			};
+	    	
+	    	IRunnableWithProgress op1 = new ScheduleUploadObjectAction(bucketName,applicationFileNew);
+            try {
+				new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op1);
+			} catch (InvocationTargetException e1) {
+				e1.printStackTrace();
+				MessageDialog.openError(getShell(), "Failed to Upload Application Jar", e1.getMessage());
+				return false;
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
+				MessageDialog.openError(getShell(), "Failed to Upload Application Jar", e1.getMessage());
+				return false;
+			}
+	    	
 			
-			if(dto.getArchivedir() != null && secondbpage.getBucketSelected() != null)
+			if(DataTransferObject.archivedir != null && secondbpage.getBucketSelected() != null)
 			{
 				String archivebucketName = secondbpage.getBucketSelected();
-		    	File archiveFile = new File(dto.getArchivedir());
-		    	String newfileName2 = dto.getArchivedir().substring(0,dto.getFiledir().lastIndexOf('\\')+1);
+		    	File archiveFile = new File(DataTransferObject.archivedir);
+		    	String newfileName2 = DataTransferObject.archivedir.substring(0,DataTransferObject.archivedir.lastIndexOf('\\')+1);
 		    	File archiveFileNew = new File(newfileName2+secondbpage.getnewName());
 		    	archiveFile.renameTo(archiveFileNew);
-		    	try {
-					ObjStorageClient.getInstance().uploadObject(archivebucketName, archiveFileNew);
-				} catch (Exception e) {
-					 ErrorHandler.logError("Unable to upload archive .zip to bucket: " + e.getMessage());					
-				};
+		    	IRunnableWithProgress op2 = new ScheduleUploadObjectAction(archivebucketName, archiveFileNew);
+	            try {
+					new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op2);
+				} catch (InvocationTargetException e1) {
+					e1.printStackTrace();
+					MessageDialog.openError(getShell(), "Failed to Upload Archive Zip ", e1.getMessage());
+					return false;
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+					MessageDialog.openError(getShell(), "Failed to Upload Archive Zip ", e1.getMessage());
+					return false;
+				}
 			}
 
-			if(dto.applicationId != null) {				
-				Application applicationOld = DataflowClient.getInstance().getApplicationDetails(dto.getApplicationId());				
+			if(DataTransferObject.applicationId != null) {				
+				Application applicationOld = DataflowClient.getInstance().getApplicationDetails(DataTransferObject.applicationId);				
 		    	final String compartmentId = firstpage.getApplicationCompartmentId();
 		    	
 		    	if(firstpage.usesSparkSubmit()) {		    		
 		    		CreateRunDetails.Builder createApplicationRequestBuilder =  
 		    				CreateRunDetails.builder()
 		        	        .compartmentId(compartmentId)
-		        	        .applicationId(dto.getApplicationId())
+		        	        .applicationId(DataTransferObject.applicationId)
 		        			.displayName(firstpage.getDisplayName())
 		        			.sparkVersion(firstpage.getSparkVersion())
 		        			.driverShape(firstpage.getDriverShape())
@@ -215,13 +233,12 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 		        	        };
 		        	        try {
 		        	            getContainer().run(true, false, op);
-		        	        } catch (InterruptedException e) {
-		        	            return false;
-		        	        } catch (InvocationTargetException e) {
-		        	            Throwable realException = e.getTargetException();
-		        	            MessageDialog.openError(getShell(), "Failed to Run Application ", realException.getMessage());
+		        	        } catch (Exception e) {
+		        	            MessageDialog.openError(getShell(), "Failed to Run Application ", e.getMessage());
+		        	            DataTransferObject.applicationId=null;
 		        	            return false;
 		        	        }
+		                    DataTransferObject.applicationId=null;
 		        	        return true;
 		    	}
 		    	
@@ -239,7 +256,7 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
     						.language(firstpage.getLanguage())
     						.fileUri(firstbpage.getFileUri());
 				    		
-		    		if(dto.getArchivedir() != null) {
+		    		if(DataTransferObject.archivedir != null) {
 			    		editApplicationRequestBuilder = editApplicationRequestBuilder
         						.archiveUri(secondbpage.getArchiveUri());
 		    		}
@@ -286,18 +303,15 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 		        		IRunnableWithProgress op = new IRunnableWithProgress() {	        	      
 		        		@Override		        	            
 		        		public void run(IProgressMonitor monitor) throws InvocationTargetException {
-		        	               application= DataflowClient.getInstance().editApplication(dto.getApplicationId(),editApplicationRequest);       	               
+		        	               application= DataflowClient.getInstance().editApplication(DataTransferObject.applicationId,editApplicationRequest);       	               
 		        	               monitor.done();
 		        	            }
 		        	        };		        	        		        	        
 		        	        try {
 		        	            getContainer().run(true, false, op);
-		        	        } catch (InterruptedException e) {
-		        	        	System.out.println("ERROR");
-		        	            return false;
-		        	        } catch (InvocationTargetException e) {
-		        	            Throwable realException = e.getTargetException();
-		        	            MessageDialog.openError(getShell(), "Failed to Create Application ", realException.getMessage());
+		        	        } catch (Exception e) {
+		        	            MessageDialog.openError(getShell(), "Failed to Create Application ", e.getMessage());
+		        	            DataTransferObject.applicationId=null;
 		        	            return false;
 		        	        }    
 		        	      
@@ -325,14 +339,13 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	     	             };
 	     	             try {
 	     	                 getContainer().run(true, false, oprun);
-	     	             } catch (InterruptedException e) {
+	     	             } catch (Exception e) {
+	     	                 MessageDialog.openError(getShell(), "Failed to Run Application ", e.getMessage());
+	     	                 DataTransferObject.applicationId=null;
 	     	                 return false;
-	     	             } catch (InvocationTargetException e) {
-	     	                 Throwable realException = e.getTargetException();
-	     	                 MessageDialog.openError(getShell(), "Failed to Run Application ", realException.getMessage());
-	     	                 return false;
-	     	             }	     	           
-		        	        return true;
+	     	             }
+	     	            DataTransferObject.applicationId=null;
+		        	    return true;
 		    	}				
 			}
 			else {
@@ -364,11 +377,8 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 		        	        };
 		        	        try {
 		        	            getContainer().run(true, false, op);
-		        	        } catch (InterruptedException e) {
-		        	            return false;
-		        	        } catch (InvocationTargetException e) {
-		        	            Throwable realException = e.getTargetException();
-		        	            MessageDialog.openError(getShell(), "Failed to Run Application ", realException.getMessage());
+		        	        } catch (Exception e) {
+		        	            MessageDialog.openError(getShell(), "Failed to Run Application ", e.getMessage());
 		        	            return false;
 		        	        }
 		        	        return true;
@@ -471,8 +481,8 @@ public class LocalFileSelectWizard extends Wizard implements INewWizard  {
 	     	                 Throwable realException = e.getTargetException();
 	     	                 MessageDialog.openError(getShell(), "Failed to Run Application ", realException.getMessage());
 	     	                 return false;
-	     	             }    	           
-		        	        return true;
+	     	             }
+		        	    return true;
 		    	}
 			}
 	    }

@@ -38,7 +38,6 @@ import org.eclipse.jdt.core.JavaCore;
 
 import com.oracle.oci.eclipse.Activator;
 import com.oracle.oci.eclipse.Icons;
-import com.oracle.oci.eclipse.ui.explorer.objectstorage.actions.MakeJarAndZip;
 
 public class ProjectSelectWizardPage extends WizardPage{
 	
@@ -51,9 +50,7 @@ public class ProjectSelectWizardPage extends WizardPage{
 
 	    public ProjectSelectWizardPage(ISelection selection) {
 	        super("wizardPage");
-	        setTitle("Select Project");
-	        setDescription("Choose the Project");
-	        IMAGE = Activator.getImage(Icons.COMPARTMENT.getPath());
+	        setTitle("Select the project to run as Dataflow application");
 	    }
 
 	    @Override
@@ -121,11 +118,11 @@ public class ProjectSelectWizardPage extends WizardPage{
 	    
 	    public void start(IJavaProject proj) throws Exception {		
 	    		String projectUri=proj.getProject().getLocation().toString();
-	        	theDir = new File(System.getProperty("java.io.tmpdir")+"\\dataflowtempdir");
+	        	theDir = new File(System.getProperty("java.io.tmpdir")+File.separatorChar+"dataflowtempdir");
 	        	if (!theDir.exists()){
 	        		theDir.mkdirs();
 	        	}
-	        	String dff=File.createTempFile("dataflowtempdir\\dfspark-",".jar",theDir).getAbsolutePath();
+	        	String dff=File.createTempFile("dataflowtempdir"+File.separatorChar+"dfspark-",".jar",theDir).getAbsolutePath();
 	        	Manifest manifest = new Manifest();
 	        	manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
 	        	      
@@ -135,7 +132,7 @@ public class ProjectSelectWizardPage extends WizardPage{
 	        	for (File nestedFile : inputDirectory.listFiles())
 	        	    add("", nestedFile, target);
 	        	target.close();
-	        	MakeJarAndZip.jarUri=dff;
+	        	DataTransferObject.filedir=dff;
 		}
 
 		   private void add(String parents, File source, JarOutputStream target) throws IOException {

@@ -5,13 +5,13 @@ import java.util.Map;
 
 public class DataflowConstants {
 
-	public static final int NUM_OF_EXECUTORS_MIN = 1;
-	public static final int NUM_OF_EXECUTORS_MAX = 10;
-	public static final int NUM_OF_EXECUTORS_DEFAULT = 1;
-	public static final int NUM_OF_EXECUTORS_INCREMENT = 1;
-	public static final String[] Versions = new String[] { "2.4.4","3.0.2" };			 
+	public static final int numOfExecutorsMin = 1;
+	public static final int numOfExecutorsMax = 10;
+	public static final int numOfExecutorsDefault = 1;
+	public static final int numOfExecutorsIncrement = 1;
+	public static final String[] versions = new String[] { "2.4.4","3.0.2" };			 
 			
-	public static String[] ShapesDetails = new String[] {
+	public static String[] shapesDetails = new String[] {
 			"VM.Standard2.1 (15 GB Memory, 1 OCPU, 175 GB Block Volume)" ,
 			"VM.Standard2.2 (30 GB Memory, 2 OCPU, 275 GB Block Volume)" ,
 			"VM.Standard2.4 (60 GB Memory, 4 OCPU, 475 GB Block Volume)" ,
@@ -19,7 +19,7 @@ public class DataflowConstants {
 			"VM.Standard2.16 (240 GB Memory, 16 OCPU, 1675 GB Block Volume)"
 	};
 	
-	public static final String[] Spark2PropertiesList =  {
+	public static final String[] spark2PropertiesList =  {
        "spark.driver.maxResultSize",
        "spark.logConf",
        "spark.driver.extraJavaOptions",
@@ -155,7 +155,7 @@ public class DataflowConstants {
        "spark.stage.maxConsecutiveAttempts"
 	};
 	
-	public static final String[] Spark3PropertiesList = {
+	public static final String[] spark3PropertiesList = {
             "spark.driver.maxResultSize",
             "spark.logConf",
             "spark.driver.extraJavaOptions",
