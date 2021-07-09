@@ -19,14 +19,15 @@ import com.oracle.bmc.dataflow.model.Application;
 import com.oracle.bmc.dataflow.model.CreateRunDetails;
 import com.oracle.bmc.dataflow.model.CreateRunDetails.Builder;
 import com.oracle.oci.eclipse.sdkclients.DataflowClient;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddCreateApplicationPagesAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddRunApplicationPagesAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.Validations;
 
 
 public class CreateRunWizard  extends Wizard implements INewWizard{	
-    private CreateRunWizardPage1 firstpage;
-    private TagsPage secondpage;
-    protected CreateRunWizardPage3 thirdpage;
+    private CreateRunWizardPage1 firstPage;
+    private TagsPage secondPage;
+    protected CreateRunWizardPage3 thirdPage;
     private ISelection selection;
     private Application application;
     
@@ -40,6 +41,9 @@ public class CreateRunWizard  extends Wizard implements INewWizard{
     	 try {
            	IRunnableWithProgress op = new AddRunApplicationPagesAction(this);
                new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+               String errorMessage=((AddRunApplicationPagesAction)op).getErrorMessage();
+             	if(errorMessage!=null) 
+             		throw new Exception(errorMessage);
            } catch (Exception e) {
            	MessageDialog.openError(getShell(), "Unable to add pages to Run Application wizard", e.getMessage());
            }    
@@ -49,14 +53,14 @@ public class CreateRunWizard  extends Wizard implements INewWizard{
     public void addPagesWithProgress(IProgressMonitor monitor) {
     	DataTransferObject dto = new DataTransferObject();
     	monitor.subTask("Adding Main page");    	
-    	firstpage = new CreateRunWizardPage1(selection,dto,application.getId());
-        addPage(firstpage);
+    	firstPage = new CreateRunWizardPage1(selection,dto,application.getId());
+        addPage(firstPage);
     	monitor.subTask("Adding Tags Page");
-    	secondpage=new TagsPage(selection,application.getCompartmentId(),null,null);
-        addPage(secondpage);
+    	secondPage=new TagsPage(selection,application.getCompartmentId(),null,null);
+        addPage(secondPage);
         monitor.subTask("Adding Advanced Options page");
-        thirdpage = new CreateRunWizardPage3(selection,dto,application.getId());
-        addPage(thirdpage);
+        thirdPage = new CreateRunWizardPage3(selection,dto,application.getId());
+        addPage(thirdPage);
     }
         
 
@@ -79,22 +83,22 @@ public class CreateRunWizard  extends Wizard implements INewWizard{
         CreateRunDetails.builder()
         .compartmentId(application.getCompartmentId())
         .applicationId(application.getId())
-        .displayName(firstpage.getDisplayName())        
-        .driverShape(firstpage.getDriverShape())
-        .executorShape(firstpage.getExecutorShape())
-        .numExecutors(Integer.valueOf(firstpage.getNumofExecutors()))       
-        .definedTags(secondpage.getOT())
-        .freeformTags(secondpage.getFT())              
-        .logsBucketUri(thirdpage.getApplicationLogLocation())
-        .warehouseBucketUri(thirdpage.getWarehouseUri());
+        .displayName(firstPage.getDisplayName())        
+        .driverShape(firstPage.getDriverShape())
+        .executorShape(firstPage.getExecutorShape())
+        .numExecutors(Integer.valueOf(firstPage.getNumofExecutors()))       
+        .definedTags(secondPage.getOT())
+        .freeformTags(secondPage.getFT())              
+        .logsBucketUri(thirdPage.getApplicationLogLocation())
+        .warehouseBucketUri(thirdPage.getWarehouseUri());
 		
-    	if(application.getExecute() != null) {
-    		runApplicationRequestBuilder = runApplicationRequestBuilder.execute(firstpage.getSparkSubmit());
+    	if(application.getExecute() != null && !application.getExecute().isEmpty()) {
+    		runApplicationRequestBuilder = runApplicationRequestBuilder.execute(firstPage.getSparkSubmit());
     	}
     	else {
     		runApplicationRequestBuilder = runApplicationRequestBuilder.arguments(application.getArguments())
-    		        .parameters(firstpage.getParameters())
-    		        .configuration(thirdpage.getSparkProperties());
+    		        .parameters(firstPage.getParameters())
+    		        .configuration(thirdPage.getSparkProperties());
     	}
 		final CreateRunDetails runApplicationRequest;		
 		runApplicationRequest = runApplicationRequestBuilder.build();		
@@ -118,19 +122,19 @@ public class CreateRunWizard  extends Wizard implements INewWizard{
     }
    public void performValidations(List<Object> objectArray,List<String>nameArray) {
     	
-    	objectArray.add(firstpage.getDisplayName());
+    	objectArray.add(firstPage.getDisplayName());
     	nameArray.add("name");    	
 
-       objectArray.add(thirdpage.getApplicationLogLocation());
+       objectArray.add(thirdPage.getApplicationLogLocation());
        nameArray.add("loguri"); 
        
-       if(thirdpage.getWarehouseUri() != null && !thirdpage.getWarehouseUri().isEmpty()) {
-           objectArray.add(thirdpage.getWarehouseUri());
+       if(thirdPage.getWarehouseUri() != null && !thirdPage.getWarehouseUri().isEmpty()) {
+           objectArray.add(thirdPage.getWarehouseUri());
            nameArray.add("warehouseuri"); 
        }     
        
-    	if(thirdpage.getSparkProperties() != null) {
- 	       objectArray.add(thirdpage.getSparkProperties().keySet());
+    	if(thirdPage.getSparkProperties() != null) {
+ 	       objectArray.add(thirdPage.getSparkProperties().keySet());
  	       nameArray.add("sparkprop" + application.getSparkVersion().charAt(0));         
     	}
 

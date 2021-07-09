@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -37,7 +38,7 @@ public class TagsPage extends WizardPage {
     private ISelection selection;
     private Composite container;
     private ScrolledComposite sc;
-    private Set<Tags> set=new HashSet<Tags>();
+    private Set<Tags> tagsSet=new HashSet<Tags>();
     private String[] namespacesList;
     private Map<String,String> namespaceMap=new HashMap<String,String>();
     private IdentityClient client = new IdentityClient(AuthProvider.getInstance().getProvider());
@@ -79,7 +80,7 @@ public class TagsPage extends WizardPage {
         addNsg.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
             	
-            	set.add(new Tags());
+            	tagsSet.add(new Tags());
             }
           });
         
@@ -94,85 +95,142 @@ public class TagsPage extends WizardPage {
 	 class Tags{
 		 
 		 Composite comp;
-		 Combo tc,dtc,vtc;
-		 Text ftk,val;
-		 Button c;
+		 Combo namespaceCombo,keyCombo,valueCombo;
+		 Text keyText,valueText;
+		 Button removeButton;
 		 
 		 Tags(){
 			 
-			 comp=new Composite(container,SWT.NONE);comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			 GridLayout gl=new GridLayout();gl.numColumns=4;comp.setLayout(gl);
-			 c=new Button(comp,SWT.PUSH);c.setText("Remove");
-			 tc=new Combo(comp,SWT.READ_ONLY);
-			 tc.setItems(namespacesList);tc.setText("Free Form Tags");
-			 ftk=new Text(comp,SWT.BORDER);ftk.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));ftk.setMessage("key");
-			 val=new Text(comp,SWT.BORDER);val.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));val.setMessage("value");
-			 addtcl();
-			 addClose();
+			 comp=new Composite(container,SWT.NONE);
+			 comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			 GridLayout gl=new GridLayout();
+			 gl.numColumns=4;
+			 comp.setLayout(gl);
+			 
+			 removeButton=new Button(comp,SWT.PUSH);
+			 removeButton.setText("Remove");
+			 
+			 namespaceCombo=new Combo(comp,SWT.READ_ONLY);
+			 namespaceCombo.setItems(namespacesList);
+			 namespaceCombo.setText("Free Form Tags");
+			 
+			 keyText=new Text(comp,SWT.BORDER);
+			 keyText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			 keyText.setMessage("key");
+			 
+			 valueText=new Text(comp,SWT.BORDER);
+			 valueText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			 valueText.setMessage("value");
+			 
+			 addNamespaceComboListener();
+			 addRemoveButtonListener();
 			 refresh();
 		 }
 		 
-		 void addClose() {
-			 c.addSelectionListener(new SelectionAdapter() {
+		 void addRemoveButtonListener() {
+			 removeButton.addSelectionListener(new SelectionAdapter() {
 				 public void widgetSelected(SelectionEvent e) {
-					 if(tc!=null) tc.dispose();
-					 if(dtc!=null) dtc.dispose();
-					 if(vtc!=null) vtc.dispose();
-			    	 if(ftk!=null) ftk.dispose();
-			    	 if(val!=null) val.dispose();
-					 comp.dispose();
-					 set.remove(Tags.this);
+					 if(namespaceCombo!=null) 
+						 namespaceCombo.dispose();
+					 if(keyCombo!=null) 
+						 keyCombo.dispose();
+					 if(valueCombo!=null) 
+						 valueCombo.dispose();
+			    	 if(keyText!=null) 
+			    		 keyText.dispose();
+			    	 if(valueText!=null) 
+			    		 valueText.dispose();
+					 
+			    	 comp.dispose();
+					 tagsSet.remove(Tags.this);
 					 refresh();
 				 }
 			 });
 		 }
 		
-		 void addtcl() {
+		 void addNamespaceComboListener() {
 			 
-			tc.addSelectionListener(new SelectionAdapter() {
+			 namespaceCombo.addSelectionListener(new SelectionAdapter() {
 			      public void widgetSelected(SelectionEvent e) {
-			    	  if(dtc!=null) dtc.dispose();
-			    	  if(vtc!=null) vtc.dispose();
-			    	  if(ftk!=null) ftk.dispose();
-			    	  if(val!=null) val.dispose();
+			    	  if(keyCombo!=null) 
+			    		  keyCombo.dispose();
+			    	  if(valueCombo!=null) 
+			    		  valueCombo.dispose();
+			    	  if(keyText!=null) 
+			    		  keyText.dispose();
+			    	  if(valueText!=null) 
+			    		  valueText.dispose();
+			    	  
 			    	  refresh();
 			    	  
-			    	  if(!tc.getText().equals("Free Form Tags")) {
-			    		  dtc=new Combo(comp,SWT.READ_ONLY);dtc.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			    		  vtc=new Combo(comp,SWT.READ_ONLY);vtc.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			    	  if(!namespaceCombo.getText().equals("Free Form Tags")) {
+			    		  keyCombo=new Combo(comp,SWT.READ_ONLY);
+			    		  keyCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			    		  
+			    		  valueCombo=new Combo(comp,SWT.READ_ONLY);
+			    		  valueCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			    		  
 			    		  refresh();
-			    		  dtc.setItems(getTagKeys(namespaceMap.get(tc.getText())));
-			    		  adddtcl();
+			    		  
+			    		  String[] tagKeys=getTagKeys(namespaceMap.get(namespaceCombo.getText()));
+			    		  if(tagKeys==null||tagKeys.length==0) {
+			    			  MessageDialog.openError(getShell(), "Tag namespace selected does not have any keys", "It will be removed");
+			    			  comp.dispose();
+			    			  tagsSet.remove(Tags.this);
+			    			  return;
+			    		  }
+			    		  keyCombo.setItems(tagKeys);
+			    		  addKeyComboListener();
+			    		  //
+			    		  keyCombo.select(0);
+			    		  keyComboListener();
+			    		  //
 			    	  }
 			    	  else {
-				  			ftk=new Text(comp,SWT.BORDER);ftk.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));ftk.setMessage("key");
-				  			val=new Text(comp,SWT.BORDER);val.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));val.setMessage("value");
+			    		  keyText=new Text(comp,SWT.BORDER);
+			    		  keyText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			    		  keyText.setMessage("key");
+			    		  
+			    		  valueText=new Text(comp,SWT.BORDER);
+			    		  valueText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			    		  valueText.setMessage("value");
 			    	  }
 			    	  refresh();
 				   }
 			});
 		 }
 		 
-		 void adddtcl() {
-			 dtc.addSelectionListener(new SelectionAdapter() {
+		 void addKeyComboListener() {
+			 keyCombo.addSelectionListener(new SelectionAdapter() {
 			      public void widgetSelected(SelectionEvent e) {
-			    	  if(vtc==null||vtc.isDisposed()) {
-			    		  vtc=new Combo(comp,SWT.READ_ONLY);vtc.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			    		  refresh();
-			    	  }
-			    	  String[] items=getTagValues(dtc.getText(),namespaceMap.get(tc.getText()));
-			    	  if(items==null) {
-			    		  if(vtc!=null)
-			    			  vtc.dispose();
-			    		  val=new Text(comp,SWT.BORDER);val.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));val.setMessage("value");
-			    	  }
-			    	  else {
-			    		  if(vtc==null||vtc.isDisposed()) vtc=new Combo(comp,SWT.READ_ONLY);vtc.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			    		  vtc.setItems(items);
-			    	  }
-			    	  refresh();
+			    	  keyComboListener();
 				   }
 			});
+		 }
+		 
+		 void keyComboListener() {
+			 if(valueText!=null)
+	    		  valueText.dispose();
+	    	  if(valueCombo==null||valueCombo.isDisposed()) {
+	    		  valueCombo=new Combo(comp,SWT.READ_ONLY);
+	    		  valueCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	    		  refresh();
+	    	  }
+	    	  String[] items=getTagValues(keyCombo.getText(),namespaceMap.get(namespaceCombo.getText()));
+	    	  if(items==null) {
+	    		  if(valueCombo!=null)
+	    			  valueCombo.dispose();
+	    		  valueText=new Text(comp,SWT.BORDER);
+	    		  valueText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	    		  valueText.setMessage("value");
+	    	  }
+	    	  else {
+	    		  if(valueCombo==null||valueCombo.isDisposed()) 
+	    			  valueCombo=new Combo(comp,SWT.READ_ONLY);
+	    		  valueCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	    		  valueCombo.setItems(items);
+	    	  }
+	    	  refresh();
 		 }
 		 
 	 }
@@ -245,13 +303,13 @@ public class TagsPage extends WizardPage {
 		 
 		 Map<String,Map<String,Object>> ots=new HashMap<String,Map<String,Object>>();
 		 
-		 for(Tags t:set) {
-			 if(!t.tc.getText().equals("Free Form Tags")) {
-				 Map<String,Object> tm=ots.get(t.tc.getText());
+		 for(Tags t:tagsSet) {
+			 if(!t.namespaceCombo.getText().equals("Free Form Tags")) {
+				 Map<String,Object> tm=ots.get(t.namespaceCombo.getText());
 				 if(tm==null) tm=new  HashMap<String,Object>();
-				 if(t.vtc!=null&&!t.vtc.isDisposed()) tm.put(t.dtc.getText(), t.vtc.getText());
-				 else tm.put(t.dtc.getText(), t.val.getText());
-				 ots.put(t.tc.getText(), tm);
+				 if(t.valueCombo!=null&&!t.valueCombo.isDisposed()) tm.put(t.keyCombo.getText(), t.valueCombo.getText());
+				 else tm.put(t.keyCombo.getText(), t.valueText.getText());
+				 ots.put(t.namespaceCombo.getText(), tm);
 			 }
 		 }
 		 return ots;
@@ -260,9 +318,9 @@ public class TagsPage extends WizardPage {
 	 public Map<String,String> getFT(){
 		 Map<String,String> m=new HashMap<String,String>();
 		 
-		 for(Tags t:set) {
-			 if(t.tc.getText().equals("Free Form Tags")) {
-				 m.put(t.ftk.getText(), t.val.getText());
+		 for(Tags t:tagsSet) {
+			 if(t.namespaceCombo.getText().equals("Free Form Tags")) {
+				 m.put(t.keyText.getText(), t.valueText.getText());
 			 }
 		 }
 		 
@@ -284,43 +342,51 @@ public class TagsPage extends WizardPage {
 		 for(Map.Entry<String,Map<String,Object>> me:defMap.entrySet()) {
 			 for(Map.Entry<String,Object> mee:me.getValue().entrySet()) {
 				 Tags t=new Tags();
-				 t.tc.setText(me.getKey());
-				 t.ftk.dispose();
-				 t.val.dispose();
-				 t.dtc=new Combo(t.comp,SWT.READ_ONLY);t.dtc.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				 t.dtc.setItems(getTagKeys(namespaceMap.get(t.tc.getText())));
-				 t.dtc.setText(mee.getKey());
+				 t.namespaceCombo.setText(me.getKey());
+				 
+				 t.keyText.dispose();
+				 
+				 t.valueText.dispose();
+				 
+				 t.keyCombo=new Combo(t.comp,SWT.READ_ONLY);
+				 t.keyCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				 t.keyCombo.setItems(getTagKeys(namespaceMap.get(t.namespaceCombo.getText())));
+				 t.keyCombo.setText(mee.getKey());
+				 
 				 String[] val=getTagValues(mee.getKey(),namespaceMap.get(me.getKey()));
+				 
 				 if(val!=null) {
-		    		  if(t.vtc==null||t.vtc.isDisposed()) 
-		    			  t.vtc=new Combo(t.comp,SWT.READ_ONLY);
-		    		  t.vtc.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		    		  t.vtc.setItems(val);
-		    		 if(mee.getValue()!=null) t.vtc.setText((String)mee.getValue());
+		    		  if(t.valueCombo==null||t.valueCombo.isDisposed()) 
+		    			  t.valueCombo=new Combo(t.comp,SWT.READ_ONLY);
+		    		  t.valueCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		    		  t.valueCombo.setItems(val);
+		    		 if(mee.getValue()!=null) 
+		    			 t.valueCombo.setText((String)mee.getValue());
 		    	 }
 				 else {
-					 t.val=new Text(t.comp,SWT.BORDER);
-					 t.val.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+					 t.valueText=new Text(t.comp,SWT.BORDER);
+					 t.valueText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					 if(mee.getValue()!=null) 
-						 t.val.setText((String)mee.getValue());
+						 t.valueText.setText((String)mee.getValue());
 				 }
-				 set.add(t);
+				 tagsSet.add(t);
 			 }
 			 refresh();
 		 }
 		 
 		 for(Map.Entry<String, String> me:freeMap.entrySet()) {
 			 Tags t=new Tags();
-			 t.ftk.setText(me.getKey());
-			 if(me.getValue()!=null) t.val.setText(me.getValue());
-			 set.add(t);
+			 t.keyText.setText(me.getKey());
+			 if(me.getValue()!=null) 
+				 t.valueText.setText(me.getValue());
+			 tagsSet.add(t);
 		 }
 	 }
 	 
 	 public void clearTags() {
-		 for(Tags tag:set) {
+		 for(Tags tag:tagsSet) {
 			 tag.comp.dispose();
 		 }
-		 set.clear();
+		 tagsSet.clear();
 	 }
 }

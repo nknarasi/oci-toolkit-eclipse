@@ -79,32 +79,31 @@ public class DetailsRunAction extends BaseAction {
 
     protected List<TablePair> createDataList(Run obj) {
         List<TablePair> data = new ArrayList<TablePair>();
-        data.add(new TablePair("Application Configuration", ""));
-        data.add(new TablePair("", ""));
 		data.add(new TablePair("Application Type:", obj.getLanguage().toString()));
         data.add(new TablePair("OCID:", obj.getId()));
-		data.add(new TablePair("File URL:", obj.getFileUri()));
-		data.add(new TablePair("Archive URI:", obj.getArchiveUri()));
-		data.add(new TablePair("Main Class Name:", obj.getClassName()));
-		data.add(new TablePair("Arguments:", String.join(",",obj.getArguments())));
+        if(obj.getExecute()==null) {
+        	data.add(new TablePair("File URL:", obj.getFileUri()));
+        	data.add(new TablePair("Archive URI:", obj.getArchiveUri()));
+        	data.add(new TablePair("Main Class Name:", obj.getClassName()));
+        	data.add(new TablePair("Arguments:", String.join(",",obj.getArguments())));
+        	data.add(new TablePair("Parameters:", obj.getParameters().toString()));
+        }
+        else {
+        	data.add(new TablePair("Spark-submit:", obj.getExecute()));
+        }
 		data.add(new TablePair("Application Log Location:", obj.getLogsBucketUri()));
-		data.add(new TablePair("", ""));
-		
-		data.add(new TablePair("Run Information", ""));
-		data.add(new TablePair("", ""));
+		data.add(new TablePair("Warehouse Bucket Uri:", obj.getWarehouseBucketUri()));
+		data.add(new TablePair("Spark Properties:", obj.getConfiguration().toString()));
 		data.add(new TablePair("State Details:", obj.getLifecycleDetails()));
 		data.add(new TablePair("Created:", (new SimpleDateFormat("dd-M-yyyy hh:mm:ss")).format(obj.getTimeCreated())));
 		data.add(new TablePair("Owner:", obj.getOwnerUserName()));
 		data.add(new TablePair("Request Id:", obj.getOpcRequestId()));
-		data.add(new TablePair("", ""));
-		
-		data.add(new TablePair("Resource Configuration", ""));
-		data.add(new TablePair("", ""));
 		data.add(new TablePair("Spark Version:", obj.getSparkVersion()));
 		data.add(new TablePair("Driver Shape:", obj.getDriverShape()));
 		data.add(new TablePair("Executor Shape:", obj.getExecutorShape()));
 		data.add(new TablePair("Number of Executors:", obj.getNumExecutors().toString()));
-		data.add(new TablePair("", ""));
+		data.add(new TablePair("Defined Tags:", obj.getDefinedTags().toString()));
+		data.add(new TablePair("Free Form Tags:", obj.getFreeformTags().toString()));
         return data;
     }
 

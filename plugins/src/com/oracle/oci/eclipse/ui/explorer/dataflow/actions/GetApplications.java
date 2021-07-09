@@ -22,6 +22,7 @@ public class GetApplications implements IRunnableWithProgress{
 	private String page=null;
 	public List<ApplicationSummary> applicationSummaryList = new ArrayList<ApplicationSummary>();
 	public ListApplicationsResponse listApplicationsResponse;
+	private String errorMessage=null;
 	
 	   public GetApplications(String givenCompartmentId,ListApplicationsRequest.SortBy sortBy,ListApplicationsRequest.SortOrder sortOrder,String page)
 	    {
@@ -33,6 +34,8 @@ public class GetApplications implements IRunnableWithProgress{
 	   
 	    @Override
 	    public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException{
+	    	
+	    	try {
 	        monitor.beginTask("Getting Applications", IProgressMonitor.UNKNOWN);
 	   		applicationSummaryList = new ArrayList<ApplicationSummary>();	   			   		
 	   		ListApplicationsRequest.Builder listApplicationsBuilder =  ListApplicationsRequest.builder()
@@ -49,5 +52,13 @@ public class GetApplications implements IRunnableWithProgress{
 	            	 MessageDialog.openError(Display.getDefault().getActiveShell(),"Unable to get list applications: ",e.getMessage());
 	             }
 	        monitor.done();
+	    	}
+	    	catch (Exception e) {
+	    		errorMessage=e.getMessage();
+	    	}
+	    }
+	    
+	    public String getErrorMessage() {
+	    	return errorMessage;
 	    }
 }

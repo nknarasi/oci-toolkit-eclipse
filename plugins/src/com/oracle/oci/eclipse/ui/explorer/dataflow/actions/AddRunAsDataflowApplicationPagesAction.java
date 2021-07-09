@@ -8,6 +8,7 @@ import com.oracle.oci.eclipse.ui.explorer.dataflow.wizards.RunAsDataflowApplicat
 public class AddRunAsDataflowApplicationPagesAction implements IRunnableWithProgress {
 	
 	private RunAsDataflowApplicationWizard wizard;
+	private String errorMessage=null;
 	
     public AddRunAsDataflowApplicationPagesAction( RunAsDataflowApplicationWizard wizard)
     {
@@ -17,6 +18,7 @@ public class AddRunAsDataflowApplicationPagesAction implements IRunnableWithProg
     @Override
     public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException
     {
+    	try {
         // Tell the user what you are doing
         monitor.beginTask("Opening Run as Dataflow Application Wizard", IProgressMonitor.UNKNOWN);
 
@@ -25,6 +27,13 @@ public class AddRunAsDataflowApplicationPagesAction implements IRunnableWithProg
 
         // You are done
         monitor.done();
+    	}
+    	catch (Exception e) {
+    		errorMessage=e.getMessage();
+    	}
+    }
+    public String getErrorMessage() {
+    	return errorMessage;
     }
 
 }

@@ -11,6 +11,7 @@ import com.oracle.oci.eclipse.ui.explorer.dataflow.wizards.EditApplicationWizard
 public class AddEditApplicationPagesAction implements IRunnableWithProgress {
 	
 	private EditApplicationWizard  wizard;
+	private String errorMessage=null;
 	
     public AddEditApplicationPagesAction(EditApplicationWizard wizard)
     {
@@ -20,6 +21,7 @@ public class AddEditApplicationPagesAction implements IRunnableWithProgress {
     @Override
     public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException
     {
+    	try {
         // Tell the user what you are doing
         monitor.beginTask("Opening Edit Application Wizard", IProgressMonitor.UNKNOWN);
 
@@ -28,5 +30,12 @@ public class AddEditApplicationPagesAction implements IRunnableWithProgress {
 
         // You are done
         monitor.done();
+    	}
+    	catch (Exception e) {
+    		errorMessage=e.getMessage();
+    	}
+    }
+    public String getErrorMessage() {
+    	return errorMessage;
     }
 }

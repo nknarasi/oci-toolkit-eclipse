@@ -33,6 +33,7 @@ import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DeleteApplicationActi
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DetailsApplicationAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.EditApplicationAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetApplications;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetRuns;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RunApplicationAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.wizards.CreateApplicationWizard;
 
@@ -53,6 +54,7 @@ public class ApplicationTable extends BaseTable{
 	private ListApplicationsRequest.SortOrder sortOrder;
 	private ListApplicationsResponse listApplicationsResponse;
 	private Button previouspage,nextpage;
+	private String nextPageStr;
 	
     public ApplicationTable(Composite parent, int style) {
         super(parent, style);
@@ -76,14 +78,26 @@ public class ApplicationTable extends BaseTable{
     		COMPARTMENT_ID = IdentClient.getInstance().getRootCompartment().getCompartmentId();
     	}
         try {
+        	
         	IRunnableWithProgress op = new GetApplications(COMPARTMENT_ID,sortBy,sortOrder,pageToShow);
         	new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+        	String errorMessage=((GetApplications)op).getErrorMessage();
+        	if(errorMessage!=null) 
+        		throw new Exception(errorMessage);
             listApplicationsResponse = ((GetApplications)op).listApplicationsResponse;
             applicationList=((GetApplications)op).applicationSummaryList;
             tableDataSize = applicationList.size();
        } catch (Exception e) {
            MessageDialog.openError(Display.getDefault().getActiveShell(),"Unable to get applications: ",e.getMessage());               
         }
+        
+        nextPageStr=listApplicationsResponse.getOpcNextPage();
+		if(nextPageStr!=null&&!nextPageStr.isEmpty()) {
+			nextpage.setEnabled(true);
+		}
+		else {
+			nextpage.setEnabled(false);
+		}
         refresh(false);            
         return applicationList;
     }
@@ -230,12 +244,14 @@ public class ApplicationTable extends BaseTable{
         nextpage.setText(">");
         previouspage.setLayoutData(new GridData());
         nextpage.setLayoutData(new GridData());
+        previouspage.setEnabled(false);
         
         nextpage.addSelectionListener(new SelectionListener() {
             @Override
             public void widgetSelected(SelectionEvent e) {
             	pageToShow = listApplicationsResponse.getOpcNextPage();
 				refresh(true);
+				previouspage.setEnabled(true);
             }
 
             @Override

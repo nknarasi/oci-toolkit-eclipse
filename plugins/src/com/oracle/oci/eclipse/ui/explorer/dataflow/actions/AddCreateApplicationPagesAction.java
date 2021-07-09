@@ -9,6 +9,7 @@ import com.oracle.oci.eclipse.ui.explorer.dataflow.wizards.CreateApplicationWiza
 public class AddCreateApplicationPagesAction implements IRunnableWithProgress {
 
 	private CreateApplicationWizard  wizard;
+	private String errorMessage=null;
 	
     public AddCreateApplicationPagesAction(CreateApplicationWizard wizard)
     {
@@ -18,6 +19,7 @@ public class AddCreateApplicationPagesAction implements IRunnableWithProgress {
     @Override
     public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException
     {
+    	try {
         // Tell the user what you are doing
         monitor.beginTask("Opening Create Application Wizard", IProgressMonitor.UNKNOWN);
 
@@ -26,6 +28,13 @@ public class AddCreateApplicationPagesAction implements IRunnableWithProgress {
 
         // You are done
         monitor.done();
+    	}
+    	catch (Exception e) {
+    		errorMessage=e.getMessage();
+    	}
     }
     
+    public String getErrorMessage() {
+    	return errorMessage;
+    }
 }

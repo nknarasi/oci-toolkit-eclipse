@@ -83,6 +83,7 @@ public class DetailsPrivateEndpointAction extends BaseAction {
 
     protected List<TablePair> createDataList(PrivateEndpoint obj) {
         List<TablePair> data = new ArrayList<TablePair>();
+        data.add(new TablePair("Description:", obj.getDescription()));
 		data.add(new TablePair("Subnet:", obj.getSubnetId()));
         data.add(new TablePair("DNS Zones to Resolve:", String.join(",",obj.getDnsZones())));
 		data.add(new TablePair("State Details:", obj.getLifecycleDetails()));
@@ -91,7 +92,9 @@ public class DetailsPrivateEndpointAction extends BaseAction {
 			data.add(new TablePair("Network Security Groups:", String.join(",",obj.getNsgIds())));
 		else 
 			data.add(new TablePair("Network Security Groups:",""));
-		data.add(new TablePair("OCID", obj.getId()));
+		data.add(new TablePair("OCID:", obj.getId()));
+		data.add(new TablePair("Defined Tags:", obj.getDefinedTags().toString()));
+		data.add(new TablePair("Free Form Tags:", obj.getFreeformTags().toString()));
         return data;
     }
 

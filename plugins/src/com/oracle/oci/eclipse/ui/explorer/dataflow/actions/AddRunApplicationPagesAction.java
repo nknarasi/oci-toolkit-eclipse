@@ -8,6 +8,7 @@ import com.oracle.oci.eclipse.ui.explorer.dataflow.wizards.CreateRunWizard;
 public class AddRunApplicationPagesAction implements IRunnableWithProgress {
 
 	private CreateRunWizard  wizard;
+	private String errorMessage=null;
 	
     public AddRunApplicationPagesAction(CreateRunWizard wizard)
     {
@@ -17,6 +18,7 @@ public class AddRunApplicationPagesAction implements IRunnableWithProgress {
     @Override
     public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException
     {
+    	try {
         // Tell the user what you are doing
         monitor.beginTask("Opening Run Application Wizard", IProgressMonitor.UNKNOWN);
 
@@ -25,5 +27,12 @@ public class AddRunApplicationPagesAction implements IRunnableWithProgress {
 
         // You are done
         monitor.done();
+    	}
+    	catch (Exception e) {
+    		errorMessage=e.getMessage();
+    	}
+    }
+    public String getErrorMessage() {
+    	return errorMessage;
     }
 }
