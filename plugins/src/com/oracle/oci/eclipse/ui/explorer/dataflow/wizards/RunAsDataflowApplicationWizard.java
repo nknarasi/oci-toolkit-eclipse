@@ -42,7 +42,7 @@ public class RunAsDataflowApplicationWizard extends Wizard implements INewWizard
 	private String COMPARTMENT_ID;
 	protected CreateApplicationWizardPage firstpage;
 	protected CreateApplicationWizardPage3 thirdpage;
-    private TagsPage tagpage;
+    protected TagsPage tagpage;
     private Application application;
     boolean canFinish = false;
     
@@ -82,7 +82,7 @@ public class RunAsDataflowApplicationWizard extends Wizard implements INewWizard
 	        firstpage = new CreateApplicationWizardPage(selection,COMPARTMENT_ID);
 	        addPage(firstpage);  	       	
 	    	monitor.subTask("Adding Tags Page");
-	        tagpage= new TagsPage(selection,COMPARTMENT_ID);
+	        tagpage= new TagsPage(selection,COMPARTMENT_ID,null,null);
 	        addPage(tagpage);  	        
 	        monitor.subTask("Adding Advanced Options page");
 	        thirdpage = new CreateApplicationWizardPage3(selection);
@@ -254,18 +254,10 @@ public class RunAsDataflowApplicationWizard extends Wizard implements INewWizard
 		        			.definedTags(tagpage.getOT())
 		        			.freeformTags(tagpage.getFT())
     						.language(firstpage.getLanguage())
-    						.fileUri(firstbpage.getFileUri());
-				    		
-		    		if(DataTransferObject.archivedir != null) {
-			    		editApplicationRequestBuilder = editApplicationRequestBuilder
-        						.archiveUri(secondbpage.getArchiveUri());
-		    		}
-		    		else{
-		    			editApplicationRequestBuilder = editApplicationRequestBuilder
-        						.language(firstpage.getLanguage())
-        						.fileUri(firstbpage.getFileUri())
-        						.archiveUri("");
-		    		}	        				
+    						.fileUri(firstpage.getFileUri())
+    						.parameters(firstpage.getParameters())
+    						.archiveUri(firstpage.getArchiveUri());
+		    		
 		        	if(firstpage.getLanguage()== ApplicationLanguage.Java || firstpage.getLanguage()== ApplicationLanguage.Scala){
 		        					editApplicationRequestBuilder = editApplicationRequestBuilder.className(firstpage.getMainClassName())
 		        		    				.arguments(firstpage.getArguments());					
@@ -273,9 +265,6 @@ public class RunAsDataflowApplicationWizard extends Wizard implements INewWizard
 		        	else if (firstpage.getLanguage()== ApplicationLanguage.Python) {
 		        		    		editApplicationRequestBuilder = editApplicationRequestBuilder.arguments(firstpage.getArguments());					        		    	
 		        	}		        		    	
-		        	else if (firstpage.getLanguage()== ApplicationLanguage.Sql) {
-		        		    		editApplicationRequestBuilder= editApplicationRequestBuilder.parameters(firstpage.getParameters());			
-		        	}
 
 		        	final UpdateApplicationDetails editApplicationRequest;		        	    	
 		        	final boolean usesAdvancedOptions = thirdpage.usesAdvancedOptions();
@@ -395,11 +384,10 @@ public class RunAsDataflowApplicationWizard extends Wizard implements INewWizard
 		        			.executorShape(firstpage.getExecutorShape())
 		        			.numExecutors(Integer.valueOf(firstpage.getNumofExecutors()))
 		        			.definedTags(tagpage.getOT())
-		        			.freeformTags(tagpage.getFT());	
-		        			createApplicationRequestBuilder = createApplicationRequestBuilder
-		        						.language(firstpage.getLanguage())
-		        						.fileUri(firstbpage.getFileUri())
-		        						.archiveUri(secondbpage.getArchiveUri());
+		        			.freeformTags(tagpage.getFT())
+		        			.language(firstpage.getLanguage())
+		        			.fileUri(firstpage.getFileUri())
+		        			.archiveUri(firstpage.getArchiveUri());
 		        				
 		        				if(firstpage.getLanguage()== ApplicationLanguage.Java || firstpage.getLanguage()== ApplicationLanguage.Scala){
 		        		    		createApplicationRequestBuilder = createApplicationRequestBuilder.className(firstpage.getMainClassName())

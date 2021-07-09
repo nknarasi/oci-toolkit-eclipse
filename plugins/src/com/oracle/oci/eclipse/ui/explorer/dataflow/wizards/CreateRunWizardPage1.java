@@ -63,22 +63,22 @@ public class CreateRunWizardPage1  extends WizardPage{
 		
 		final String defaultRunName = application.getDisplayName();		
 		Label displayNameLabel = new Label(container, SWT.NULL);
-		displayNameLabel.setText("&Display name:");
+		displayNameLabel.setText("&Display name: *");
 		displayNameText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		displayNameText.setLayoutData(gd);
 		displayNameText.setText(defaultRunName);
 		
 		Label DriverShapeLabel = new Label(container, SWT.NULL);
-		DriverShapeLabel.setText("&Driver Shape:");
+		DriverShapeLabel.setText("&Driver Shape: *");
 		createDriverShapeCombo(container);		
 
 		Label ExecutorShapeLabel = new Label(container, SWT.NULL);
-		ExecutorShapeLabel.setText("&Executor Shape:");
+		ExecutorShapeLabel.setText("&Executor Shape: *");
 		createExecutorShapeCombo(container);
 		
 		Label NumofExecutorslabel = new Label(container, SWT.NULL);
-		NumofExecutorslabel.setText("&Number of Executors:");
+		NumofExecutorslabel.setText("&Number of Executors: *");
 		createNumofExecutorsSpinner(container);
 		
 		if(application.getExecute() == null || application.getExecute().equals("")) {
@@ -117,7 +117,7 @@ public class CreateRunWizardPage1  extends WizardPage{
 		}
 		else {
 			Label sparkSubmitlabel = new Label(container, SWT.NULL);
-			sparkSubmitlabel.setText("&Spark Submit Command:");
+			sparkSubmitlabel.setText("&Spark Submit Command: *");
 			sparkSubmitText = new Text(container, SWT.BORDER | SWT.MULTI);
 			 GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
 			 gridData.heightHint = 5 * sparkSubmitText.getLineHeight();

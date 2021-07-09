@@ -89,7 +89,7 @@ public class EditPrivateEndpointWizard extends Wizard implements INewWizard {
     	page=new EditPrivateEndpointPage(selection,pepSum);
         addPage(page);
         monitor.subTask("Adding Tags page");
-        page2=new TagsPage(selection,pepSum.getCompartmentId());
+        page2=new TagsPage(selection,pepSum.getCompartmentId(),pepSum.getDefinedTags(),pepSum.getFreeformTags());
         addPage(page2);
     }
     /**
@@ -101,4 +101,8 @@ public class EditPrivateEndpointWizard extends Wizard implements INewWizard {
     public void init(IWorkbench workbench, IStructuredSelection selection) {
         this.selection = selection;
     }
+    
+	 public TagsPage getTagsPage() {
+		 return page2;
+	 }
 }

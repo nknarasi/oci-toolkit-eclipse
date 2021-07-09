@@ -106,7 +106,7 @@ public class EditApplicationWizardPage1  extends WizardPage {
 		layout.numColumns = 2;
 		
 		Label displayNameLabel = new Label(container, SWT.NULL);
-		displayNameLabel.setText("&Display name:");
+		displayNameLabel.setText("&Display name: *");
 		displayNameText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		displayNameText.setLayoutData(gd);
@@ -121,7 +121,7 @@ public class EditApplicationWizardPage1  extends WizardPage {
 			applicationDescriptionText.setText(application.getDescription());
 		
 		Label SparkVersionLabel = new Label(container, SWT.NULL);
-		SparkVersionLabel.setText("&Spark Version:");
+		SparkVersionLabel.setText("&Spark Version: *");
 		GridData gd2 = new GridData(GridData.FILL_HORIZONTAL);
 		sparkVersionCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
 		sparkVersionCombo.setLayoutData(gd2);		 
@@ -134,15 +134,15 @@ public class EditApplicationWizardPage1  extends WizardPage {
 		}				      
 		
 		Label DriverShapeLabel = new Label(container, SWT.NULL);
-		DriverShapeLabel.setText("&Driver Shape:");
+		DriverShapeLabel.setText("&Driver Shape: *");
 		createDriverShapeCombo(container);
 		
 		Label ExecutorShapeLabel = new Label(container, SWT.NULL);
-		ExecutorShapeLabel.setText("&Executor Shape:");
+		ExecutorShapeLabel.setText("&Executor Shape: *");
 		createExecutorShapeCombo(container);
 		
 		Label NumofExecutorslabel = new Label(container, SWT.NULL);
-		NumofExecutorslabel.setText("&Number of Executors:");
+		NumofExecutorslabel.setText("&Number of Executors: *");
 		createNumofExecutorsSpinner(container);
 			
 		if(application.getExecute() != null && !application.getExecute().equals("")) {
@@ -159,7 +159,7 @@ public class EditApplicationWizardPage1  extends WizardPage {
 	
 	private void withSparkSubmit(Composite container) {		
 		 sparkSubmitlabel = new Label(container, SWT.NULL);
-		 sparkSubmitlabel.setText("&Spark Submit Command:");
+		 sparkSubmitlabel.setText("&Spark Submit Command: *");
 		 sparkSubmitText = new Text(container, SWT.BORDER | SWT.MULTI);
 		 GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
 		 gridData.heightHint = 5 * sparkSubmitText.getLineHeight();
@@ -173,7 +173,7 @@ public class EditApplicationWizardPage1  extends WizardPage {
 		createLanguageCombo(container);
 		
 		fileUrilabel = new Label(container, SWT.NULL);
-		fileUrilabel.setText("&Choose a File:");
+		fileUrilabel.setText("&Choose a File: *");
 		fileUriContainer = new Composite(container, SWT.NONE);
 		GridLayout fileUriLayout = new GridLayout();
 		fileUriLayout.numColumns = 2;
@@ -375,7 +375,7 @@ public class EditApplicationWizardPage1  extends WizardPage {
 	}
 	private void JavaLanguageSelected(Composite container) {	
 		mainClassNamelabel = new Label(container, SWT.NULL);
-		mainClassNamelabel.setText("&Main Class Name:");
+		mainClassNamelabel.setText("&Main Class Name: *");
 		mainClassNameText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		mainClassNameText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));		
 		mainClassNameText.setText(application.getClassName());

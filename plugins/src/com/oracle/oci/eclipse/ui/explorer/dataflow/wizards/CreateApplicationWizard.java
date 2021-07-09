@@ -53,7 +53,7 @@ public class CreateApplicationWizard extends Wizard implements INewWizard {
     	firstpage = new CreateApplicationWizardPage(selection,COMPARTMENT_ID);
        	addPage(firstpage);
     	monitor.subTask("Adding Tags Page");
-        tagpage= new TagsPage(selection,COMPARTMENT_ID);
+        tagpage= new TagsPage(selection,COMPARTMENT_ID,null,null);
         addPage(tagpage);  
         monitor.subTask("Adding Advanced Options page");
         thirdpage = new CreateApplicationWizardPage3(selection);

@@ -20,20 +20,17 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.forms.widgets.FormToolkit;
-
 import com.oracle.bmc.dataflow.model.PrivateEndpointSummary;
 import com.oracle.bmc.dataflow.responses.ListPrivateEndpointsResponse;
 import com.oracle.oci.eclipse.account.AuthProvider;
 import com.oracle.oci.eclipse.sdkclients.IdentClient;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseTable;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseTableLabelProvider;
-
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.CreatePrivateEndpointAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DeletePrivateEndpointAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DetailsPrivateEndpointAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.EditPrivateEndpointAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetPrivateEndpoints;
-import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RefreshPrivateEndpointAction;
 
 public class PrivateEndpointTable extends BaseTable {
     private int tableDataSize = 0;
@@ -131,7 +128,6 @@ public class PrivateEndpointTable extends BaseTable {
 
     @Override
     protected void fillMenu(IMenuManager manager) {
-        manager.add(new RefreshPrivateEndpointAction(PrivateEndpointTable.this));
 		manager.add(new CreatePrivateEndpointAction(PrivateEndpointTable.this));
         manager.add(new Separator());
 
@@ -151,9 +147,22 @@ public class PrivateEndpointTable extends BaseTable {
 	@Override
     protected void addTableLabels(FormToolkit toolkit, Composite left, Composite right) {
 		
+		
+		Button refreshTable=new Button(right.getParent(),SWT.PUSH);
+		refreshTable.setText("Refresh Table");
+		refreshTable.setLayoutData(new GridData());
+		refreshTable.addSelectionListener(new SelectionListener() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+				refresh(true);
+            }
+
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) {}
+        });
+		
 		Composite page=new Composite(right.getParent(),SWT.NONE);
         GridData gdpage = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_END);
-        gdpage.horizontalSpan = 2;
         page.setLayoutData(gdpage);
         
         GridLayout gl=new GridLayout();

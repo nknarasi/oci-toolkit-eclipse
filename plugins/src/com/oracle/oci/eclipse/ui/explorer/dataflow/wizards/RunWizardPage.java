@@ -64,14 +64,14 @@ public class RunWizardPage extends WizardPage {
         layout.verticalSpacing = 9;
 		
         Label nameLabel = new Label(container, SWT.NULL);
-        nameLabel.setText("&Name:");
+        nameLabel.setText("&Display Name: *");
         nameText = new Text(container, SWT.BORDER | SWT.SINGLE);
         nameText.setText(run.getDisplayName());
         GridData gd = new GridData(GridData.FILL_HORIZONTAL);
         nameText.setLayoutData(gd);
 		
 		Label dshapeLabel = new Label(container, SWT.NULL);
-        dshapeLabel.setText("&Driver Shape:");
+        dshapeLabel.setText("&Driver Shape: *");
 		dshapeCombo = new Combo(container, SWT.READ_ONLY);
 		dshapeCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
@@ -89,7 +89,7 @@ public class RunWizardPage extends WizardPage {
 		}	
 		
 		Label eshapeLabel = new Label(container, SWT.NULL);
-        eshapeLabel.setText("&Executor Shape:");
+        eshapeLabel.setText("&Executor Shape: *");
 		eshapeCombo = new Combo(container, SWT.READ_ONLY);
 		eshapeCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
@@ -119,7 +119,7 @@ public class RunWizardPage extends WizardPage {
 		if(run.getExecute()!=null&!run.getExecute().isEmpty()) {
 			//adding spark submit
 			Label sparkSubmit=new Label(container, SWT.NULL);
-			sparkSubmit.setText("&Use Spark Submit options:");
+			sparkSubmit.setText("&Spark Submit Command: *");
 			sparkSubmitText=new Text(container, SWT.BORDER);
 			sparkSubmitText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			sparkSubmitText.setText(run.getExecute());

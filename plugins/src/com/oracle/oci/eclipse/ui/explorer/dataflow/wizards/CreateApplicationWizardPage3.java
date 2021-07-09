@@ -30,6 +30,7 @@ import com.oracle.bmc.dataflow.model.Application;
 import com.oracle.bmc.dataflow.model.PrivateEndpoint;
 import com.oracle.bmc.dataflow.model.PrivateEndpointSummary;
 import com.oracle.bmc.identity.model.Compartment;
+import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.oci.eclipse.sdkclients.IdentClient;
 import com.oracle.oci.eclipse.sdkclients.ObjStorageClient;
@@ -146,7 +147,7 @@ public class CreateApplicationWizardPage3   extends WizardPage {
           });
 
 		Label logLocationlabel = new Label(advancedOptionsComposite, SWT.NULL);
-		logLocationlabel.setText("&Application Log Location:");
+		logLocationlabel.setText("&Application Log Location: *");
 		logLocationText = new Text(advancedOptionsComposite, SWT.BORDER | SWT.SINGLE);
 		GridData gd1 = new GridData(GridData.FILL_HORIZONTAL);
 		logLocationText.setLayoutData(gd1);
@@ -271,15 +272,18 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 		}
 		
 		privateEndpointsLabel = new Label(currentcontainer, SWT.NULL);
-		privateEndpointsLabel.setText("&Choose Private Endpoint:");
+		privateEndpointsLabel.setText("&Choose Private Endpoint: *");
 		
 		GridData gd4 = new GridData(GridData.FILL_HORIZONTAL);
-		privateEndpointsCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
+		privateEndpointsCombo = new Combo(currentcontainer, SWT.DROP_DOWN | SWT.READ_ONLY);
 		privateEndpointsCombo.setLayoutData(gd4);		 
 		privateEndpointsCombo.setItems(PrivateEndpointsList);
-		if(intial != -1)
+		
+		
+		if(DataTransferObject.local)
 			privateEndpointsCombo.select(intial);
-        currentcontainer.layout(true,true);
+        
+		currentcontainer.layout(true,true);
         advancedOptionsComposite.layout(true,true);
         container.layout(true,true);
         scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
@@ -343,6 +347,7 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 		    String applicationId = DataTransferObject.applicationId;
 		    
 		    if(applicationId != null) {
+		    		clearSparkProperties();
 		    		Application application = DataflowClient.getInstance().getApplicationDetails(applicationId);
 		    	   if(application.getConfiguration() != null) {        	
 		          	 for (Map.Entry<String,String> property : application.getConfiguration().entrySet()) {
@@ -387,14 +392,20 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 		    				 selectedApplicationCompartment = compartment;   			
 		    				 break;
 		    			}
-		    		}	    		
-		    		privateEndpoints = DataflowClient.getInstance().getPrivateEndPoints(selectedApplicationCompartment.getId());		
+		    		}
+		    		try {
+		    			privateEndpoints = DataflowClient.getInstance().getPrivateEndPoints(selectedApplicationCompartment.getId());
+        	        } 
+        	        catch (Exception e) {
+        	            MessageDialog.openError(getShell(), "Unable to fetch private endpoint.", e.getMessage());
+        	        }
+		    			   		
 		    		int sizeoflist= privateEndpoints.size();
 		    		String[] PrivateEndpointsList = new String[sizeoflist];
 		    		for(int i = 0; i < privateEndpoints.size(); i++)
 		    		{  
 		    			PrivateEndpointsList[i]= privateEndpoints.get(i).getDisplayName();
-		    			if(privateEndpoints.get(i).getId().equals(application.getPrivateEndpointId())) {
+		    			if(privateEndpoints.get(i).getId().equals(application.getPrivateEndpointId())){
 		    				intial = i;
 		    				break;
 		    			}
@@ -427,5 +438,10 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 		    scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 		}
 	 
-
+		public void clearSparkProperties() {
+			for(SparkProperty sp:createdPropertiesSet) {
+				sp.composite.dispose();
+			}
+			createdPropertiesSet.clear();
+		}
 }

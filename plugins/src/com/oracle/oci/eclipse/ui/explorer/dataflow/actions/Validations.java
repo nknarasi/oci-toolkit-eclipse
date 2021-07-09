@@ -135,24 +135,34 @@ public class Validations {
 	
 	private static boolean checkSparkProperties(int version,Set<String> list) {
     	 
-		String[] l;
-    	if(version==3) l=DataflowConstants.spark3PropertiesList;
-    	else l=DataflowConstants.spark2PropertiesList;
-    	boolean b;
-    	for(String e:list) {
-    		b=false;
-    		for(String ie:l) {
-    			String nie=new String(ie);
-    			if(nie.charAt(nie.length()-1)=='*') nie=nie.substring(0, nie.length()-1);
-    			if(e.indexOf(nie)==0) {
-    				b=true;
-    				break;
+		String[] listOfProperties;
+    	if( version == 3 ) 
+    		listOfProperties=DataflowConstants.spark3PropertiesList;
+    	else 
+    		listOfProperties=DataflowConstants.spark2PropertiesList;
+    	boolean allowed;
+    	for(String propertyToCheck:list) {
+    		allowed=false;
+    		for(String propertyAllowed:listOfProperties) {
+    			String newPropertyAllowed=new String(propertyAllowed);
+    			if(newPropertyAllowed.charAt(newPropertyAllowed.length()-1)=='*')
+    				newPropertyAllowed = newPropertyAllowed.substring(0, newPropertyAllowed.length()-1);
+    			if(propertyToCheck.indexOf(newPropertyAllowed)==0) {
+    				if(propertyAllowed.charAt(propertyAllowed.length()-1) != '*' && newPropertyAllowed.length()
+    						!= propertyToCheck.length() ) {
+    					continue;
+    				}
+    				else {
+        				allowed=true;
+        				break;
+    				}
     			}
     		}
-    		if(b) continue;
-    		else return false;
-    	}
-    	
+    		if(allowed) 
+    			continue;
+    		else 
+    			return false;
+    	}    	
     	return true;
     }
 	

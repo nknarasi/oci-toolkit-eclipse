@@ -30,16 +30,21 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
+
+import com.oracle.bmc.dataflow.model.Application;
 import com.oracle.bmc.dataflow.model.ApplicationSummary;
 import com.oracle.bmc.dataflow.requests.ListApplicationsRequest;
 import com.oracle.bmc.dataflow.responses.ListApplicationsResponse;
 import com.oracle.bmc.identity.model.Compartment;
 import com.oracle.oci.eclipse.Activator;
 import com.oracle.oci.eclipse.Icons;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.oci.eclipse.sdkclients.IdentClient;
 import com.oracle.oci.eclipse.ui.account.CompartmentSelectWizard;
 import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetApplications;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetRuns;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.SetTagsAction;
 
 public class LocalFileSelectWizardPage3  extends WizardPage{
 	
@@ -227,8 +232,7 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 	        TreeItem[] items = tree.getSelection();
 	        if(items !=null && items.length>0) {
 	            TreeItem selectedItem = items[0];
-	            ApplicationSummary Application = (ApplicationSummary)selectedItem.getData(APPLICATION_KEY);	      
-	            
+	            ApplicationSummary Application = (ApplicationSummary)selectedItem.getData(APPLICATION_KEY);	      	            
 	            return Application.getId();
 	        }
 	        return null;
@@ -241,18 +245,41 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 		
 		
 		 @Override
-		    public IWizardPage getNextPage() { 
-			 	DataTransferObject.applicationId=applicationIdSelected; 		
-			    RunAsDataflowApplicationWizard wizard = (RunAsDataflowApplicationWizard)getWizard();
-			    wizard.canFinish= true;
-			    wizard.canFinish();
-			    CreateApplicationWizardPage page = ((RunAsDataflowApplicationWizard)getWizard()).firstpage;
-			    page.onEnterPage();
-			    getWizard().getContainer().updateButtons();
-			    CreateApplicationWizardPage3 advpage = ((RunAsDataflowApplicationWizard)getWizard()).thirdpage;
-			    advpage.onEnterPage();	
-			    
-			    return page;       
-		    }
+		    public IWizardPage getNextPage() {
+			 RunAsDataflowApplicationWizard wizard = (RunAsDataflowApplicationWizard)getWizard();
+			 wizard.canFinish= true;
+			 wizard.canFinish();
+			 getWizard().getContainer().updateButtons();
+			 String applicationId=getApplicationSelected();
+			 if(applicationId==null)
+				 DataTransferObject.applicationId=null;
+			 if(applicationId!=null&&DataTransferObject.applicationId != applicationIdSelected) {
+				 
+				 DataTransferObject.applicationId=applicationIdSelected; 		
+				    CreateApplicationWizardPage page = ((RunAsDataflowApplicationWizard)getWizard()).firstpage;
+				    page.onEnterPage();
+				    TagsPage tagsPage = ((RunAsDataflowApplicationWizard)getWizard()).tagpage;
+				    tagsPage.clearTags();
+				    Application application = DataflowClient.getInstance().getApplicationDetails(applicationIdSelected);
+				    
+				    try {
+				    IRunnableWithProgress op = new SetTagsAction(tagsPage,application.getDefinedTags(),application.getFreeformTags());
+                    new ProgressMonitorDialog(getShell()).run(true, true, op);
+                    String errorMessage=((SetTagsAction)op).getErrorMessage();
+                	if(errorMessage!=null) 
+                		throw new Exception(errorMessage);
+				    }
+				    catch (Exception e) {
+				    	MessageDialog.openError(getShell(), "Unable to get already set tags", e.getMessage());
+				    }
+				    tagsPage.setTags(application.getDefinedTags(),application.getFreeformTags());
+				    CreateApplicationWizardPage3 advpage = ((RunAsDataflowApplicationWizard)getWizard()).thirdpage;
+				    advpage.onEnterPage();	
+				    return page;				     
+			 }
+			 CreateApplicationWizardPage page = ((RunAsDataflowApplicationWizard)getWizard()).firstpage;
+			 page.setJarAndArchiveUri();
+			 return super.getNextPage();
+		   }
 
 }

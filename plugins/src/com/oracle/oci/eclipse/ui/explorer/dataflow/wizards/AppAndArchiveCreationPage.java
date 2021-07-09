@@ -126,6 +126,7 @@ public class AppAndArchiveCreationPage extends WizardPage{
 	            			for(TreeItem te:tree.getItems()) {
                             	te.setChecked(false);
                             }
+	            			selDesel.setText("Select All");
 	            		}
 						
 					} catch (Exception e1) {
@@ -152,7 +153,7 @@ public class AppAndArchiveCreationPage extends WizardPage{
 	        
 	        createArchive=new Button(dComp,SWT.PUSH);
 	        createJar.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-	        createJar.setText("Create Application Jar File");
+	        createJar.setText("Create Application Jar File *");
 	        createArchive.setText("Create Dependency archive file");
 	        createArchive.setEnabled(false);
 	        

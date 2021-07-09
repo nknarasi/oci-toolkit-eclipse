@@ -115,7 +115,7 @@ public class CreateApplicationWizardPage extends WizardPage {
 		layout.numColumns = 2;
 		
 		Label compartmentLabel = new Label(container, SWT.NULL);
-		compartmentLabel.setText("&Choose a compartment:");
+		compartmentLabel.setText("&Choose a compartment: *");
 		Composite innerTopContainer = new Composite(container, SWT.NONE);
         GridLayout innerTopLayout = new GridLayout();
         innerTopLayout.numColumns = 2;
@@ -140,7 +140,7 @@ public class CreateApplicationWizardPage extends WizardPage {
 		final String defaultApplicationName = DATE_TIME_FORMAT.format(new Date());
 		
 		Label displayNameLabel = new Label(container, SWT.NULL);
-		displayNameLabel.setText("&Display name:");
+		displayNameLabel.setText("&Display name: *");
 		displayNameText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		displayNameText.setLayoutData(gd);
@@ -153,7 +153,7 @@ public class CreateApplicationWizardPage extends WizardPage {
 		applicationDescriptionText.setLayoutData(gd1);
 		
 		Label SparkVersionLabel = new Label(container, SWT.NULL);
-		SparkVersionLabel.setText("&Spark Version:");
+		SparkVersionLabel.setText("&Spark Version: *");
 		GridData gd2 = new GridData(GridData.FILL_HORIZONTAL);
 		sparkVersionCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
 		sparkVersionCombo.setLayoutData(gd2);		 
@@ -161,15 +161,15 @@ public class CreateApplicationWizardPage extends WizardPage {
 		sparkVersionCombo.select(0);		      
 		
 		Label DriverShapeLabel = new Label(container, SWT.NULL);
-		DriverShapeLabel.setText("&Driver Shape:");
+		DriverShapeLabel.setText("&Driver Shape: *");
 		createDriverShapeCombo(container);
 		
 		Label ExecutorShapeLabel = new Label(container, SWT.NULL);
-		ExecutorShapeLabel.setText("&Executor Shape:");
+		ExecutorShapeLabel.setText("&Executor Shape: *");
 		createExecutorShapeCombo(container);
 		
 		Label NumofExecutorslabel = new Label(container, SWT.NULL);
-		NumofExecutorslabel.setText("&Number of Executors:");
+		NumofExecutorslabel.setText("&Number of Executors: *");
 		createNumofExecutorsSpinner(container); 
 				
 		useSparkSubmitButton =  new Button(container,SWT.CHECK);
@@ -201,7 +201,7 @@ public class CreateApplicationWizardPage extends WizardPage {
 	
 	private void withSparkSubmit(Composite container) {		
 		 sparkSubmitLabel = new Label(container, SWT.NULL);
-		 sparkSubmitLabel.setText("&Spark Submit Command:");
+		 sparkSubmitLabel.setText("&Spark Submit Command: *");
 		 sparkSubmitText = new Text(container, SWT.BORDER | SWT.MULTI);
 		 GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
 		 gridData.heightHint = 5 * sparkSubmitText.getLineHeight();
@@ -210,11 +210,11 @@ public class CreateApplicationWizardPage extends WizardPage {
 	
 	private void withoutSparkSubmit(Composite container){
 		languageLabel = new Label(container, SWT.NULL);
-		languageLabel.setText("&Language:");
+		languageLabel.setText("&Language: *");
 		createLanguageCombo(container);
 		
 		fileUriLabel = new Label(container, SWT.NULL);
-		fileUriLabel.setText("&Choose a File:");
+		fileUriLabel.setText("&Choose a File: *");
 		fileUriContainer = new Composite(container, SWT.NONE);
         GridLayout FileUriLayout = new GridLayout();
         FileUriLayout.numColumns = 2;
@@ -423,6 +423,7 @@ public class CreateApplicationWizardPage extends WizardPage {
 		for(Parameters item : parameterSet) {
 			item.composite.dispose();
 		}
+		parameterSet.clear();
 		
 		if(parameterContainer != null) {
 			parameterContainer.dispose();
@@ -431,7 +432,7 @@ public class CreateApplicationWizardPage extends WizardPage {
 	}
 	private void JavaLanguageSelected(Composite container) {	
 		mainClassNamelabel = new Label(container, SWT.NULL);
-		mainClassNamelabel.setText("&Main Class Name:");
+		mainClassNamelabel.setText("&Main Class Name: *");
 		mainClassNameText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		GridData gd7 = new GridData(GridData.FILL_HORIZONTAL);
 		mainClassNameText.setLayoutData(gd7);		
@@ -697,7 +698,7 @@ public class CreateApplicationWizardPage extends WizardPage {
     				
     				LocalFileSelectWizardPage2 page2 = ((RunAsDataflowApplicationWizard)getWizard()).secondbpage;
     				archiveUriText.setText(page2.getArchiveUri());
-    				archiveUriText.setEditable(false);
+    				archiveUriText.setEditable(true);
 		        }
 	    		 languageUsed  = application.getLanguage();    		
 	    		 languageGroupJavaRadioButton.setSelection(false);
@@ -795,5 +796,11 @@ public class CreateApplicationWizardPage extends WizardPage {
 	        return super.getNextPage();
 	    }
 	 	 
-
+   	 	public void setJarAndArchiveUri() {
+   	 		LocalFileSelectWizardPage2 page2 = ((RunAsDataflowApplicationWizard)getWizard()).secondbpage;
+   	 		archiveUriText.setText(page2.getArchiveUri());
+   	 	    LocalFileSelectWizardPage1 page1 = ((RunAsDataflowApplicationWizard)getWizard()).firstbpage;
+	 		fileUriText.setText(page1.getFileUri());
+   	 	}
+   	 	
 }

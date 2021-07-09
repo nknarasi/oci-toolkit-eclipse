@@ -34,7 +34,6 @@ import com.oracle.oci.eclipse.ui.explorer.common.BaseTableLabelProvider;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DeleteRunAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DetailsRunAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetRuns;
-import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RefreshRunAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RunAction;
 
 public class RunTable extends BaseTable {
@@ -250,9 +249,6 @@ public class RunTable extends BaseTable {
 
     @Override
     protected void fillMenu(IMenuManager manager) {
-        manager.add(new RefreshRunAction(RunTable.this));
-        manager.add(new Separator());
-
         if (getSelectedObjects().size() == 1) {
             manager.add(new Separator());
             manager.add(new DetailsRunAction(RunTable.this));
@@ -267,8 +263,8 @@ public class RunTable extends BaseTable {
 	@Override
     protected void addTableLabels(FormToolkit toolkit, Composite left, Composite right) {
 		
-		Button refreshTable=new Button(right,SWT.PUSH);
-		refreshTable.setText("Refresh");
+		Button refreshTable=new Button(right.getParent(),SWT.PUSH);
+		refreshTable.setText("Refresh Table");
 		refreshTable.setLayoutData(new GridData());
 		refreshTable.addSelectionListener(new SelectionListener() {
             @Override
@@ -279,10 +275,8 @@ public class RunTable extends BaseTable {
             @Override
             public void widgetDefaultSelected(SelectionEvent e) {}
         });
-		
         Composite page=new Composite(right.getParent(),SWT.NONE);
         GridData gdpage = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_END);
-        gdpage.horizontalSpan = 2;
         page.setLayoutData(gdpage);
         
         GridLayout gl=new GridLayout();

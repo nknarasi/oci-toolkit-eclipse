@@ -15,7 +15,6 @@ import org.eclipse.ui.IWorkbenchWizard;
 import com.oracle.bmc.dataflow.model.ApplicationSummary;
 import com.oracle.bmc.dataflow.model.RunSummary;
 import com.oracle.bmc.dataflow.requests.ListRunsRequest;
-import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddEditPrivateEndpointPagesAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddRunPagesAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.ScheduleRerunAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.Validations;
@@ -109,7 +108,7 @@ public class RunWizard extends Wizard implements INewWizard {
     	monitor.subTask("Adding Main page");
     	page = new RunWizardPage(selection,runSum);
     	monitor.subTask("Adding Tags Page");
-        page2=new TagsPage(selection,runSum!=null?runSum.getCompartmentId():appSum.getCompartmentId());
+        page2=new TagsPage(selection,runSum!=null?runSum.getCompartmentId():appSum.getCompartmentId(),runSum.getDefinedTags(),runSum.getFreeformTags());
         addPage(page);addPage(page2);
         monitor.subTask("Adding Advanced Options page");
         page3=new AdvancedOptionsPage(selection,obj,page);

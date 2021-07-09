@@ -52,7 +52,7 @@ public class EditApplicationWizard extends Wizard implements INewWizard {
     	firstPage = new EditApplicationWizardPage1(selection, application.getId());
         addPage(firstPage);     
     	monitor.subTask("Adding Tags Page");
-        tagPage = new TagsPage(selection,application.getId());
+        tagPage = new TagsPage(selection,application.getId(),application.getDefinedTags(),application.getFreeformTags());
         addPage(tagPage);
         monitor.subTask("Adding Advanced Options page");
         secondPage = new EditApplicationWizardPage2(selection, application.getId());

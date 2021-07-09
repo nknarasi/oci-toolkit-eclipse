@@ -98,7 +98,7 @@ public class CreatePrivateEndpointWizard extends Wizard implements INewWizard {
         page2=new NsgPage(selection,"");
         addPage(page2);
         monitor.subTask("Adding Tags page");
-        page3=new TagsPage(selection,pepTable.compid);
+        page3=new TagsPage(selection,pepTable.compid,null,null);
         addPage(page3);
     }
     
