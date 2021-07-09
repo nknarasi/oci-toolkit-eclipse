@@ -1,32 +1,35 @@
 package com.oracle.oci.eclipse.ui.explorer.dataflow.actions;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 
-import com.oracle.oci.eclipse.ui.explorer.dataflow.wizards.EditPrivateEndpointWizard;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.wizards.TagsPage;
 
-public class AddEditPrivateEndpointPagesAction implements IRunnableWithProgress{
-	
-	private EditPrivateEndpointWizard wizard;
-	private String errorMessage=null;
-	
-    public AddEditPrivateEndpointPagesAction(EditPrivateEndpointWizard wizard)
+public class SetTagsAction implements IRunnableWithProgress{
+	private TagsPage  tagsPage;
+	private Map<String,Map<String,Object>> defMap;
+    private Map<String,String> freeMap;
+    private String errorMessage;
+    
+    public SetTagsAction(TagsPage tagsPage,Map<String,Map<String,Object>> defMap,Map<String,String> freeMap)
     {
-    		this.wizard=wizard;
+    		this.tagsPage=tagsPage;
+    		this.defMap=defMap;
+            this.freeMap=freeMap;
     }
-
+    
     @Override
     public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException
     {
     	try {
         // Tell the user what you are doing
-        monitor.beginTask("Opening Edit Private Endpoint Wizard", IProgressMonitor.UNKNOWN);
+        monitor.beginTask("Fetching already set tags", IProgressMonitor.UNKNOWN);
 
         // Do your work
-   		
-        wizard.addPagesWithProgress(monitor);
+        tagsPage.setTags(defMap, freeMap);
 
         // You are done
         monitor.done();
@@ -39,4 +42,6 @@ public class AddEditPrivateEndpointPagesAction implements IRunnableWithProgress{
     public String getErrorMessage() {
     	return errorMessage;
     }
+    
 }
+

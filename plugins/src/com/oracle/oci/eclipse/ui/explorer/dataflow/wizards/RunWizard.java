@@ -44,6 +44,9 @@ public class RunWizard extends Wizard implements INewWizard {
     	 try {
          	IRunnableWithProgress op = new AddRunPagesAction(this);
              new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+             String errorMessage=((AddRunPagesAction)op).getErrorMessage();
+             if(errorMessage!=null)
+             	throw new Exception(errorMessage);
          } catch (Exception e) {
          	MessageDialog.openError(getShell(), "Unable to add pages to Re-run wizard", e.getMessage());
          }
@@ -73,13 +76,17 @@ public class RunWizard extends Wizard implements INewWizard {
         	String message=Validations.check(validObjects, objectType);
         	
         	if(!message.isEmpty()) {
-        		open("Improper Entries",message);
+        		open("Validation errors",message);
         		return false;
         	}
 
         	IRunnableWithProgress op = new ScheduleRerunAction(obj,page2.getOT(),page2.getFT(),page3.getconfig(),page3.ischecked());
             new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
         	
+            String errorMessage=((ScheduleRerunAction)op).getErrorMessage();
+            if(errorMessage!=null)
+            	throw new Exception(errorMessage);
+            
         	MessageDialog.openInformation(getShell(),"Re-Run Succesful","A re-run of application is scheduled.");
         	
         	runTable.setSortBy(ListRunsRequest.SortBy.TimeCreated);
@@ -101,7 +108,7 @@ public class RunWizard extends Wizard implements INewWizard {
     	monitor.subTask("Adding Main page");
     	page = new RunWizardPage(selection,runSum);
     	monitor.subTask("Adding Tags Page");
-        page2=new TagsPage(selection,runSum!=null?runSum.getCompartmentId():appSum.getCompartmentId());
+        page2=new TagsPage(selection,runSum!=null?runSum.getCompartmentId():appSum.getCompartmentId(),runSum.getDefinedTags(),runSum.getFreeformTags());
         addPage(page);addPage(page2);
         monitor.subTask("Adding Advanced Options page");
         page3=new AdvancedOptionsPage(selection,obj,page);

@@ -9,7 +9,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-
 import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.bmc.dataflow.model.PrivateEndpoint;
 import com.oracle.bmc.dataflow.model.PrivateEndpointSummary;
@@ -23,8 +22,8 @@ public class EditPrivateEndpointPage extends WizardPage {
 
     public EditPrivateEndpointPage(ISelection selection,PrivateEndpointSummary pepSum) {
         super("wizardPage");
-        setTitle("Edit Private Endpoint Wizard");
-        setDescription("This wizard creates a edit private endpoint request. Please enter the following details.");
+        setTitle("Edit Private Endpoint");
+        setDescription("This wizard edits an existing private endpoint. Please enter the following details.");
         this.selection = selection;
 		try {
 			this.pep=DataflowClient.getInstance().getPrivateEndpointDetails(pepSum.getId());
@@ -72,5 +71,4 @@ public class EditPrivateEndpointPage extends WizardPage {
         
 		return nameText.getText();
     }
-	
 }

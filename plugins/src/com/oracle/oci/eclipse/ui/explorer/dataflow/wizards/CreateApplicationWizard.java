@@ -49,15 +49,14 @@ public class CreateApplicationWizard extends Wizard implements INewWizard {
     }
     
     public void addPagesWithProgress(IProgressMonitor monitor) {
-    	DataTransferObject dto = new DataTransferObject();
     	monitor.subTask("Adding Main page");    	
-    	firstpage = new CreateApplicationWizardPage(selection,dto,COMPARTMENT_ID);
+    	firstpage = new CreateApplicationWizardPage(selection,COMPARTMENT_ID);
        	addPage(firstpage);
     	monitor.subTask("Adding Tags Page");
-        tagpage= new TagsPage(selection,COMPARTMENT_ID);
+        tagpage= new TagsPage(selection,COMPARTMENT_ID,null,null);
         addPage(tagpage);  
         monitor.subTask("Adding Advanced Options page");
-        thirdpage = new CreateApplicationWizardPage3(selection,dto);
+        thirdpage = new CreateApplicationWizardPage3(selection);
         addPage(thirdpage);
     }
     
@@ -86,7 +85,7 @@ public class CreateApplicationWizard extends Wizard implements INewWizard {
     	String message=Validations.check(validObjects.toArray(),objectType.toArray(new String[1]));
     	
     	if(!message.isEmpty()) {
-    		open("Improper Entries",message);
+    		open("Validation errors",message);
     		return false;
     	}
     	
@@ -106,12 +105,12 @@ public class CreateApplicationWizard extends Wizard implements INewWizard {
         	        .logsBucketUri(thirdpage.getApplicationLogLocation())
         	        .warehouseBucketUri(thirdpage.getWarehouseUri());
         			
-    				final CreateRunDetails createApplicationRequest;	
-        			createApplicationRequest = createApplicationRequestBuilder.build();		
+    				final CreateRunDetails createRunRequest;	
+        			createRunRequest = createApplicationRequestBuilder.build();		
         	        IRunnableWithProgress op = new IRunnableWithProgress() {
         	            @Override
         	            public void run(IProgressMonitor monitor) throws InvocationTargetException {
-        	            	DataflowClient.getInstance().runApplication(createApplicationRequest);
+        	            	DataflowClient.getInstance().runApplication(createRunRequest);
         	                monitor.done();
         	            }
         	        };

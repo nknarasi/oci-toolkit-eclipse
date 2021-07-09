@@ -39,10 +39,13 @@ public class EditPrivateEndpointWizard extends Wizard implements INewWizard {
     	try {
          	IRunnableWithProgress op = new AddEditPrivateEndpointPagesAction(this);
              new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+            String errorMessage=((AddEditPrivateEndpointPagesAction)op).getErrorMessage();
+            if(errorMessage!=null)
+            	throw new Exception(errorMessage);
          } catch (Exception e) {
          	MessageDialog.openError(getShell(), "Unable to add pages to Edit Private Endpoint wizard", e.getMessage());
          }
-        
+    	getShell().setMaximumSize(1000, 800);
     }
     /**
      * This method is called when 'Finish' button is pressed in
@@ -57,17 +60,21 @@ public class EditPrivateEndpointWizard extends Wizard implements INewWizard {
         	String[] objType=new String[] {"name","dnszones"};
         	String message=Validations.check(validObjects, objType);
         	if(!message.isEmpty()) {
-        		open("Improper Entries",message);
+        		open("Validation errors",message);
         		return false;
         	}
         
         	IRunnableWithProgress op = new ScheduleEditPrivateEndpointAction(page2.getOT(),page2.getFT(),page.getDNS(),page.getName(),pepSum.getId());
             new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
-        
+            
+            String errorMessage=((ScheduleEditPrivateEndpointAction)op).getErrorMessage();
+            if(errorMessage!=null)
+            	throw new Exception(errorMessage);
+            
 		pepTable.refresh(true);
         }
         catch (Exception e) {
-        	MessageDialog.openError(getShell(), "Failed to Update Private Endpoint", e.getMessage());
+        	MessageDialog.openError(getShell(), "Error while creating private endpoint", e.getMessage());
         	return false;
         }
         return true;
@@ -82,7 +89,7 @@ public class EditPrivateEndpointWizard extends Wizard implements INewWizard {
     	page=new EditPrivateEndpointPage(selection,pepSum);
         addPage(page);
         monitor.subTask("Adding Tags page");
-        page2=new TagsPage(selection,pepSum.getCompartmentId());
+        page2=new TagsPage(selection,pepSum.getCompartmentId(),pepSum.getDefinedTags(),pepSum.getFreeformTags());
         addPage(page2);
     }
     /**
@@ -94,4 +101,8 @@ public class EditPrivateEndpointWizard extends Wizard implements INewWizard {
     public void init(IWorkbench workbench, IStructuredSelection selection) {
         this.selection = selection;
     }
+    
+	 public TagsPage getTagsPage() {
+		 return page2;
+	 }
 }

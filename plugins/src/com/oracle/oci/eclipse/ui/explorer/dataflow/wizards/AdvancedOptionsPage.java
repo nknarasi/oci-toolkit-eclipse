@@ -37,7 +37,7 @@ public class AdvancedOptionsPage extends WizardPage {
 
     public AdvancedOptionsPage(ISelection selection,Object obj,RunWizardPage page) {
         super("wizardPage");
-        setTitle("Advanced Options Wizard");
+        setTitle("Choose advanced options");
         setDescription("This wizard lets you choose certain advanced functionalities.");
         this.selection = selection;
         this.obj=obj;
@@ -99,10 +99,17 @@ public class AdvancedOptionsPage extends WizardPage {
         add=new Button(comp3,SWT.PUSH);add.setLayoutData(new GridData());
         add.setText("Add Spark Property");
         
+        if(run.getConfiguration()!=null) {
+        for(Map.Entry<String,String> entry:run.getConfiguration().entrySet()) {
+    		SparkProperty sp=new SparkProperty(comp3,comp1,scrollComp,set);
+    		sp.tagKey.setText(entry.getKey());
+    		sp.tagValue.setText(entry.getValue());
+    	}
+        }
         add.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
             	
-            	set.add(new SparkProperty(comp3,comp1,scrollComp,set,(String)page.getDetails()[14]));
+            	set.add(new SparkProperty(comp3,comp1,scrollComp,set));
             }
           });
         
@@ -110,7 +117,7 @@ public class AdvancedOptionsPage extends WizardPage {
         	comp3.dispose();
         
         Label label1=new Label(comp2,SWT.NONE);
-        label1.setText("Application Log Location");
+        label1.setText("Application Log Location *");
         text1=new Text(comp2,SWT.BORDER);
         text1.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         String s="";

@@ -54,7 +54,6 @@ public class LocalFileSelectWizardPage2 extends WizardPage {
     private Image IMAGE;
     private String fileName;
     private List<BucketSummary> buckets;
-    private DataTransferObject dto;
 	private Compartment selectedApplicationCompartment;
 	private Map<BucketSummary, TreeItem> bucketTreeMap;
 	private String fileUriSelected;
@@ -64,12 +63,11 @@ public class LocalFileSelectWizardPage2 extends WizardPage {
 	private String pagetoshow= null;
 	private Button previouspage,nextpage;
 	
-	   public LocalFileSelectWizardPage2(ISelection selection, DataTransferObject dto, String COMPARTMENT_ID) {
+	   public LocalFileSelectWizardPage2(ISelection selection, String COMPARTMENT_ID) {
 	        super("wizardPage");
 	        setTitle("Bucket Selection Wizard for Archive Zip.");     
 	        setDescription("Choose a Bucket for uploading Archive Zip file for adding external dependencies.");
 	        this.selection = selection;
-	        this.dto = dto;
 	        IMAGE = Activator.getImage(Icons.BUCKET.getPath());	        
 	        this.selectedApplicationCompartment = IdentClient.getInstance().getRootCompartment();	        
 			Compartment rootCompartment = IdentClient.getInstance().getRootCompartment();
@@ -223,7 +221,8 @@ public class LocalFileSelectWizardPage2 extends WizardPage {
 	            	 TreeItem[] items = tree.getSelection();
 		       	        if(items !=null && items.length>0) {
 		       	            TreeItem selectedItem = items[0];
-		       	            BucketSummary bucket = (BucketSummary)selectedItem.getData(BUCKET_KEY);	      
+		       	            BucketSummary bucket = (BucketSummary)selectedItem.getData(BUCKET_KEY);	   
+		       	            fileName = getPreviousName();
 		       	            fileUriSelected = "oci://"+ bucket.getName() +"@" + ObjStorageClient.getInstance().getNamespace()+"/"+fileName;
 		       	            fileUriText.setText(fileUriSelected);
 		       	            fileSelected = true;
@@ -267,15 +266,21 @@ public class LocalFileSelectWizardPage2 extends WizardPage {
 	        return null;
 	    }
 	    
+	    public String getPreviousName() {	
+	    	if(fileUriText.getText() != null && !fileUriText.getText().equals(""))
+	    		return fileUriText.getText().substring(fileUriText.getText().lastIndexOf('/')+1);
+	    	else
+	    		return fileName;
+	    }
+	    
 	    public String getArchiveUri() {
 	       return fileUriText.getText();
 	    }	    
 	    
 		void onEnterPage()
 		{
-		    final DataTransferObject dto = ((LocalFileSelectWizard) getWizard()).dto;
-		    if(dto.getArchivedir() != null) {
-		    	String fileDirectory = dto.getArchivedir();
+		    if(DataTransferObject.archivedir != null) {
+		    	String fileDirectory = DataTransferObject.archivedir;
 		    	this.fileName = fileDirectory.substring(fileDirectory.lastIndexOf('\\')+1);
 		    }
 		}
@@ -283,8 +288,7 @@ public class LocalFileSelectWizardPage2 extends WizardPage {
 		@Override
 		public boolean canFlipToNextPage() {
 			
-		final DataTransferObject dto = ((LocalFileSelectWizard) getWizard()).dto;
-	    if(dto.getArchivedir() == null || (dto.getArchivedir() != null && fileSelected)) {
+	    if(DataTransferObject.archivedir == null || (DataTransferObject.archivedir != null && fileSelected)) {
 	    	return true;
 	    }
 		return false;

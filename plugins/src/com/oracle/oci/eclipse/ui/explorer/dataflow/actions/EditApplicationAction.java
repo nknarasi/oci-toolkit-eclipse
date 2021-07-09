@@ -1,6 +1,8 @@
 package com.oracle.oci.eclipse.ui.explorer.dataflow.actions;
 
 import java.util.List;
+
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Display;
 import com.oracle.bmc.dataflow.model.Application;
@@ -35,11 +37,20 @@ public class EditApplicationAction extends BaseAction{
 	        	ApplicationSummary object = applicationSelectionList.get(0);
 	        	applicationID = object.getId();
 	        }
-		 Application application = DataflowClient.getInstance().getApplicationDetails(applicationID);
-	       CustomWizardDialog dialog = new CustomWizardDialog(Display.getDefault().getActiveShell(), new EditApplicationWizard(application.getId()));
-	        dialog.setFinishButtonText("Edit");
-	        if (Window.OK == dialog.open()) {
-	        	table.refresh(true);
-	        }  		 
+		 else {
+			 return;
+		 }
+		 
+		 try{
+			 Application application = DataflowClient.getInstance().getApplicationDetails(applicationID);
+			 CustomWizardDialog dialog = new CustomWizardDialog(Display.getDefault().getActiveShell(), new EditApplicationWizard(application.getId()));
+		        dialog.setFinishButtonText("Save");
+		        if (Window.OK == dialog.open()) {
+		        	table.refresh(true);
+		        }  		 
+			} 
+			catch (Exception e) {
+				MessageDialog.openError(Display.getDefault().getActiveShell(),"Unable to get application details: ",e.getMessage());
+			}
 	    }
 }

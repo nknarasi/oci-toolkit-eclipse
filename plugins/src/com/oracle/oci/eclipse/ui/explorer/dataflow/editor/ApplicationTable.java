@@ -2,7 +2,6 @@ package com.oracle.oci.eclipse.ui.explorer.dataflow.editor;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -25,11 +24,8 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import com.oracle.bmc.dataflow.model.ApplicationSummary;
 import com.oracle.bmc.dataflow.requests.ListApplicationsRequest;
 import com.oracle.bmc.dataflow.responses.ListApplicationsResponse;
-import com.oracle.bmc.identity.model.Compartment;
-import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.account.AuthProvider;
 import com.oracle.oci.eclipse.sdkclients.IdentClient;
-import com.oracle.oci.eclipse.ui.account.CompartmentSelectWizard;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseTable;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseTableLabelProvider;
 import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
@@ -37,7 +33,6 @@ import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DeleteApplicationActi
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DetailsApplicationAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.EditApplicationAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetApplications;
-import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RefreshApplicationAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RunApplicationAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.wizards.CreateApplicationWizard;
 
@@ -53,10 +48,9 @@ public class ApplicationTable extends BaseTable{
     private static final int UPDATED_COL = 5;
     
     private static String COMPARTMENT_ID;
-    private static String COMPARTMENT_NAME;
 	private String pageToShow=null;
-    private ListApplicationsRequest.SortBy sortBy=ListApplicationsRequest.SortBy.TimeCreated;
-	private ListApplicationsRequest.SortOrder sortOrder=ListApplicationsRequest.SortOrder.Desc;
+    private ListApplicationsRequest.SortBy sortBy;
+	private ListApplicationsRequest.SortOrder sortOrder;
 	private ListApplicationsResponse listApplicationsResponse;
 	private Button previouspage,nextpage;
 	
@@ -76,6 +70,7 @@ public class ApplicationTable extends BaseTable{
     public List<ApplicationSummary> getTableData() {  
     	if(COMPARTMENT_ID != AuthProvider.getInstance().getCompartmentId()) {
     		COMPARTMENT_ID = AuthProvider.getInstance().getCompartmentId();
+    		pageToShow=null;
     	}
     	if(COMPARTMENT_ID== null) {
     		COMPARTMENT_ID = IdentClient.getInstance().getRootCompartment().getCompartmentId();
@@ -184,8 +179,6 @@ public class ApplicationTable extends BaseTable{
 
     @Override
     protected void fillMenu(IMenuManager manager) {
-        manager.add(new RefreshApplicationAction(ApplicationTable.this));
-        manager.add(new Separator());
         if (getSelectedObjects().size() == 1) {
             manager.add(new DetailsApplicationAction(ApplicationTable.this));
             manager.add(new EditApplicationAction(ApplicationTable.this));
@@ -196,33 +189,6 @@ public class ApplicationTable extends BaseTable{
 
     @Override
     protected void addTableLabels(FormToolkit toolkit, Composite left, Composite right) {
-  
-    	changeCompartmentButton.setText("Change Compartment");
-    	changeCompartmentButton.setVisible(true);
-    	changeCompartmentButton.addSelectionListener(new SelectionListener() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                
-				Consumer<Compartment> consumer=new Consumer<Compartment>() {
-
-				@Override
-				public void accept(Compartment comp) {
-					COMPARTMENT_ID = comp.getId();
-					COMPARTMENT_NAME = comp.getName();
-				}
-				};
-				CustomWizardDialog dialog = new CustomWizardDialog(Display.getDefault().getActiveShell(),
-						new CompartmentSelectWizard(consumer, false));
-				dialog.setFinishButtonText("Select");
-				if (Window.OK == dialog.open()) {
-					setCompartmentName(new String(COMPARTMENT_NAME));
-					refresh(true);
-				}
-            }
-
-            @Override
-            public void widgetDefaultSelected(SelectionEvent e) {}
-        });
         
         Button createApplicationButton = toolkit.createButton(right,"Create Application", SWT.PUSH);
         createApplicationButton.setText("Create Application");
@@ -238,12 +204,24 @@ public class ApplicationTable extends BaseTable{
             public void widgetDefaultSelected(SelectionEvent e) {}
         });	
         
+		Button refreshTable=new Button(right.getParent(),SWT.PUSH);
+		refreshTable.setText("Refresh Table");
+		refreshTable.setLayoutData(new GridData());
+		refreshTable.addSelectionListener(new SelectionListener() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+				refresh(true);
+            }
+
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) {}
+        });
+        
         Composite page=new Composite(right.getParent(),SWT.NONE);
         GridLayout gl=new GridLayout();
         gl.numColumns=2;
         page.setLayout(gl);
         GridData gdpage = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_END);
-        gdpage.horizontalSpan = 2;
         page.setLayoutData(gdpage);
         
         previouspage=new Button(page,SWT.TRAVERSE_PAGE_PREVIOUS);

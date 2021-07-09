@@ -5,15 +5,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -27,16 +24,13 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.jdt.core.IJavaProject;
@@ -44,7 +38,6 @@ import org.eclipse.jdt.core.JavaCore;
 
 import com.oracle.oci.eclipse.Activator;
 import com.oracle.oci.eclipse.Icons;
-import com.oracle.oci.eclipse.ui.explorer.objectstorage.actions.MakeJarAndZip;
 
 public class ProjectSelectWizardPage extends WizardPage{
 	
@@ -57,9 +50,7 @@ public class ProjectSelectWizardPage extends WizardPage{
 
 	    public ProjectSelectWizardPage(ISelection selection) {
 	        super("wizardPage");
-	        setTitle("Select Project");
-	        setDescription("Choose the Project");
-	        IMAGE = Activator.getImage(Icons.COMPARTMENT.getPath());
+	        setTitle("Select the project to run as Dataflow application");
 	    }
 
 	    @Override
@@ -82,14 +73,16 @@ public class ProjectSelectWizardPage extends WizardPage{
 	                        try {
 
 	                            for (IJavaProject p : getProjects()) {
-	                                                try {
-	                                                    TreeItem treeItem = new TreeItem(tree, 0);
-	                                                    treeItem.setText(p.getElementName());
-	                                                    treeItem.setImage(IMAGE);
-	                                                    treeItem.setData("project", p);
-	                                                } catch(Exception e) {}
+	                            	File projectDirectory = new File(p.getProject().getLocation().toString()+File.separator+"bin");
+	                            	if(!projectDirectory.exists()) continue;
+	                                TreeItem treeItem = new TreeItem(tree, 0);
+	                                treeItem.setText(p.getElementName());
+	                                treeItem.setImage(IMAGE);
+	                                treeItem.setData("project", p);
 	                            }
-	                        } catch(Exception e) {}
+	                        } catch(Exception e) {
+	                        	MessageDialog.openError(getShell(),"Unable to get projects" , e.getMessage());
+	                        }
 	                    }
 	                });
 	                return Status.OK_STATUS;
@@ -125,11 +118,11 @@ public class ProjectSelectWizardPage extends WizardPage{
 	    
 	    public void start(IJavaProject proj) throws Exception {		
 	    		String projectUri=proj.getProject().getLocation().toString();
-	        	theDir = new File(System.getProperty("java.io.tmpdir")+"\\dataflowtempdir");
+	        	theDir = new File(System.getProperty("java.io.tmpdir")+File.separatorChar+"dataflowtempdir");
 	        	if (!theDir.exists()){
 	        		theDir.mkdirs();
 	        	}
-	        	String dff=File.createTempFile("dataflowtempdir\\dfspark-",".jar",theDir).getAbsolutePath();
+	        	String dff=File.createTempFile("dataflowtempdir"+File.separatorChar+"dfspark-",".jar",theDir).getAbsolutePath();
 	        	Manifest manifest = new Manifest();
 	        	manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
 	        	      
@@ -139,7 +132,7 @@ public class ProjectSelectWizardPage extends WizardPage{
 	        	for (File nestedFile : inputDirectory.listFiles())
 	        	    add("", nestedFile, target);
 	        	target.close();
-	        	MakeJarAndZip.jarUri=dff;
+	        	DataTransferObject.filedir=dff;
 		}
 
 		   private void add(String parents, File source, JarOutputStream target) throws IOException {

@@ -43,17 +43,19 @@ public class DetailsRunAction extends BaseAction {
         if (runSelectionList.size() > 0) {
             RunSummary object = runSelectionList.get(0);
             runID = object.getId();
-            
-			try {
-				runObject=DataflowClient.getInstance().getRunDetails(runID);
-			} 
-			catch (Exception e) {
-				MessageDialog.openError(Display.getDefault().getActiveShell(),"Unable to get Run details: ",e.getMessage());
-			}
+        }
+        else {
+        	return;
         }
         new Job("Get Run Details") {
             @Override
-            protected IStatus run(IProgressMonitor monitor) {
+            protected IStatus run(IProgressMonitor monitor) {            	
+    			try{
+    				runObject=DataflowClient.getInstance().getRunDetails(runID);
+    			} 
+    			catch (Exception e) {
+    				MessageDialog.openError(Display.getDefault().getActiveShell(),"Unable to get run details: ",e.getMessage());
+    			}
 
                 try {
                     Display.getDefault().asyncExec(new Runnable() {

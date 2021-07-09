@@ -62,8 +62,8 @@ public class BucketSelectWizardPage extends WizardPage {
     
     public BucketSelectWizardPage(ISelection selection,String CompartmentId,ApplicationLanguage language) {
         super("wizardPage");
-        setTitle("Select Bucket");     
-        setDescription("Choose the Bucket");
+        setTitle("Select application file");     
+        setDescription("Select application file from Object Storage");
         this.selection = selection;
         this.language= language;
         IMAGE = Activator.getImage(Icons.BUCKET.getPath());

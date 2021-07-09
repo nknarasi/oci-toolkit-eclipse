@@ -48,15 +48,14 @@ public class EditApplicationWizard extends Wizard implements INewWizard {
     }
     
     public void addPagesWithProgress(IProgressMonitor monitor) {
-    	DataTransferObject dto = new DataTransferObject();
     	monitor.subTask("Adding Main page");
-    	firstPage = new EditApplicationWizardPage1(selection, dto, application.getId());
+    	firstPage = new EditApplicationWizardPage1(selection, application.getId());
         addPage(firstPage);     
     	monitor.subTask("Adding Tags Page");
-        tagPage = new TagsPage(selection,application.getId());
+        tagPage = new TagsPage(selection,application.getId(),application.getDefinedTags(),application.getFreeformTags());
         addPage(tagPage);
         monitor.subTask("Adding Advanced Options page");
-        secondPage = new EditApplicationWizardPage2(selection,dto, application.getId());
+        secondPage = new EditApplicationWizardPage2(selection, application.getId());
         addPage(secondPage);
     }
     
@@ -75,7 +74,7 @@ public class EditApplicationWizard extends Wizard implements INewWizard {
     	String message=Validations.check(validObjects.toArray(),objectType.toArray(new String[1]));
     	
     	if(!message.isEmpty()) {
-    		open("Improper Entries",message);
+    		open("Validation errors",message);
     		return false;
     	}
     	
@@ -202,11 +201,11 @@ public class EditApplicationWizard extends Wizard implements INewWizard {
     	objectArray.add(firstPage.getApplicationDescription());
     	nameArray.add("description");
 
-    	if(!firstPage.usesSparkSubmit()) {    		
+    	if(application.getExecute() == null) {    		
         	objectArray.add(firstPage.getFileUri());
         	nameArray.add("fileuri");   		
     	}
-    	if(!firstPage.usesSparkSubmit() && (firstPage.getLanguage() == ApplicationLanguage.Java )) {
+    	if(application.getExecute() == null  && (firstPage.getLanguage() == ApplicationLanguage.Java )) {
         	objectArray.add(firstPage.getMainClassName());
         	nameArray.add("mainclassname"); 
     	}
@@ -223,12 +222,12 @@ public class EditApplicationWizard extends Wizard implements INewWizard {
     	       nameArray.add("subnetid"); 
     	}
     	
-    	if(!firstPage.usesSparkSubmit() && firstPage.getArchiveUri() != null && !firstPage.getArchiveUri().isEmpty()) {
+    	if(application.getExecute() == null && firstPage.getArchiveUri() != null && !firstPage.getArchiveUri().isEmpty()) {
     	       objectArray.add(firstPage.getArchiveUri());
     	       nameArray.add("archiveuri"); 
     	}
     	
-    	if(!firstPage.usesSparkSubmit() && secondPage.getSparkProperties() != null) {
+    	if(application.getExecute() == null && secondPage.getSparkProperties() != null) {
  	       objectArray.add(secondPage.getSparkProperties().keySet());
  	       nameArray.add("sparkprop" + firstPage.getSparkVersion().charAt(0));         
     	}

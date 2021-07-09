@@ -29,14 +29,12 @@ public class CreateRunWizardPage3 extends WizardPage  {
 	private Text warehouseLocationText;	
     private Set<SparkProperty> createdPropertiesSet=new HashSet<SparkProperty>();
 	private Composite propertiesSection;
-	private  DataTransferObject dto; 
 	private  Button addProperty;
 	
 	public CreateRunWizardPage3(ISelection selection,DataTransferObject dto,String applicationId) {
 		super("Page 3");
-		setTitle("Advanced Options for Runs");
+		setTitle("Create run for Dataflow application");
 		setDescription("Set advanced options for run if required.");
-		this.dto = dto;
 		application = DataflowClient.getInstance().getApplicationDetails(applicationId);
 	}
 	
@@ -63,9 +61,20 @@ public class CreateRunWizardPage3 extends WizardPage  {
         addProperty.setText("Add a Spark Property");        
         addProperty.addSelectionListener(new SelectionAdapter() {       	
             public void widgetSelected(SelectionEvent e) {           	
-            	createdPropertiesSet.add(new SparkProperty(propertiesSection,container,scrolledComposite,createdPropertiesSet,dto.getData()));          	
+            	createdPropertiesSet.add(new SparkProperty(propertiesSection,container,scrolledComposite,createdPropertiesSet));          	
             }
           });
+        
+        if(application.getConfiguration() != null) {        	
+       	 for (Map.Entry<String,String> property : application.getConfiguration().entrySet()) {
+       		 SparkProperty propertyPresent = new SparkProperty(propertiesSection,container,scrolledComposite,createdPropertiesSet);
+       		 createdPropertiesSet.add(propertyPresent);
+       		 propertyPresent.tagKey.setText(property.getKey());
+				 propertyPresent.tagValue.setText(property.getValue());
+       	 }         	
+   		 container.layout(true,true);
+   		 scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );       	
+       }       
         
         Label logLocationlabel = new Label(container, SWT.NULL);
 		logLocationlabel.setText("&Application Log Location:");
@@ -84,6 +93,7 @@ public class CreateRunWizardPage3 extends WizardPage  {
 			warehouseLocationText.setText(application.getWarehouseBucketUri());
 		}		
 		container.layout(true,true);
+	    scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 		setControl(container);		
 	}
 

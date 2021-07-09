@@ -45,11 +45,9 @@ public class NavigatorDoubleClick implements IDoubleClickListener{
     static IEditorPart editorPartADBInstance = null;
     static IEditorPart editorPartContainerClusters  = null;
     IEditorPart editorPartBucket = null;
-    //
-    static IEditorPart editorPartApplication = null;
-    static IEditorPart editorPartRun = null;
-    static IEditorPart editorPartPrivateEndPoints = null;
-    //
+    static IEditorPart editorPartDataflowApplication = null;
+    static IEditorPart editorPartDataflowRun = null;
+    static IEditorPart editorPartDataflowPrivateEndPoints = null;
     static ConcurrentHashMap<String, IEditorPart> bucketsEditorsMap = new ConcurrentHashMap<String, IEditorPart>();
 
     public static ConcurrentHashMap<String, IEditorPart> getBucketsEditorsMap() {
@@ -94,9 +92,9 @@ public class NavigatorDoubleClick implements IDoubleClickListener{
     
     //
     private static void closeAllDataflowWindows() {
-        closeWindow(editorPartApplication);
-        closeWindow(editorPartRun);
-        closeWindow(editorPartPrivateEndPoints);
+        closeWindow(editorPartDataflowApplication);
+        closeWindow(editorPartDataflowRun);
+        closeWindow(editorPartDataflowPrivateEndPoints);
     }
     //
     
@@ -184,11 +182,11 @@ public class NavigatorDoubleClick implements IDoubleClickListener{
                                 IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
                                 // If the window is not created or it is closed, open it
                                 // else if the window is already open, activate it
-                                if(editorPartApplication == null ||
-                                        activeWindow.getActivePage().findEditor(editorPartApplication.getEditorInput()) == null) {
-                                    editorPartApplication = activeWindow.getActivePage().openEditor(input, ApplicationEditor.ID);
+                                if(editorPartDataflowApplication == null ||
+                                        activeWindow.getActivePage().findEditor(editorPartDataflowApplication.getEditorInput()) == null) {
+                                    editorPartDataflowApplication = activeWindow.getActivePage().openEditor(input, ApplicationEditor.ID);
                                 } else {
-                                    activeWindow.getActivePage().activate(editorPartApplication);
+                                    activeWindow.getActivePage().activate(editorPartDataflowApplication);
                                 }
                             } catch (Exception e) {
                                 ErrorHandler.logErrorStack(e.getMessage(), e);
@@ -208,11 +206,11 @@ public class NavigatorDoubleClick implements IDoubleClickListener{
                                 IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
                                 // If the window is not created or it is closed, open it
                                 // else if the window is already open, activate it
-                                if(editorPartPrivateEndPoints == null ||
-                                        activeWindow.getActivePage().findEditor(editorPartPrivateEndPoints.getEditorInput()) == null) {
-                                    editorPartPrivateEndPoints = activeWindow.getActivePage().openEditor(input, PrivateEndpointEditor.ID);
+                                if(editorPartDataflowPrivateEndPoints == null ||
+                                        activeWindow.getActivePage().findEditor(editorPartDataflowPrivateEndPoints.getEditorInput()) == null) {
+                                    editorPartDataflowPrivateEndPoints = activeWindow.getActivePage().openEditor(input, PrivateEndpointEditor.ID);
                                 } else {
-                                    activeWindow.getActivePage().activate(editorPartPrivateEndPoints);
+                                    activeWindow.getActivePage().activate(editorPartDataflowPrivateEndPoints);
                                 }
                             } catch (Exception e) {
                                 ErrorHandler.logErrorStack(e.getMessage(), e);
@@ -231,11 +229,11 @@ public class NavigatorDoubleClick implements IDoubleClickListener{
                                 IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
                                 // If the window is not created or it is closed, open it
                                 // else if the window is already open, activate it
-                                if(editorPartRun == null ||
-                                        activeWindow.getActivePage().findEditor(editorPartRun.getEditorInput()) == null) {
-                                    editorPartRun = activeWindow.getActivePage().openEditor(input, RunEditor.ID);
+                                if(editorPartDataflowRun == null ||
+                                        activeWindow.getActivePage().findEditor(editorPartDataflowRun.getEditorInput()) == null) {
+                                    editorPartDataflowRun = activeWindow.getActivePage().openEditor(input, RunEditor.ID);
                                 } else {
-                                    activeWindow.getActivePage().activate(editorPartRun);
+                                    activeWindow.getActivePage().activate(editorPartDataflowRun);
                                 }
                             } catch (Exception e) {
                                 ErrorHandler.logErrorStack(e.getMessage(), e);

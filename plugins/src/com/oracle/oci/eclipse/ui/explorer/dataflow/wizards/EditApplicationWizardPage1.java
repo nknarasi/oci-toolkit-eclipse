@@ -70,16 +70,14 @@ public class EditApplicationWizardPage1  extends WizardPage {
 	private Text argumentsText;
 	private Text archiveUriText;
 	private Text fileUriText;
-	private DataTransferObject dto;	
 	private Application application;
 
-	public EditApplicationWizardPage1(ISelection selection,DataTransferObject dto,String applicationId) {
+	public EditApplicationWizardPage1(ISelection selection,String applicationId) {
 		super("Page 1");
 		setTitle("Edit DataFlow Application");
-		setDescription("Edit the fields in the selected Dataflow Application.");
+		setDescription("This wizard edits an existing DataFlow application. Please enter the required details.");
 		this.selection = selection;
 		this.selectedApplicationCompartmentId= AuthProvider.getInstance().getCompartmentId();	
-		this.dto=dto;
 		application = DataflowClient.getInstance().getApplicationDetails(applicationId);
 		String compartmentId = application.getCompartmentId();	
 		Compartment rootCompartment = IdentClient.getInstance().getRootCompartment();
@@ -108,7 +106,7 @@ public class EditApplicationWizardPage1  extends WizardPage {
 		layout.numColumns = 2;
 		
 		Label displayNameLabel = new Label(container, SWT.NULL);
-		displayNameLabel.setText("&Display name:");
+		displayNameLabel.setText("&Display name: *");
 		displayNameText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		displayNameText.setLayoutData(gd);
@@ -123,12 +121,12 @@ public class EditApplicationWizardPage1  extends WizardPage {
 			applicationDescriptionText.setText(application.getDescription());
 		
 		Label SparkVersionLabel = new Label(container, SWT.NULL);
-		SparkVersionLabel.setText("&Spark Version:");
+		SparkVersionLabel.setText("&Spark Version: *");
 		GridData gd2 = new GridData(GridData.FILL_HORIZONTAL);
 		sparkVersionCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
 		sparkVersionCombo.setLayoutData(gd2);		 
-		sparkVersionCombo.setItems(DataflowConstants.Versions);
-		if(application.getSparkVersion().equals(DataflowConstants.Versions[0])) {
+		sparkVersionCombo.setItems(DataflowConstants.versions);
+		if(application.getSparkVersion().equals(DataflowConstants.versions[0])) {
 			sparkVersionCombo.select(0);
 		}
 		else {
@@ -136,15 +134,15 @@ public class EditApplicationWizardPage1  extends WizardPage {
 		}				      
 		
 		Label DriverShapeLabel = new Label(container, SWT.NULL);
-		DriverShapeLabel.setText("&Driver Shape:");
+		DriverShapeLabel.setText("&Driver Shape: *");
 		createDriverShapeCombo(container);
 		
 		Label ExecutorShapeLabel = new Label(container, SWT.NULL);
-		ExecutorShapeLabel.setText("&Executor Shape:");
+		ExecutorShapeLabel.setText("&Executor Shape: *");
 		createExecutorShapeCombo(container);
 		
 		Label NumofExecutorslabel = new Label(container, SWT.NULL);
-		NumofExecutorslabel.setText("&Number of Executors:");
+		NumofExecutorslabel.setText("&Number of Executors: *");
 		createNumofExecutorsSpinner(container);
 			
 		if(application.getExecute() != null && !application.getExecute().equals("")) {
@@ -155,14 +153,17 @@ public class EditApplicationWizardPage1  extends WizardPage {
 			withoutSparkSubmit(container);
 		}
 
-		 setControl(scrolledComposite);
+	    scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
+		setControl(scrolledComposite);
 	}
 	
 	private void withSparkSubmit(Composite container) {		
 		 sparkSubmitlabel = new Label(container, SWT.NULL);
-		 sparkSubmitlabel.setText("&Spark Submit Command:");
-		 sparkSubmitText = new Text(container, SWT.BORDER | SWT.SINGLE);
-		 sparkSubmitText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));    
+		 sparkSubmitlabel.setText("&Spark Submit Command: *");
+		 sparkSubmitText = new Text(container, SWT.BORDER | SWT.MULTI);
+		 GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+		 gridData.heightHint = 5 * sparkSubmitText.getLineHeight();
+		 sparkSubmitText.setLayoutData(gridData);      	 
 		 sparkSubmitText.setText(application.getExecute());
 	}
 	
@@ -172,7 +173,7 @@ public class EditApplicationWizardPage1  extends WizardPage {
 		createLanguageCombo(container);
 		
 		fileUrilabel = new Label(container, SWT.NULL);
-		fileUrilabel.setText("&Choose a File:");
+		fileUrilabel.setText("&Choose a File: *");
 		fileUriContainer = new Composite(container, SWT.NONE);
 		GridLayout fileUriLayout = new GridLayout();
 		fileUriLayout.numColumns = 2;
@@ -232,9 +233,9 @@ public class EditApplicationWizardPage1  extends WizardPage {
 		driverShapeCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
 		GridData gd3 = new GridData(GridData.FILL_HORIZONTAL);
 		driverShapeCombo.setLayoutData(gd3);		 
-		driverShapeCombo.setItems(DataflowConstants.ShapesDetails);		
-		for(int i=0; i<DataflowConstants.ShapesDetails.length ; i++) {
-			if(application.getDriverShape().equals(DataflowConstants.ShapesDetails[i].split(" ")[0])) {
+		driverShapeCombo.setItems(DataflowConstants.shapesDetails);		
+		for(int i=0; i<DataflowConstants.shapesDetails.length ; i++) {
+			if(application.getDriverShape().equals(DataflowConstants.shapesDetails[i].split(" ")[0])) {
 				driverShapeCombo.select(i);
 			}
 		}	
@@ -244,9 +245,9 @@ public class EditApplicationWizardPage1  extends WizardPage {
 		executorShapeCombo = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
 		GridData gd4 = new GridData(GridData.FILL_HORIZONTAL);
 		executorShapeCombo.setLayoutData(gd4);	 
-		executorShapeCombo.setItems(DataflowConstants.ShapesDetails);		
-		for(int i=0; i<DataflowConstants.ShapesDetails.length ; i++) {
-			if(application.getExecutorShape().equals(DataflowConstants.ShapesDetails[i].split(" ")[0])) {
+		executorShapeCombo.setItems(DataflowConstants.shapesDetails);		
+		for(int i=0; i<DataflowConstants.shapesDetails.length ; i++) {
+			if(application.getExecutorShape().equals(DataflowConstants.shapesDetails[i].split(" ")[0])) {
 				executorShapeCombo.select(i);
 			}
 		}		
@@ -256,9 +257,9 @@ public class EditApplicationWizardPage1  extends WizardPage {
 		numofExecutorsSpinner = new Spinner(container, SWT.BORDER | SWT.SINGLE);
 		GridData gd5 = new GridData(GridData.FILL_HORIZONTAL);
 		numofExecutorsSpinner.setLayoutData(gd5);
-		numofExecutorsSpinner.setMinimum(DataflowConstants.NUM_OF_EXECUTORS_MIN);
-		numofExecutorsSpinner.setMaximum(DataflowConstants.NUM_OF_EXECUTORS_MAX);
-		numofExecutorsSpinner.setIncrement(DataflowConstants.NUM_OF_EXECUTORS_INCREMENT);
+		numofExecutorsSpinner.setMinimum(DataflowConstants.numOfExecutorsMin);
+		numofExecutorsSpinner.setMaximum(DataflowConstants.numOfExecutorsMax);
+		numofExecutorsSpinner.setIncrement(DataflowConstants.numOfExecutorsIncrement);
 		// default value
 		numofExecutorsSpinner.setSelection(application.getNumExecutors());
 	}
@@ -374,7 +375,7 @@ public class EditApplicationWizardPage1  extends WizardPage {
 	}
 	private void JavaLanguageSelected(Composite container) {	
 		mainClassNamelabel = new Label(container, SWT.NULL);
-		mainClassNamelabel.setText("&Main Class Name:");
+		mainClassNamelabel.setText("&Main Class Name: *");
 		mainClassNameText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		mainClassNameText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));		
 		mainClassNameText.setText(application.getClassName());
@@ -567,13 +568,19 @@ public class EditApplicationWizardPage1  extends WizardPage {
 	   }
 	  if(currentword!="")
 		   arguments.add(currentword);
+	  
+	  if(!sqlset.isEmpty()) {
+		  for(Parameters parameter : sqlset) {	
+			  	if(!arguments.contains("${"+parameter.tagKey.getText()+"}"))
+			  		arguments.add("${"+parameter.tagKey.getText()+"}");
+			 }		 
+	  }
 		   
 	    return arguments;		
 	}
 	
 	 @Override
-	    public IWizardPage getNextPage() {
-	        dto.setData(this.sparkVersionCombo.getText().toString());	        
+	    public IWizardPage getNextPage() {        
 	        return super.getNextPage();
 	    }
 }

@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardPage;
@@ -22,12 +23,9 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 
-import com.oracle.bmc.core.VirtualNetworkClient;
 import com.oracle.bmc.core.model.NetworkSecurityGroup;
-import com.oracle.bmc.core.requests.ListNetworkSecurityGroupsRequest;
-import com.oracle.bmc.core.responses.ListNetworkSecurityGroupsResponse;
 import com.oracle.bmc.identity.model.Compartment;
-import com.oracle.oci.eclipse.account.AuthProvider;
+import com.oracle.oci.eclipse.sdkclients.VirtualnetworkClient;
 import com.oracle.oci.eclipse.ui.account.CompartmentSelectWizard;
 import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
 
@@ -42,7 +40,7 @@ public class NsgPage extends WizardPage {
     public NsgPage(ISelection selection,String compid) {
         super("wizardPage");
         setTitle("Network Security Group Wizard");
-        setDescription("This wizard lets you add National Security Groups(NSGs).");
+        setDescription("This wizard lets you add Network Security Group(NSGs).");
         this.selection = selection;
     }
 
@@ -87,7 +85,7 @@ public class NsgPage extends WizardPage {
 		 private Button close;
 		 private Button selComp;
 		 private Combo combo;
-		 private String compid2,compName2,nsgid;
+		 private String nsgid;
 		 private Map<String,String> nsgMap;
 		 
 		 Nsg(){
@@ -144,12 +142,14 @@ public class NsgPage extends WizardPage {
 						public void accept(Compartment comp) {
 							
 							selComp.setText(comp.getName());
-							VirtualNetworkClient client = new VirtualNetworkClient(AuthProvider.getInstance().getProvider());
-							ListNetworkSecurityGroupsRequest listNetworkSecurityGroupsRequest = ListNetworkSecurityGroupsRequest.builder().compartmentId(comp.getId()).build();
-
-					        ListNetworkSecurityGroupsResponse response = client.listNetworkSecurityGroups(listNetworkSecurityGroupsRequest);
 					        nsgList=new ArrayList<String>();
-					        List<NetworkSecurityGroup> nsgl=response.getItems();
+					        List<NetworkSecurityGroup> nsgl;
+							try {
+								nsgl = VirtualnetworkClient.getInstance().getNetworkSecurityGroupList(comp.getId());
+							} catch (Exception e1) {
+								MessageDialog.openError(getShell(), "Unable to get Network Security Groups", e1.getMessage());
+								return;
+							}
 					        nsgMap=new HashMap<String,String>();
 					        
 					        String[] sl=new String[0];

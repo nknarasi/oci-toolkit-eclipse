@@ -3,7 +3,6 @@ package com.oracle.oci.eclipse.ui.explorer.dataflow.editor;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.Separator;
@@ -11,7 +10,6 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -22,56 +20,65 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.forms.widgets.FormToolkit;
-
 import com.oracle.bmc.dataflow.model.PrivateEndpointSummary;
 import com.oracle.bmc.dataflow.responses.ListPrivateEndpointsResponse;
-import com.oracle.bmc.identity.model.Compartment;
 import com.oracle.oci.eclipse.account.AuthProvider;
-import com.oracle.oci.eclipse.ui.account.CompartmentSelectWizard;
+import com.oracle.oci.eclipse.sdkclients.IdentClient;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseTable;
 import com.oracle.oci.eclipse.ui.explorer.common.BaseTableLabelProvider;
-import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
-
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.CreatePrivateEndpointAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DeletePrivateEndpointAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DetailsPrivateEndpointAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.EditPrivateEndpointAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetPrivateEndpoints;
-import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RefreshPrivateEndpointAction;
 
 public class PrivateEndpointTable extends BaseTable {
     private int tableDataSize = 0;
     private static final int NAME_COL = 0;
     private static final int STATE_COL = 1;
 	private static final int CREATED_COL = 2;
-	public static String compid;
-	private static String compname;
 	private List<PrivateEndpointSummary> pepSummaryList = new ArrayList<PrivateEndpointSummary>();
-	private String pagetoshow=null;
+	private String pagetoshow=null,nextPageStr;
 	private ListPrivateEndpointsResponse listpepsresponse;
 	private Button previousPage,nextPage;
+	public static String compid=IdentClient.getInstance().getRootCompartment().getId();
 
     public PrivateEndpointTable(Composite parent, int style) {
         super(parent, style);
-
         viewer.setLabelProvider(new TableLabelProvider());
         viewer.setInput(getTableData());
         viewer.setItemCount(getTableDataSize());
-        compid=AuthProvider.getInstance().getCompartmentId();
     }
     
     @Override
     public List<PrivateEndpointSummary> getTableData() {
     	
     	 try {
+    		 String currentcompid=AuthProvider.getInstance().getCompartmentId();
+    	        if(currentcompid!=null&&!compid.equals(currentcompid)) {
+    	         	compid=currentcompid;
+    	         	pagetoshow=null;
+    	         }
          	IRunnableWithProgress op = new GetPrivateEndpoints(compid,pagetoshow);
-             new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
-             listpepsresponse=((GetPrivateEndpoints)op).listpepsresponse;
-             pepSummaryList=((GetPrivateEndpoints)op).pepSummaryList;
-             tableDataSize = pepSummaryList.size();
+            new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+            String errorMessage=((GetPrivateEndpoints)op).getErrorMessage();
+        	if(errorMessage!=null) 
+        		throw new Exception(errorMessage);
+            listpepsresponse=((GetPrivateEndpoints)op).listpepsresponse;
+            pepSummaryList=((GetPrivateEndpoints)op).pepSummaryList;
+            tableDataSize = pepSummaryList.size();
          } catch (Exception e) {
          	MessageDialog.openError(getShell(), "Unable to get Private Endpoints list", e.getMessage());
          }
+    	 
+    	 nextPageStr=listpepsresponse.getOpcNextPage();
+		 if(nextPageStr!=null&&!nextPageStr.isEmpty()) {
+			 nextPage.setEnabled(true);
+		 }
+		 else {
+		     nextPage.setEnabled(false);
+		 }
+    	 
          refresh(false);
         
         return pepSummaryList;
@@ -121,7 +128,6 @@ public class PrivateEndpointTable extends BaseTable {
 
     @Override
     protected void fillMenu(IMenuManager manager) {
-        manager.add(new RefreshPrivateEndpointAction(PrivateEndpointTable.this));
 		manager.add(new CreatePrivateEndpointAction(PrivateEndpointTable.this));
         manager.add(new Separator());
 
@@ -130,9 +136,9 @@ public class PrivateEndpointTable extends BaseTable {
            manager.add(new Separator());
            if(!pepState.equals("Creating")) 
         	   manager.add(new DetailsPrivateEndpointAction(PrivateEndpointTable.this));
-           if(!pepState.equals("Creating")&&!pepState.equals("Deleting")) 
+           if(!(pepState.equals("Creating") || pepState.equals("Deleting") || pepState.equals("Updating"))) 
         	   manager.add(new DeletePrivateEndpointAction(PrivateEndpointTable.this,(PrivateEndpointSummary)getSelectedObjects().get(0)));
-		   if(pepState.equals("Active")||pepState.equals("Inactive"))
+		   if((pepState.equals("Active")||pepState.equals("Inactive")))
 			   manager.add(new EditPrivateEndpointAction((PrivateEndpointSummary)getSelectedObjects().get(0),PrivateEndpointTable.this));
         }
 
@@ -141,34 +147,24 @@ public class PrivateEndpointTable extends BaseTable {
 	@Override
     protected void addTableLabels(FormToolkit toolkit, Composite left, Composite right) {
 		
-		changeCompartmentButton.setText("Change Compartment");
-		changeCompartmentButton.setVisible(true);
-		changeCompartmentButton.addSelectionListener(new SelectionListener() {
+		
+		Button refreshTable=new Button(right.getParent(),SWT.PUSH);
+		refreshTable.setText("Refresh Table");
+		refreshTable.setLayoutData(new GridData());
+		refreshTable.addSelectionListener(new SelectionListener() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                
-				Consumer<Compartment> consumer=new Consumer<Compartment>() {
-
-				@Override
-				public void accept(Compartment comp) {
-					compid = comp.getId();
-					compname = comp.getName();
-				}
-				};
-				CustomWizardDialog dialog = new CustomWizardDialog(Display.getDefault().getActiveShell(),
-						new CompartmentSelectWizard(consumer, false));
-				dialog.setFinishButtonText("Select");
-				if (Window.OK == dialog.open()) {
-					setCompartmentName(new String(compname));
-					refresh(true);
-				}
+				refresh(true);
             }
 
             @Override
             public void widgetDefaultSelected(SelectionEvent e) {}
         });
 		
-		Composite page=new Composite(right,SWT.NONE);
+		Composite page=new Composite(right.getParent(),SWT.NONE);
+        GridData gdpage = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_END);
+        page.setLayoutData(gdpage);
+        
         GridLayout gl=new GridLayout();
         gl.numColumns=2;
         page.setLayout(gl);

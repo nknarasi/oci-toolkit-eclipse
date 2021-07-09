@@ -11,7 +11,6 @@ import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.commands.IElementUpdater;
 import org.eclipse.ui.menus.UIElement;
 import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
-import com.oracle.oci.eclipse.ui.explorer.objectstorage.actions.MakeJarAndZip;
 
 public class RunasDataflowApplication extends AbstractHandler implements IElementUpdater  {
 		
@@ -21,9 +20,10 @@ public class RunasDataflowApplication extends AbstractHandler implements IElemen
 
         Event eventWidget = (Event)event.getTrigger();
         if ( eventWidget.widget instanceof ToolItem )  {       	
-        	MakeJarAndZip.jarUri=null;MakeJarAndZip.zipUri=null;               	
+        	DataTransferObject.filedir=null;
+        	DataTransferObject.archivedir=null;               	
         	CustomWizardDialog dialog = new CustomWizardDialog(Display.getDefault().getActiveShell(),
-        			new LocalFileSelectWizard());
+        			new RunAsDataflowApplicationWizard());
         	dialog.setFinishButtonText("Run");
         	if (Window.OK == dialog.open()) {
         	}

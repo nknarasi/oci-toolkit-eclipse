@@ -13,7 +13,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.swt.widgets.Display;
 
-import com.oracle.oci.eclipse.ui.explorer.objectstorage.actions.MakeJarAndZip;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.wizards.DataTransferObject;
 
 public class CreateFiles implements IRunnableWithProgress{
 	private int workload;
@@ -42,7 +42,7 @@ public class CreateFiles implements IRunnableWithProgress{
 		FileInputStream in=null;
 		
 		int i=1;
-		for (String classpathEntry : new HashSet<String>(MakeJarAndZip.jarList)) {
+		for (String classpathEntry : new HashSet<String>(DataTransferObject.jarList)) {
 			monitor.subTask("Zipping file " + (i++) + " of "+ (workload-1) + "...");
 		    if (classpathEntry.endsWith(".jar")) {
 		    	File jar = new File(classpathEntry);
@@ -66,7 +66,7 @@ public class CreateFiles implements IRunnableWithProgress{
             }
 		}
 		out.close();
-		MakeJarAndZip.zipUri=dff.getAbsolutePath();
+		DataTransferObject.archivedir=dff.getAbsolutePath();
 		monitor.worked(1);
 		monitor.done();
         }

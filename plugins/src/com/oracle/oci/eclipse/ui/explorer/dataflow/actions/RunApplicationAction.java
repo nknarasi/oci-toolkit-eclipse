@@ -39,7 +39,7 @@ public class RunApplicationAction extends BaseAction{
 	        }
 		 Application application = DataflowClient.getInstance().getApplicationDetails(applicationID);
 	       CustomWizardDialog dialog = new CustomWizardDialog(Display.getDefault().getActiveShell(), new CreateRunWizard(application.getId()));
-	        dialog.setFinishButtonText("Start Run");
+	        dialog.setFinishButtonText("Run");
 	        if (Window.OK == dialog.open()) {
 	        	table.refresh(true);
 	        }

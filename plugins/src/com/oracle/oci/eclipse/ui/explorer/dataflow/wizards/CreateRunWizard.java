@@ -52,7 +52,7 @@ public class CreateRunWizard  extends Wizard implements INewWizard{
     	firstpage = new CreateRunWizardPage1(selection,dto,application.getId());
         addPage(firstpage);
     	monitor.subTask("Adding Tags Page");
-    	secondpage=new TagsPage(selection,application.getCompartmentId());
+    	secondpage=new TagsPage(selection,application.getCompartmentId(),null,null);
         addPage(secondpage);
         monitor.subTask("Adding Advanced Options page");
         thirdpage = new CreateRunWizardPage3(selection,dto,application.getId());
@@ -70,7 +70,7 @@ public class CreateRunWizard  extends Wizard implements INewWizard{
     	String message=Validations.check(validObjects.toArray(),objectType.toArray(new String[1]));
     	
     	if(!message.isEmpty()) {
-    		open("Improper Entries",message);
+    		open("Validation errors",message);
     		return false;
     	}
     	
@@ -131,7 +131,7 @@ public class CreateRunWizard  extends Wizard implements INewWizard{
        
     	if(thirdpage.getSparkProperties() != null) {
  	       objectArray.add(thirdpage.getSparkProperties().keySet());
- 	       nameArray.add("sparkprop" + firstpage.getSparkVersion().charAt(0));         
+ 	       nameArray.add("sparkprop" + application.getSparkVersion().charAt(0));         
     	}
 
     }

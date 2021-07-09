@@ -30,12 +30,15 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
+
+import com.oracle.bmc.dataflow.model.Application;
 import com.oracle.bmc.dataflow.model.ApplicationSummary;
 import com.oracle.bmc.dataflow.requests.ListApplicationsRequest;
 import com.oracle.bmc.dataflow.responses.ListApplicationsResponse;
 import com.oracle.bmc.identity.model.Compartment;
 import com.oracle.oci.eclipse.Activator;
 import com.oracle.oci.eclipse.Icons;
+import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.oci.eclipse.sdkclients.IdentClient;
 import com.oracle.oci.eclipse.ui.account.CompartmentSelectWizard;
 import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
@@ -49,7 +52,6 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
     private Text compartmentText;
     private Image IMAGE;
     private List<ApplicationSummary> applications;
-    private DataTransferObject dto;
 	private Compartment selectedApplicationCompartment;
 	private Map<ApplicationSummary, TreeItem> applicationTreeMap;
 	private String applicationIdSelected = null;
@@ -59,13 +61,12 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 	private String pagetoshow= null;
 	private Button previouspage,nextpage;
 	
-	   public LocalFileSelectWizardPage3(ISelection selection, DataTransferObject dto, String COMPARTMENT_ID) {
+	   public LocalFileSelectWizardPage3(ISelection selection, String COMPARTMENT_ID) {
 	        super("wizardPage");
 	        setTitle("Choose an Application to edit or Create new.");     
 	        setDescription("To edit a previously created application, select an application. Ignore this page"
 	        		+ " if you want to create a new application.");
 	        this.selection = selection;
-	        this.dto = dto;
 	        IMAGE = Activator.getImage(Icons.BUCKET.getPath());
 	        
 	        this.selectedApplicationCompartment = IdentClient.getInstance().getRootCompartment();
@@ -229,8 +230,7 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 	        TreeItem[] items = tree.getSelection();
 	        if(items !=null && items.length>0) {
 	            TreeItem selectedItem = items[0];
-	            ApplicationSummary Application = (ApplicationSummary)selectedItem.getData(APPLICATION_KEY);	      
-	            
+	            ApplicationSummary Application = (ApplicationSummary)selectedItem.getData(APPLICATION_KEY);	      	            
 	            return Application.getId();
 	        }
 	        return null;
@@ -243,18 +243,29 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 		
 		
 		 @Override
-		    public IWizardPage getNextPage() { 
-			    dto.setApplicationId(applicationIdSelected); 		
-			    LocalFileSelectWizard wizard = (LocalFileSelectWizard)getWizard();
-			    wizard.canFinish= true;
-			    wizard.canFinish();
-			    CreateApplicationWizardPage page = ((LocalFileSelectWizard)getWizard()).firstpage;
-			    page.onEnterPage();
-			    getWizard().getContainer().updateButtons();
-			    CreateApplicationWizardPage3 advpage = ((LocalFileSelectWizard)getWizard()).thirdpage;
-			    advpage.onEnterPage();	
-			    
-			    return page;       
-		    }
+		    public IWizardPage getNextPage() {
+			 RunAsDataflowApplicationWizard wizard = (RunAsDataflowApplicationWizard)getWizard();
+			 wizard.canFinish= true;
+			 wizard.canFinish();
+			 getWizard().getContainer().updateButtons();
+			 String applicationId=getApplicationSelected();
+			 if(applicationId==null)
+				 DataTransferObject.applicationId=null;
+			 if(applicationId!=null&&DataTransferObject.applicationId != applicationIdSelected) {
+				 
+				 DataTransferObject.applicationId=applicationIdSelected; 		
+				    CreateApplicationWizardPage page = ((RunAsDataflowApplicationWizard)getWizard()).firstpage;
+				    page.onEnterPage();
+				    TagsPage tagsPage = ((RunAsDataflowApplicationWizard)getWizard()).tagpage;
+				    Application application = DataflowClient.getInstance().getApplicationDetails(applicationIdSelected);
+				    tagsPage.setTags(application.getDefinedTags(),application.getFreeformTags());
+				    CreateApplicationWizardPage3 advpage = ((RunAsDataflowApplicationWizard)getWizard()).thirdpage;
+				    advpage.onEnterPage();	
+				    return page;				     
+			 }
+			 CreateApplicationWizardPage page = ((RunAsDataflowApplicationWizard)getWizard()).firstpage;
+			 page.setJarAndArchiveUri();
+			 return super.getNextPage();
+		   }
 
 }

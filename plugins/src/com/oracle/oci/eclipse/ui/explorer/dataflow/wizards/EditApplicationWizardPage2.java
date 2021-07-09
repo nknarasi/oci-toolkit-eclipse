@@ -60,19 +60,17 @@ public class EditApplicationWizardPage2  extends WizardPage {
 	private Composite propertiesSection;
 	private Composite buttonComposite;
 	private Composite advancedOptionsComposite;
-	private  DataTransferObject dto; 
 	private boolean networkSectionSelected=false;
 	private int intial = -1; 
 	private boolean usesAdvancedOptions=false;
 	private String selectedApplicationCompartmentId;
 	private String selectedApplicationCompartmentName;
 	
-	public EditApplicationWizardPage2(ISelection selection,DataTransferObject dto,String applicationId) {
+	public EditApplicationWizardPage2(ISelection selection,String applicationId) {
 		super("Page 2");
-		setTitle("Edit Application Advanced Options");
+		setTitle("Edit DataFlow application");
 		setDescription("Change Advanced Options for application if required.");
 		this.selection = selection;		
-		this.dto=dto;
 		application = DataflowClient.getInstance().getApplicationDetails(applicationId);
 		String compartmentId = application.getCompartmentId();	
 		Compartment rootCompartment = IdentClient.getInstance().getRootCompartment();
@@ -138,7 +136,7 @@ public class EditApplicationWizardPage2  extends WizardPage {
 	        
 	        if(application.getConfiguration() != null) {        	
 	        	 for (Map.Entry<String,String> property : application.getConfiguration().entrySet()) {
-	        		 SparkProperty propertyPresent = new SparkProperty(propertiesSection,advancedOptionsComposite,scrolledComposite,createdPropertiesSet,application.getSparkVersion());
+	        		 SparkProperty propertyPresent = new SparkProperty(propertiesSection,advancedOptionsComposite,scrolledComposite,createdPropertiesSet);
 	        		 createdPropertiesSet.add(propertyPresent);
 	        		 propertyPresent.tagKey.setText(property.getKey());
 					 propertyPresent.tagValue.setText(property.getValue());
@@ -149,7 +147,7 @@ public class EditApplicationWizardPage2  extends WizardPage {
 	        }       
 	        	addProperty.addSelectionListener(new SelectionAdapter() {
 	            public void widgetSelected(SelectionEvent e) {
-	             createdPropertiesSet.add(new SparkProperty(propertiesSection,advancedOptionsComposite,scrolledComposite,createdPropertiesSet,dto.getData()));
+	             createdPropertiesSet.add(new SparkProperty(propertiesSection,advancedOptionsComposite,scrolledComposite,createdPropertiesSet));
 	    		 container.layout(true,true);
 	         	 scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 	            }
@@ -186,6 +184,7 @@ public class EditApplicationWizardPage2  extends WizardPage {
 		advancedOptionsComposite.setVisible(usesAdvancedOptions);
 		container.layout(true,true);
 		
+	    scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 		setControl(scrolledComposite);
 	}
 	
@@ -211,8 +210,8 @@ public class EditApplicationWizardPage2  extends WizardPage {
             innerTopLayout.numColumns = 1;
             privateEndpointSection.setLayout(innerTopLayout);
             privateEndpointSection.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-            DataflowClient oci = DataflowClient.getInstance();
-            PrivateEndpoint current = oci.getPrivateEndpointDetails(application.getPrivateEndpointId());
+            DataflowClient dataflowClient = DataflowClient.getInstance();
+            PrivateEndpoint current = dataflowClient.getPrivateEndpointDetails(application.getPrivateEndpointId());
     		Compartment rootCompartment = IdentClient.getInstance().getRootCompartment();
     		List<Compartment> Allcompartments = IdentClient.getInstance().getCompartmentList(rootCompartment);
     		for(Compartment compartment : Allcompartments) {
@@ -222,7 +221,7 @@ public class EditApplicationWizardPage2  extends WizardPage {
     				 break;
     			}
     		}    		
-    		privateEndpoints = oci.getPrivateEndPoints(selectedApplicationCompartmentId);	    		
+    		privateEndpoints = dataflowClient.getPrivateEndPoints(selectedApplicationCompartmentId);	    		
     		int sizeoflist= privateEndpoints.size();
     		String[] PrivateEndpointsList = new String[sizeoflist];
     		for(int i = 0; i < privateEndpoints.size(); i++){  
@@ -318,8 +317,8 @@ public class EditApplicationWizardPage2  extends WizardPage {
 	
 	private void chooseSubnet(Composite currentcontainer, String compartmentId) {		
         
-		DataflowClient oci = DataflowClient.getInstance();
-		privateEndpoints = oci.getPrivateEndPoints(compartmentId);		
+		DataflowClient dataflowClient = DataflowClient.getInstance();
+		privateEndpoints = dataflowClient.getPrivateEndPoints(compartmentId);		
 
 		int sizeoflist= privateEndpoints.size();
 		String[] PrivateEndpointsList = new String[sizeoflist];

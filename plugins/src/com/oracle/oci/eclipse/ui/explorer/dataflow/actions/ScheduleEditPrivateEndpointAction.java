@@ -18,6 +18,7 @@ public class ScheduleEditPrivateEndpointAction implements IRunnableWithProgress{
 	private Map<String,String> FT;
 	private String name,pepid;
 	private String[] dnszones;
+	private String errorMessage=null;
 	
     public ScheduleEditPrivateEndpointAction(Map<String,Map<String,Object>> OT,Map<String,String> FT,String[] dnszones,String name,String pepid)
     {
@@ -31,6 +32,7 @@ public class ScheduleEditPrivateEndpointAction implements IRunnableWithProgress{
     @Override
     public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException
     {
+    	try {
         // Tell the user what you are doing
         monitor.beginTask("Edit Private Endpoint request processing", IProgressMonitor.UNKNOWN);
 
@@ -52,6 +54,14 @@ public class ScheduleEditPrivateEndpointAction implements IRunnableWithProgress{
 
         // You are done
         monitor.done();
+    	}
+    	catch (Exception e) {
+    		errorMessage=e.getMessage();
+    	}
+    }
+    
+    public String getErrorMessage() {
+    	return errorMessage;
     }
 }
 
