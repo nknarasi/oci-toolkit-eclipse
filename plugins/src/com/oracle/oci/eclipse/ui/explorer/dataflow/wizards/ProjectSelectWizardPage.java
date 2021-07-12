@@ -36,9 +36,6 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 
-import com.oracle.oci.eclipse.Activator;
-import com.oracle.oci.eclipse.Icons;
-
 public class ProjectSelectWizardPage extends WizardPage{
 	
 	    private ISelection selection;

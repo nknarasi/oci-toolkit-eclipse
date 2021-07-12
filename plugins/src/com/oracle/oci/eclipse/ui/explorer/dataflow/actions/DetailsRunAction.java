@@ -9,6 +9,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
+
 import com.oracle.bmc.dataflow.model.Run;
 import com.oracle.bmc.dataflow.model.RunSummary;
 import com.oracle.oci.eclipse.sdkclients.DataflowClient;
@@ -107,5 +108,5 @@ public class DetailsRunAction extends BaseAction {
 		data.add(new TablePair("Free Form Tags:", obj.getFreeformTags().toString()));
         return data;
     }
-
+ 
 }

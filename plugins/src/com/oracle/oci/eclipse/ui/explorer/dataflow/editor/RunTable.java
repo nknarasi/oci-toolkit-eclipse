@@ -35,6 +35,7 @@ import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DeleteRunAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DetailsRunAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetRuns;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RunAction;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.ShowLogsAction;
 
 public class RunTable extends BaseTable {
     private int tableDataSize = 0;
@@ -251,6 +252,7 @@ public class RunTable extends BaseTable {
     protected void fillMenu(IMenuManager manager) {
         if (getSelectedObjects().size() == 1) {
             manager.add(new Separator());
+            manager.add(new ShowLogsAction(((RunSummary)getSelectedObjects().get(0)).getId()));
             manager.add(new DetailsRunAction(RunTable.this));
 			manager.add(new RunAction((RunSummary)getSelectedObjects().get(0),RunTable.this));
 			String lcs=((RunSummary)getSelectedObjects().get(0)).getLifecycleState().toString();
