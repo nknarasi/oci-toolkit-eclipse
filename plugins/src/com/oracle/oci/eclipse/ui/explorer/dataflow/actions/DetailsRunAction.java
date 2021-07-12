@@ -93,7 +93,8 @@ public class DetailsRunAction extends BaseAction {
         }
 		data.add(new TablePair("Application Log Location:", obj.getLogsBucketUri()));
 		data.add(new TablePair("Warehouse Bucket Uri:", obj.getWarehouseBucketUri()));
-		data.add(new TablePair("Spark Properties:", obj.getConfiguration().toString()));
+		if(obj.getConfiguration()!=null)
+			data.add(new TablePair("Spark Properties:", obj.getConfiguration().toString()));
 		data.add(new TablePair("State Details:", obj.getLifecycleDetails()));
 		data.add(new TablePair("Created:", (new SimpleDateFormat("dd-M-yyyy hh:mm:ss")).format(obj.getTimeCreated())));
 		data.add(new TablePair("Owner:", obj.getOwnerUserName()));
