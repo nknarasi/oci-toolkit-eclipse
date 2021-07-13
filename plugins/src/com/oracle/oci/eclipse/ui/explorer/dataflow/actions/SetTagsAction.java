@@ -29,7 +29,7 @@ public class SetTagsAction implements IRunnableWithProgress{
         monitor.beginTask("Fetching already set tags", IProgressMonitor.UNKNOWN);
 
         // Do your work
-        tagsPage.setTags(defMap, freeMap);
+        tagsPage.getTags(defMap, freeMap);
 
         // You are done
         monitor.done();

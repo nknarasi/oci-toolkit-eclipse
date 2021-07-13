@@ -43,6 +43,9 @@ import com.oracle.oci.eclipse.sdkclients.IdentClient;
 import com.oracle.oci.eclipse.ui.account.CompartmentSelectWizard;
 import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetApplications;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetBuckets;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetRuns;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.SetTagsAction;
 
 public class LocalFileSelectWizardPage3  extends WizardPage{
 	
@@ -57,9 +60,10 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 	private String applicationIdSelected = null;
     private ListApplicationsRequest.SortBy sortBy=ListApplicationsRequest.SortBy.TimeCreated;
 	private ListApplicationsRequest.SortOrder sortOrder=ListApplicationsRequest.SortOrder.Desc;
-	private ListApplicationsResponse listapplicationsresponse;
-	private String pagetoshow= null;
-	private Button previouspage,nextpage;
+	private ListApplicationsResponse listApplicationsResponse;
+	private String pageToShow= null;
+	private Button previousPage,nextPage;
+	private String nextPageStr;
 	
 	   public LocalFileSelectWizardPage3(ISelection selection, String COMPARTMENT_ID) {
 	        super("wizardPage");
@@ -111,23 +115,21 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 
 	        
 	        tree = new Tree(container, SWT.RADIO | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
-	        tree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-	                
-	        createApplicationSection();  
+	        tree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));	               
 	        
 	        Composite page=new Composite(container,SWT.NONE);GridLayout gl=new GridLayout();gl.numColumns=2;
 	        page.setLayout(gl);
-	        previouspage=new Button(page,SWT.TRAVERSE_PAGE_PREVIOUS);
-	        nextpage=new Button(page,SWT.TRAVERSE_PAGE_NEXT);
-	        previouspage.setText("<");
-	        nextpage.setText(">");
-	        previouspage.setLayoutData(new GridData());
-	        nextpage.setLayoutData(new GridData());
+	        previousPage=new Button(page,SWT.TRAVERSE_PAGE_PREVIOUS);
+	        nextPage=new Button(page,SWT.TRAVERSE_PAGE_NEXT);
+	        previousPage.setText("Refresh");
+	        nextPage.setText(">");
+	        previousPage.setLayoutData(new GridData());
+	        nextPage.setLayoutData(new GridData());
 	        
-	        nextpage.addSelectionListener(new SelectionListener() {
+	        nextPage.addSelectionListener(new SelectionListener() {
 	            @Override
 	            public void widgetSelected(SelectionEvent e) {	                
-					pagetoshow=listapplicationsresponse.getOpcNextPage();
+					pageToShow=listApplicationsResponse.getOpcNextPage();
 					createApplicationSection();
 	            }
 
@@ -135,17 +137,20 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 	            public void widgetDefaultSelected(SelectionEvent e) {}
 	        });
 	        
-	        previouspage.addSelectionListener(new SelectionListener() {
+	        previousPage.addSelectionListener(new SelectionListener() {
 	            @Override
 	            public void widgetSelected(SelectionEvent e) {
 	                
-					pagetoshow=listapplicationsresponse.getOpcPrevPage();
+					pageToShow=listApplicationsResponse.getOpcPrevPage();
 					createApplicationSection();
 	            }
 
 	            @Override
 	            public void widgetDefaultSelected(SelectionEvent e) {}
 	        });
+	        
+	        createApplicationSection();  
+	        
 	        setControl(container);
 	    }
 	    
@@ -159,13 +164,24 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 	        	}
 	    	}
 	    	try {	    		
-	    		IRunnableWithProgress op = new GetApplications(selectedApplicationCompartment.getId(),sortBy,sortOrder,pagetoshow);
+	    		IRunnableWithProgress op = new GetApplications(selectedApplicationCompartment.getId(),sortBy,sortOrder,pageToShow);
                 new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
-                listapplicationsresponse=((GetApplications)op).listApplicationsResponse;
+                String errorMessage=((GetApplications)op).getErrorMessage();
+            	if(errorMessage!=null) 
+            		throw new Exception(errorMessage);
+                listApplicationsResponse=((GetApplications)op).listApplicationsResponse;
                 applications=((GetApplications)op).applicationSummaryList;
                 
 			} catch (Exception e1) {
 				MessageDialog.openError(Display.getDefault().getActiveShell(), "Unable to get list applications ", e1.getMessage());	     
+			}
+	    	
+	        nextPageStr=listApplicationsResponse.getOpcNextPage();
+			if(nextPageStr!=null&&!nextPageStr.isEmpty()) {
+				nextPage.setEnabled(true);
+			}
+			else {
+				nextPage.setEnabled(false);
 			}
 
 	   	 Job job = new Job("Get Applications in User Compartment") {
@@ -209,7 +225,7 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 					if (compartment != null) {
 						selectedApplicationCompartment = compartment;
 						compartmentText.setText(selectedApplicationCompartment.getName());
-						pagetoshow= null;
+						pageToShow= null;
 						createApplicationSection();
 					}
 				}
@@ -249,16 +265,37 @@ public class LocalFileSelectWizardPage3  extends WizardPage{
 			 wizard.canFinish();
 			 getWizard().getContainer().updateButtons();
 			 String applicationId=getApplicationSelected();
-			 if(applicationId==null)
+			 if(applicationId==null) {
 				 DataTransferObject.applicationId=null;
+				 CreateApplicationWizardPage page = ((RunAsDataflowApplicationWizard)getWizard()).firstpage;
+				 page.clearSelection();
+				 TagsPage tagsPage = ((RunAsDataflowApplicationWizard)getWizard()).tagpage;
+				 tagsPage.clearTags();
+				 CreateApplicationWizardPage3 advpage = ((RunAsDataflowApplicationWizard)getWizard()).thirdpage;
+				 advpage.clearSelection();
+			 }
+
 			 if(applicationId!=null&&DataTransferObject.applicationId != applicationIdSelected) {
 				 
 				 DataTransferObject.applicationId=applicationIdSelected; 		
 				    CreateApplicationWizardPage page = ((RunAsDataflowApplicationWizard)getWizard()).firstpage;
 				    page.onEnterPage();
 				    TagsPage tagsPage = ((RunAsDataflowApplicationWizard)getWizard()).tagpage;
+				    tagsPage.clearTags();
 				    Application application = DataflowClient.getInstance().getApplicationDetails(applicationIdSelected);
+				    
+				    try {
+				    IRunnableWithProgress op = new SetTagsAction(tagsPage,application.getDefinedTags(),application.getFreeformTags());
+                    new ProgressMonitorDialog(getShell()).run(true, true, op);
+                    String errorMessage=((SetTagsAction)op).getErrorMessage();
+                	if(errorMessage!=null) 
+                		throw new Exception(errorMessage);
+				    }
+				    catch (Exception e) {
+				    	MessageDialog.openError(getShell(), "Unable to get already set tags", e.getMessage());
+				    }
 				    tagsPage.setTags(application.getDefinedTags(),application.getFreeformTags());
+				    
 				    CreateApplicationWizardPage3 advpage = ((RunAsDataflowApplicationWizard)getWizard()).thirdpage;
 				    advpage.onEnterPage();	
 				    return page;				     

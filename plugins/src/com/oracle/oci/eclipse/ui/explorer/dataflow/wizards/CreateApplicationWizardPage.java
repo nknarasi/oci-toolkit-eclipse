@@ -241,6 +241,16 @@ public class CreateApplicationWizardPage extends WizardPage {
 		 languageUsed  = ApplicationLanguage.Java;            		
 		 JavaLanguageSelected(container);
 		 SQLLanguageSelected(container);
+		 if(DataTransferObject.local) {
+			 LocalFileSelectWizardPage1 page1 = ((RunAsDataflowApplicationWizard)getWizard()).firstbpage;
+				fileUriText.setText(page1.getFileUri());
+				fileUriText.setEditable(false);
+				fileSelectButton.setEnabled(false);
+				
+				LocalFileSelectWizardPage2 page2 = ((RunAsDataflowApplicationWizard)getWizard()).secondbpage;
+				archiveUriText.setText(page2.getArchiveUri());
+				archiveUriText.setEditable(true);
+		 }
 	}
 	
 	private void disposeSparkSubmit() {
@@ -269,7 +279,9 @@ public class CreateApplicationWizardPage extends WizardPage {
 			fileSelectButton.dispose();
 			fileUriContainer.dispose();
 		}
+		
 		disposePrevious();
+		
 		if(archiveUriLabel != null) {
 			archiveUriLabel.dispose();
 			archiveUriText.dispose();
@@ -423,6 +435,7 @@ public class CreateApplicationWizardPage extends WizardPage {
 		for(Parameters item : parameterSet) {
 			item.composite.dispose();
 		}
+		parameterSet.clear();
 		
 		if(parameterContainer != null) {
 			parameterContainer.dispose();
@@ -696,7 +709,12 @@ public class CreateApplicationWizardPage extends WizardPage {
     				fileSelectButton.setEnabled(false);
     				
     				LocalFileSelectWizardPage2 page2 = ((RunAsDataflowApplicationWizard)getWizard()).secondbpage;
-    				archiveUriText.setText(page2.getArchiveUri());
+    				
+    				if(DataTransferObject.archivedir==null||DataTransferObject.archivedir.isEmpty())
+    					archiveUriText.setText(application.getArchiveUri());
+    				else
+    					archiveUriText.setText(page2.getArchiveUri());
+    				
     				archiveUriText.setEditable(true);
 		        }
 	    		 languageUsed  = application.getLanguage();    		
@@ -753,9 +771,27 @@ public class CreateApplicationWizardPage extends WizardPage {
  		        }       
 	    	 }    	
 	    }	   
-	    container.pack();
 	    container.layout(true,true);
 	    scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
+		}
+	
+		public void clearSelection() {
+			final SimpleDateFormat DATE_TIME_FORMAT = new SimpleDateFormat("yyyyMMddHHmm");
+			final String defaultApplicationName = DATE_TIME_FORMAT.format(new Date());
+			displayNameText.setText("App " + defaultApplicationName);
+			applicationDescriptionText.setText("");
+			sparkVersionCombo.select(0);
+			driverShapeCombo.select(0);
+			executorShapeCombo.select(0);
+			usesSparkSubmit = false;
+			useSparkSubmitButton.setSelection(false);
+			useSparkSubmitButton.setVisible(true);
+			disposeSparkSubmit();
+			disposeLanguagesection();
+			withoutSparkSubmit(container);
+			
+		    container.layout(true,true);
+		    scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 		}
 	    	
 		@Override
@@ -786,7 +822,7 @@ public class CreateApplicationWizardPage extends WizardPage {
    	   		 		advpage.usesSparkSubmit(false);
 		 	}
    		 	else {
-   	   		 CreateApplicationWizardPage3 advpage =((CreateApplicationWizard)getWizard()).thirdpage;
+   	   		 CreateApplicationWizardPage3 advpage =((CreateApplicationWizard)getWizard()).thirdPage;
 	   		 	if(usesSparkSubmit)    	   			    
 	   			    advpage.usesSparkSubmit(true);
 	   		 	else 
@@ -795,6 +831,8 @@ public class CreateApplicationWizardPage extends WizardPage {
 	        return super.getNextPage();
 	    }
 	 	 
+   	 	
+   	 	
    	 	public void setJarAndArchiveUri() {
    	 		LocalFileSelectWizardPage2 page2 = ((RunAsDataflowApplicationWizard)getWizard()).secondbpage;
    	 		archiveUriText.setText(page2.getArchiveUri());

@@ -18,12 +18,17 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.forms.widgets.FormToolkit;
+
+import com.oracle.bmc.Region;
+import com.oracle.bmc.dataflow.model.ApplicationSummary;
 import com.oracle.bmc.dataflow.model.RunSummary;
 import com.oracle.bmc.dataflow.requests.ListRunsRequest;
 import com.oracle.bmc.dataflow.responses.ListRunsResponse;
@@ -34,7 +39,9 @@ import com.oracle.oci.eclipse.ui.explorer.common.BaseTableLabelProvider;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DeleteRunAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DetailsRunAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetRuns;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.OpenInConsoleAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RunAction;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.ShowLogsAction;
 
 public class RunTable extends BaseTable {
     private int tableDataSize = 0;
@@ -250,9 +257,10 @@ public class RunTable extends BaseTable {
     @Override
     protected void fillMenu(IMenuManager manager) {
         if (getSelectedObjects().size() == 1) {
-            manager.add(new Separator());
+            manager.add(new ShowLogsAction(((RunSummary)getSelectedObjects().get(0))));
             manager.add(new DetailsRunAction(RunTable.this));
 			manager.add(new RunAction((RunSummary)getSelectedObjects().get(0),RunTable.this));
+			manager.add(new OpenInConsoleAction(((RunSummary)getSelectedObjects().get(0)).getId()));
 			String lcs=((RunSummary)getSelectedObjects().get(0)).getLifecycleState().toString();
 			if(lcs.equals("Failed")||lcs.equals("Succeeded")||lcs.equals("Canceling")||lcs.equals("Canceled"));
 			else manager.add(new DeleteRunAction((RunSummary)getSelectedObjects().get(0),RunTable.this));
@@ -262,6 +270,20 @@ public class RunTable extends BaseTable {
 	
 	@Override
     protected void addTableLabels(FormToolkit toolkit, Composite left, Composite right) {
+		
+		Link link = new Link(right, SWT.NONE);
+        Region region = AuthProvider.getInstance().getRegion();
+        link.setText("<a href=\"https://console."+region.getRegionId()+".oraclecloud.com/data-flow/runs\">Click to open in console</a>");
+         
+        // Event handling when users click on links.
+        link.addSelectionListener(new SelectionAdapter()  {
+         
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                Program.launch("https://console."+region.getRegionId()+".oraclecloud.com/data-flow/runs");
+            }
+             
+        });
 		
 		Button refreshTable=new Button(right.getParent(),SWT.PUSH);
 		refreshTable.setText("Refresh Table");

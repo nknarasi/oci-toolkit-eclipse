@@ -22,6 +22,7 @@ public class GetBuckets implements IRunnableWithProgress {
 	private String page=null;
 	public List<BucketSummary> bucketSummaryList = new ArrayList<BucketSummary>();
 	public ListBucketsResponse listBucketsResponse;
+	private String errorMessage=null;
 
 	   public GetBuckets(String givenCompartmentId,String page)
 	    {
@@ -31,6 +32,7 @@ public class GetBuckets implements IRunnableWithProgress {
 	   
 	    @Override
 	    public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException{
+	    	try {
 	        monitor.beginTask("Getting Buckets", IProgressMonitor.UNKNOWN);
 	        bucketSummaryList = new ArrayList<BucketSummary>();	   		
 	        String namespace = ObjStorageClient.getInstance().getNamespace(objectStorageClient) ;
@@ -50,6 +52,14 @@ public class GetBuckets implements IRunnableWithProgress {
 	        }
 	   		
 	        monitor.done();
+	    	}
+	    	catch (Exception e) {
+	    		errorMessage=e.getMessage();
+	    	}
 	    }
 	   
+	    
+	    public String getErrorMessage() {
+	    	return errorMessage;
+	    }
 }

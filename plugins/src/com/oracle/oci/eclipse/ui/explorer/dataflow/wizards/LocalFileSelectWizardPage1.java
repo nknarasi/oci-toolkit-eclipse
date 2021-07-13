@@ -26,14 +26,10 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
-
-import com.oracle.bmc.dataflow.responses.ListApplicationsResponse;
 import com.oracle.bmc.identity.model.Compartment;
 import com.oracle.bmc.objectstorage.model.BucketSummary;
 import com.oracle.bmc.objectstorage.responses.ListBucketsResponse;
@@ -44,8 +40,8 @@ import com.oracle.oci.eclipse.sdkclients.IdentClient;
 import com.oracle.oci.eclipse.sdkclients.ObjStorageClient;
 import com.oracle.oci.eclipse.ui.account.CompartmentSelectWizard;
 import com.oracle.oci.eclipse.ui.explorer.common.CustomWizardDialog;
-import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetApplications;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetBuckets;
+
 
 public class LocalFileSelectWizardPage1 extends WizardPage {	
     private static final String BUCKET_KEY = "bucket";
@@ -60,9 +56,10 @@ public class LocalFileSelectWizardPage1 extends WizardPage {
 	private String fileUriSelected;
 	boolean fileSelected = false;
 	private Text fileUriText;
-	private ListBucketsResponse listbucketsresponse;
-	private String pagetoshow= null;
-	private Button previouspage,nextpage;
+	private ListBucketsResponse listBucketsResponse;
+	private String pageToShow= null;
+	private Button previousPage,nextPage;
+	private String nextPageStr;
 	
 	   public LocalFileSelectWizardPage1(ISelection selection, String COMPARTMENT_ID) {
 	        super("wizardPage");
@@ -112,22 +109,20 @@ public class LocalFileSelectWizardPage1 extends WizardPage {
 	        });
 	        tree = new Tree(container, SWT.RADIO | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
 	        tree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));                
-	        
-	        createBucketSection();	     
-	        
+	       
 	        Composite page=new Composite(container,SWT.NONE);GridLayout gl=new GridLayout();gl.numColumns=2;
 	        page.setLayout(gl);
-	        previouspage=new Button(page,SWT.TRAVERSE_PAGE_PREVIOUS);
-	        nextpage=new Button(page,SWT.TRAVERSE_PAGE_NEXT);
-	        previouspage.setText("<");
-	        nextpage.setText(">");
-	        previouspage.setLayoutData(new GridData());
-	        nextpage.setLayoutData(new GridData());
+	        previousPage=new Button(page,SWT.TRAVERSE_PAGE_PREVIOUS);
+	        nextPage=new Button(page,SWT.TRAVERSE_PAGE_NEXT);
+	        previousPage.setText("Refresh");
+	        nextPage.setText(">");
+	        previousPage.setLayoutData(new GridData());
+	        nextPage.setLayoutData(new GridData());
 	        
-	        nextpage.addSelectionListener(new SelectionListener() {
+	        nextPage.addSelectionListener(new SelectionListener() {
 	            @Override
 	            public void widgetSelected(SelectionEvent e) {	                
-					pagetoshow=listbucketsresponse.getOpcNextPage();
+					pageToShow=listBucketsResponse.getOpcNextPage();
 			        createBucketSection();	
 	            }
 
@@ -135,17 +130,21 @@ public class LocalFileSelectWizardPage1 extends WizardPage {
 	            public void widgetDefaultSelected(SelectionEvent e) {}
 	        });
 	        
-	        previouspage.addSelectionListener(new SelectionListener() {
+	        previousPage.addSelectionListener(new SelectionListener() {
 	            @Override
 	            public void widgetSelected(SelectionEvent e) {
 	                
-					pagetoshow = null;
+					pageToShow = null;
 			        createBucketSection();	
 	            }
 
 	            @Override
 	            public void widgetDefaultSelected(SelectionEvent e) {}
 	        });
+	        
+	        createBucketSection();	     
+	        
+
 	        	     	        
 			Composite fileUriContainer = new Composite(container, SWT.NONE);
 	        GridLayout fileUriLayout = new GridLayout();
@@ -179,15 +178,26 @@ public class LocalFileSelectWizardPage1 extends WizardPage {
 	        	}
 	    	}
 	    	try {	    		
-	    		IRunnableWithProgress op = new GetBuckets(selectedApplicationCompartment.getId(),pagetoshow);
+	    		IRunnableWithProgress op = new GetBuckets(selectedApplicationCompartment.getId(),pageToShow);
                 new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
-                listbucketsresponse=((GetBuckets)op).listBucketsResponse;
+                String errorMessage=((GetBuckets)op).getErrorMessage();
+            	if(errorMessage!=null) 
+            		throw new Exception(errorMessage);
+                listBucketsResponse=((GetBuckets)op).listBucketsResponse;
                 buckets=((GetBuckets)op).bucketSummaryList;
                 
 			} catch (Exception e1) {
 				MessageDialog.openError(Display.getDefault().getActiveShell(), "Unable to get list buckets", e1.getMessage());	     
 			}
-
+	    
+	        nextPageStr=listBucketsResponse.getOpcNextPage();
+			if(nextPageStr!=null&&!nextPageStr.isEmpty()) {
+				nextPage.setEnabled(true);
+			}
+			else {
+				nextPage.setEnabled(false);
+			} 
+			
 	   	 	Job job = new Job("Get Objects inside Bucket in User Compartment") {
 	            @Override
 	            protected IStatus run(IProgressMonitor monitor) {
@@ -236,7 +246,7 @@ public class LocalFileSelectWizardPage1 extends WizardPage {
 					if (compartment != null) {
 						selectedApplicationCompartment = compartment;
 						compartmentText.setText(selectedApplicationCompartment.getName());
-						pagetoshow= null;
+						pageToShow= null;
 						createBucketSection();
 					}
 				}

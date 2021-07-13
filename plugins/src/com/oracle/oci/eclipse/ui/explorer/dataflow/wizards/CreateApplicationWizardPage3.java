@@ -65,6 +65,7 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 	private boolean usesAdvancedOptions=false;
 	private int intial = -1;
 	private Button addProperty;
+	private  Button useadvancedoptionsButton;
 	
 	public CreateApplicationWizardPage3(ISelection selection) {
 		super("Page 3");
@@ -112,7 +113,7 @@ public class CreateApplicationWizardPage3   extends WizardPage {
         advancedOptionsComposite.setLayout(innerTopLayout2);
         advancedOptionsComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));      
  
-        Button useadvancedoptionsButton =  new Button(buttonComposite,SWT.CHECK);
+        useadvancedoptionsButton =  new Button(buttonComposite,SWT.CHECK);
      	useadvancedoptionsButton.setText("Show Advanced Options");
      	useadvancedoptionsButton.addSelectionListener(new SelectionAdapter() {
      	    @Override
@@ -190,8 +191,7 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 		networkGroupPrivateSubnetRadioButton.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-            	if(!networkSectionSelected)
-            	{
+            	if(!networkSectionSelected){
             		networkSectionSelected= true;
             		privateEndpointSection= new Composite(currentcontainer, SWT.NONE);
                     GridLayout innerTopLayout = new GridLayout();
@@ -347,34 +347,35 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 		    String applicationId = DataTransferObject.applicationId;
 		    
 		    if(applicationId != null) {
-		    		Application application = DataflowClient.getInstance().getApplicationDetails(applicationId);
-		    	   if(application.getConfiguration() != null) {        	
-		          	 for (Map.Entry<String,String> property : application.getConfiguration().entrySet()) {
-		          		 SparkProperty propertypresent = new SparkProperty(propertiesSection,advancedOptionsComposite,scrolledComposite,createdPropertiesSet);
-		          		 createdPropertiesSet.add(propertypresent);
-		          		 propertypresent.tagKey.setText(property.getKey());
-		  				 propertypresent.tagValue.setText(property.getValue());
-		          	 }         	
-		      		 container.layout(true,true);
-		           	 scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );		          	
-		          } 	    	   
-		    	   logLocationText.setText(application.getLogsBucketUri());		    	   
-		    	   if(application.getWarehouseBucketUri() != null) {
-		   			warehouseLocationText.setText(application.getWarehouseBucketUri());
-		   		}
+		    	clearSparkProperties();
+		    	Application application = DataflowClient.getInstance().getApplicationDetails(applicationId);
+		    	if(application.getConfiguration() != null) {        	
+		        for (Map.Entry<String,String> property : application.getConfiguration().entrySet()) {
+		          	SparkProperty propertypresent = new SparkProperty(propertiesSection,advancedOptionsComposite,scrolledComposite,createdPropertiesSet);
+		          	createdPropertiesSet.add(propertypresent);
+		          	propertypresent.tagKey.setText(property.getKey());
+		  			propertypresent.tagValue.setText(property.getValue());
+		        }         	
+		      	container.layout(true,true);
+		        scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );		          	
+		    } 	    	   
+		    logLocationText.setText(application.getLogsBucketUri());		    	   
+		    if(application.getWarehouseBucketUri() != null) {
+		    	warehouseLocationText.setText(application.getWarehouseBucketUri());
+		    }
 		    			    	
-		    	   if(networkSectionSelected){	            		
-	            		networkSectionSelected= false;	            		
-	            		compartmentLabel.dispose();
-	            		compartmentText.dispose();
-	            		compartmentButton.dispose();
-	            		privateEndpointsCombo.dispose();
-	            		innerTopContainer.dispose();            		
-	            		privateEndpointSection.dispose();	
-	            	} 
+		    if(networkSectionSelected){	            		
+	           networkSectionSelected= false;	            		
+	           compartmentLabel.dispose();
+	           compartmentText.dispose();
+	           compartmentButton.dispose();
+	           privateEndpointsCombo.dispose();
+	           innerTopContainer.dispose();            		
+	           privateEndpointSection.dispose();	
+	        } 
 		    	   
-		    	networkGroupInternetAccessRadioButton.setSelection(false);
-		   		if(application.getPrivateEndpointId() != null && !application.getPrivateEndpointId().equals("")) {
+		    networkGroupInternetAccessRadioButton.setSelection(false);
+		   	if(application.getPrivateEndpointId() != null && !application.getPrivateEndpointId().equals("")) {
 					networkGroupPrivateSubnetRadioButton.setSelection(true);
 					networkSectionSelected= true;
 					
@@ -421,6 +422,26 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 		    scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 		}
 		
+		public void clearSelection() {
+			usesAdvancedOptions=false;
+			advancedOptionsComposite.setVisible(usesAdvancedOptions);
+			useadvancedoptionsButton.setSelection(false);
+			clearSparkProperties();
+			logLocationText.setText("oci://dataflow-logs@" + ObjStorageClient.getInstance().getNamespace()+"/");		    	   
+			warehouseLocationText.setText("");
+			networkGroupInternetAccessRadioButton.setSelection(true);
+			networkGroupPrivateSubnetRadioButton.setSelection(false);
+			if(networkSectionSelected){
+			   networkSectionSelected= false;
+			   compartmentText.dispose();
+			   compartmentButton.dispose();
+			   privateEndpointsCombo.dispose();
+			   innerTopContainer.dispose();            		
+			   privateEndpointSection.dispose();
+			} 
+
+		}
+		
 		public void usesSparkSubmit(boolean allowed) {
 			if(allowed) {
 				addProperty.setEnabled(false);
@@ -437,5 +458,10 @@ public class CreateApplicationWizardPage3   extends WizardPage {
 		    scrolledComposite.setMinSize( container.computeSize( SWT.DEFAULT, SWT.DEFAULT ) );
 		}
 	 
-
+		public void clearSparkProperties() {
+			for(SparkProperty sp:createdPropertiesSet) {
+				sp.composite.dispose();
+			}
+			createdPropertiesSet.clear();
+		}
 }

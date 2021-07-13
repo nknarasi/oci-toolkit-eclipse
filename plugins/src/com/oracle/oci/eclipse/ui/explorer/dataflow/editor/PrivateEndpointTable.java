@@ -11,15 +11,20 @@ import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.forms.widgets.FormToolkit;
+
+import com.oracle.bmc.Region;
 import com.oracle.bmc.dataflow.model.PrivateEndpointSummary;
 import com.oracle.bmc.dataflow.responses.ListPrivateEndpointsResponse;
 import com.oracle.oci.eclipse.account.AuthProvider;
@@ -31,6 +36,7 @@ import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DeletePrivateEndpoint
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DetailsPrivateEndpointAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.EditPrivateEndpointAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetPrivateEndpoints;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.OpenInConsoleAction;
 
 public class PrivateEndpointTable extends BaseTable {
     private int tableDataSize = 0;
@@ -140,6 +146,7 @@ public class PrivateEndpointTable extends BaseTable {
         	   manager.add(new DeletePrivateEndpointAction(PrivateEndpointTable.this,(PrivateEndpointSummary)getSelectedObjects().get(0)));
 		   if((pepState.equals("Active")||pepState.equals("Inactive")))
 			   manager.add(new EditPrivateEndpointAction((PrivateEndpointSummary)getSelectedObjects().get(0),PrivateEndpointTable.this));
+		   manager.add(new OpenInConsoleAction(((PrivateEndpointSummary)getSelectedObjects().get(0)).getId()));
         }
 
     }
@@ -147,6 +154,19 @@ public class PrivateEndpointTable extends BaseTable {
 	@Override
     protected void addTableLabels(FormToolkit toolkit, Composite left, Composite right) {
 		
+        Link link = new Link(right, SWT.NONE);
+        Region region = AuthProvider.getInstance().getRegion();
+        link.setText("<a href=\"https://console."+region.getRegionId()+".oraclecloud.com/data-flow/privateEndpoints\">Click to open in console</a>");
+         
+        // Event handling when users click on links.
+        link.addSelectionListener(new SelectionAdapter()  {
+         
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                Program.launch("https://console."+region.getRegionId()+".oraclecloud.com/data-flow/privateEndpoints");
+            }
+             
+        });
 		
 		Button refreshTable=new Button(right.getParent(),SWT.PUSH);
 		refreshTable.setText("Refresh Table");

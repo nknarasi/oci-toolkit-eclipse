@@ -3,7 +3,6 @@ package com.oracle.oci.eclipse.ui.explorer.dataflow.editor;
 import java.util.ArrayList;
 import java.util.List;
 import org.eclipse.jface.action.IMenuManager;
-import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.layout.TableColumnLayout;
@@ -15,12 +14,15 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.forms.widgets.FormToolkit;
+import com.oracle.bmc.Region;
 import com.oracle.bmc.dataflow.model.ApplicationSummary;
 import com.oracle.bmc.dataflow.requests.ListApplicationsRequest;
 import com.oracle.bmc.dataflow.responses.ListApplicationsResponse;
@@ -33,6 +35,7 @@ import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DeleteApplicationActi
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.DetailsApplicationAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.EditApplicationAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetApplications;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.OpenInConsoleAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.RunApplicationAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.wizards.CreateApplicationWizard;
 
@@ -53,6 +56,7 @@ public class ApplicationTable extends BaseTable{
 	private ListApplicationsRequest.SortOrder sortOrder;
 	private ListApplicationsResponse listApplicationsResponse;
 	private Button previouspage,nextpage;
+	private String nextPageStr;
 	
     public ApplicationTable(Composite parent, int style) {
         super(parent, style);
@@ -76,14 +80,26 @@ public class ApplicationTable extends BaseTable{
     		COMPARTMENT_ID = IdentClient.getInstance().getRootCompartment().getCompartmentId();
     	}
         try {
+        	
         	IRunnableWithProgress op = new GetApplications(COMPARTMENT_ID,sortBy,sortOrder,pageToShow);
         	new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+        	String errorMessage=((GetApplications)op).getErrorMessage();
+        	if(errorMessage!=null) 
+        		throw new Exception(errorMessage);
             listApplicationsResponse = ((GetApplications)op).listApplicationsResponse;
             applicationList=((GetApplications)op).applicationSummaryList;
             tableDataSize = applicationList.size();
        } catch (Exception e) {
            MessageDialog.openError(Display.getDefault().getActiveShell(),"Unable to get applications: ",e.getMessage());               
         }
+        
+        nextPageStr=listApplicationsResponse.getOpcNextPage();
+		if(nextPageStr!=null&&!nextPageStr.isEmpty()) {
+			nextpage.setEnabled(true);
+		}
+		else {
+			nextpage.setEnabled(false);
+		}
         refresh(false);            
         return applicationList;
     }
@@ -184,6 +200,7 @@ public class ApplicationTable extends BaseTable{
             manager.add(new EditApplicationAction(ApplicationTable.this));
             manager.add(new RunApplicationAction(ApplicationTable.this));
             manager.add(new DeleteApplicationAction(ApplicationTable.this));
+            manager.add(new OpenInConsoleAction(((ApplicationSummary)getSelectedObjects().get(0)).getId()));
         }        
     }
 
@@ -203,6 +220,20 @@ public class ApplicationTable extends BaseTable{
             }
             public void widgetDefaultSelected(SelectionEvent e) {}
         });	
+        
+        Link link = new Link(right, SWT.NONE);
+        Region region = AuthProvider.getInstance().getRegion();
+        link.setText("<a href=\"https://console."+region.getRegionId()+".oraclecloud.com/data-flow/apps\">Click to open in console</a>");
+         
+        // Event handling when users click on links.
+        link.addSelectionListener(new SelectionAdapter()  {
+         
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                Program.launch("https://console."+region.getRegionId()+".oraclecloud.com/data-flow/apps");
+            }
+             
+        });
         
 		Button refreshTable=new Button(right.getParent(),SWT.PUSH);
 		refreshTable.setText("Refresh Table");
@@ -230,12 +261,14 @@ public class ApplicationTable extends BaseTable{
         nextpage.setText(">");
         previouspage.setLayoutData(new GridData());
         nextpage.setLayoutData(new GridData());
+        previouspage.setEnabled(false);
         
         nextpage.addSelectionListener(new SelectionListener() {
             @Override
             public void widgetSelected(SelectionEvent e) {
             	pageToShow = listApplicationsResponse.getOpcNextPage();
 				refresh(true);
+				previouspage.setEnabled(true);
             }
 
             @Override

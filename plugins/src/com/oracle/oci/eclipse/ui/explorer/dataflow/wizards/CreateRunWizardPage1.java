@@ -34,7 +34,7 @@ public class CreateRunWizardPage1  extends WizardPage{
 	private Text argumentsText;
 	private Text archiveUriText;
 	private Text sparkSubmitText;
-    private Set<Parameters> parameterset;
+    private Set<Parameters> parameterSet;
     
 	public CreateRunWizardPage1(ISelection selection,DataTransferObject dto, String applicationId) {
 		super("page");
@@ -42,7 +42,7 @@ public class CreateRunWizardPage1  extends WizardPage{
 		setDescription("This wizard creates a run for DataFlow application. Please enter the required details.");
 		this.selection = selection;
 		this.dto = dto;
-		this.parameterset = new HashSet<Parameters>();
+		this.parameterSet = new HashSet<Parameters>();
 		application = DataflowClient.getInstance().getApplicationDetails(applicationId);
 	}	
 	
@@ -106,8 +106,8 @@ public class CreateRunWizardPage1  extends WizardPage{
 	        if(application.getParameters() != null)
 	        {
 	        	 for (ApplicationParameter parameter : application.getParameters()) {
-	             	Parameters newparameter = new Parameters(parametercontainer,container,scrolledComposite, parameterset);
-	             	parameterset.add(newparameter);
+	             	Parameters newparameter = new Parameters(parametercontainer,container,scrolledComposite, parameterSet);
+	             	parameterSet.add(newparameter);
 	        		newparameter.tagKey.setText(parameter.getName());
 	        		newparameter.tagKey.setEditable(false);
 	     			newparameter.tagValue.setText(parameter.getValue());
@@ -190,7 +190,7 @@ public class CreateRunWizardPage1  extends WizardPage{
 	
 	public  List<ApplicationParameter> getParameters(){
 		List<ApplicationParameter> Parameters = new ArrayList<ApplicationParameter>();	 
-		 for(Parameters parameter : parameterset) {	
+		 for(Parameters parameter : parameterSet) {	
 			 Parameters.add(ApplicationParameter.builder()
 					 .name(parameter.tagKey.getText())
 					 .value(parameter.tagValue.getText())
@@ -202,7 +202,7 @@ public class CreateRunWizardPage1  extends WizardPage{
 	 @Override
 	    public IWizardPage getNextPage() {
 		 	if(application.getExecute() != null) {
-		 		 CreateRunWizardPage3 advpage =((CreateRunWizard)getWizard()).thirdpage;
+		 		 CreateRunWizardPage3 advpage =((CreateRunWizard)getWizard()).thirdPage;
 		 		 advpage.usesSparkSubmit();
 		 	}       
 	        return super.getNextPage();

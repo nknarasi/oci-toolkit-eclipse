@@ -20,6 +20,7 @@ import com.oracle.bmc.dataflow.model.UpdateApplicationDetails;
 import com.oracle.bmc.dataflow.model.UpdateApplicationDetails.Builder;
 import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddEditApplicationPagesAction;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddRunApplicationPagesAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.Validations;
 
 
@@ -41,6 +42,9 @@ public class EditApplicationWizard extends Wizard implements INewWizard {
     	 try {
            	IRunnableWithProgress op = new AddEditApplicationPagesAction(this);
                new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+               String errorMessage=((AddEditApplicationPagesAction)op).getErrorMessage();
+             	if(errorMessage!=null) 
+             		throw new Exception(errorMessage);
            } catch (Exception e) {
            	MessageDialog.openError(getShell(), "Unable to add pages to Edit Application wizard", e.getMessage());
            }    

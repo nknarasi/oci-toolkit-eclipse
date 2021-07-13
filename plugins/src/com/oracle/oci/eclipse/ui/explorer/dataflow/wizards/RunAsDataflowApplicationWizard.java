@@ -23,12 +23,9 @@ import com.oracle.bmc.dataflow.model.CreateApplicationDetails;
 import com.oracle.bmc.dataflow.model.CreateRunDetails;
 import com.oracle.bmc.dataflow.model.UpdateApplicationDetails;
 import com.oracle.bmc.dataflow.model.CreateApplicationDetails.Builder;
-import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.account.AuthProvider;
 import com.oracle.oci.eclipse.sdkclients.DataflowClient;
-import com.oracle.oci.eclipse.sdkclients.ObjStorageClient;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddRunAsDataflowApplicationPagesAction;
-import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.ScheduleRerunAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.ScheduleUploadObjectAction;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.Validations;
 
@@ -56,6 +53,9 @@ public class RunAsDataflowApplicationWizard extends Wizard implements INewWizard
 		   try {
 	          	IRunnableWithProgress op = new AddRunAsDataflowApplicationPagesAction(this);
 	              new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+	               String errorMessage=((AddRunAsDataflowApplicationPagesAction)op).getErrorMessage();
+	             	if(errorMessage!=null) 
+	             		throw new Exception(errorMessage);
 	          } catch (Exception e) {
 	          	MessageDialog.openError(getShell(), "Unable to add pages to Run as Dataflow Application wizard", e.getMessage());
 	          }   
@@ -148,8 +148,6 @@ public class RunAsDataflowApplicationWizard extends Wizard implements INewWizard
 	    @Override
 	    public boolean performFinish() {	
 	    	
-	    	DataTransferObject.local=false;
-	    	
 	    	List<Object> validObjects = new ArrayList<Object>();
 	    	List<String> objectType = new ArrayList<String>();
 	    	
@@ -234,11 +232,12 @@ public class RunAsDataflowApplicationWizard extends Wizard implements INewWizard
 		        	        try {
 		        	            getContainer().run(true, false, op);
 		        	        } catch (Exception e) {
-		        	            MessageDialog.openError(getShell(), "Failed to Run Application ", e.getMessage());
+		        	            MessageDialog.openError(getShell(), "Failed to Run Previously Created Application ", e.getMessage());
 		        	            DataTransferObject.applicationId=null;
 		        	            return false;
 		        	        }
 		                    DataTransferObject.applicationId=null;
+		                    DataTransferObject.local=false;
 		        	        return true;
 		    	}
 		    	
@@ -287,24 +286,16 @@ public class RunAsDataflowApplicationWizard extends Wizard implements INewWizard
 		        		} 
 		        	else {
 		        				editApplicationRequest = editApplicationRequestBuilder.build();		        						
-		        	}
-		        	    		
-		        		IRunnableWithProgress op = new IRunnableWithProgress() {	        	      
-		        		@Override		        	            
-		        		public void run(IProgressMonitor monitor) throws InvocationTargetException {
-		        	               application= DataflowClient.getInstance().editApplication(DataTransferObject.applicationId,editApplicationRequest);       	               
-		        	               monitor.done();
-		        	            }
-		        	        };		        	        		        	        
-		        	        try {
-		        	            getContainer().run(true, false, op);
-		        	        } catch (Exception e) {
-		        	            MessageDialog.openError(getShell(), "Failed to Create Application ", e.getMessage());
-		        	            DataTransferObject.applicationId=null;
-		        	            return false;
-		        	        }    
+		        	}		        	        		        	        
+		        	try {
+		        	      application= DataflowClient.getInstance().editApplication(DataTransferObject.applicationId,editApplicationRequest);     
+		        	} catch (Exception e) {
+		        	MessageDialog.openError(getShell(), "Failed to Edit Application ", e.getMessage());
+		        	DataTransferObject.applicationId=null;
+		        	return false;
+		        	}    
 		        	      
-	     	               final CreateRunDetails runApplicationRequest =CreateRunDetails.builder()
+	     	         final CreateRunDetails runApplicationRequest =CreateRunDetails.builder()
 	     		        	        .compartmentId(application.getCompartmentId())
 	     		        			.displayName(application.getDisplayName())
 	     		    				.applicationId(application.getId())
@@ -318,22 +309,16 @@ public class RunAsDataflowApplicationWizard extends Wizard implements INewWizard
 	     		    		        .arguments(application.getArguments())
 	     		    		        .parameters(application.getParameters())
 	     		    		        .build();
-	     	               
-	     	              IRunnableWithProgress oprun = new IRunnableWithProgress() {
-	     	                 @Override
-	     	                 public void run(IProgressMonitor monitor) throws InvocationTargetException {
-	     	                	DataflowClient.getInstance().runApplication(runApplicationRequest);
-	     	                     monitor.done();
-	     	                 }
-	     	             };
+
 	     	             try {
-	     	                 getContainer().run(true, false, oprun);
+	     	            	DataflowClient.getInstance().runApplication(runApplicationRequest);
 	     	             } catch (Exception e) {
-	     	                 MessageDialog.openError(getShell(), "Failed to Run Application ", e.getMessage());
+	     	                 MessageDialog.openError(getShell(), "Failed to Run Previously Created Application ", e.getMessage());
 	     	                 DataTransferObject.applicationId=null;
 	     	                 return false;
 	     	             }
 	     	            DataTransferObject.applicationId=null;
+	     	            DataTransferObject.local=false;
 		        	    return true;
 		    	}				
 			}
@@ -357,19 +342,13 @@ public class RunAsDataflowApplicationWizard extends Wizard implements INewWizard
 		        			
 		    				final CreateRunDetails createApplicationRequest;	
 		        			createApplicationRequest = createApplicationRequestBuilder.build();		
-		        	        IRunnableWithProgress op = new IRunnableWithProgress() {
-		        	            @Override
-		        	            public void run(IProgressMonitor monitor) throws InvocationTargetException {
-		        	            	DataflowClient.getInstance().runApplication(createApplicationRequest);
-		        	                monitor.done();
-		        	            }
-		        	        };
 		        	        try {
-		        	            getContainer().run(true, false, op);
+		        	        	DataflowClient.getInstance().runApplication(createApplicationRequest);
 		        	        } catch (Exception e) {
 		        	            MessageDialog.openError(getShell(), "Failed to Run Application ", e.getMessage());
 		        	            return false;
 		        	        }
+		        	        DataTransferObject.local=false;
 		        	        return true;
 		    	}
 		    	
@@ -421,21 +400,11 @@ public class RunAsDataflowApplicationWizard extends Wizard implements INewWizard
 		        						
 		        			}
 		        	    		
-		        	        IRunnableWithProgress op = new IRunnableWithProgress() {
-		        	            @Override
-		        	            public void run(IProgressMonitor monitor) throws InvocationTargetException {
-		        	               application= DataflowClient.getInstance().createApplication(createApplicationRequest);       	               
-		        	               monitor.done();
-		        	            }
-		        	        };		        	        
+		        	        
 		        	        try {
-		        	            getContainer().run(true, false, op);
-		        	        } catch (InterruptedException e) {
-		        	        	System.out.println("ERROR");
-		        	            return false;
-		        	        } catch (InvocationTargetException e) {
-		        	            Throwable realException = e.getTargetException();
-		        	            MessageDialog.openError(getShell(), "Failed to Create Application ", realException.getMessage());
+		        	        	application= DataflowClient.getInstance().createApplication(createApplicationRequest);       	        
+		        	        } catch (Exception e) {
+		        	            MessageDialog.openError(getShell(), "Failed to Create Application ", e.getMessage());
 		        	            return false;
 		        	        }    
 		        	      
@@ -454,22 +423,14 @@ public class RunAsDataflowApplicationWizard extends Wizard implements INewWizard
 	     		    		        .parameters(application.getParameters())
 	     		    		        .build();
 	     	               
-	     	              IRunnableWithProgress oprun = new IRunnableWithProgress() {
-	     	                 @Override
-	     	                 public void run(IProgressMonitor monitor) throws InvocationTargetException {
-	     	                	DataflowClient.getInstance().runApplication(runApplicationRequest);
-	     	                     monitor.done();
-	     	                 }
-	     	             };
 	     	             try {
-	     	                 getContainer().run(true, false, oprun);
-	     	             } catch (InterruptedException e) {
-	     	                 return false;
-	     	             } catch (InvocationTargetException e) {
-	     	                 Throwable realException = e.getTargetException();
-	     	                 MessageDialog.openError(getShell(), "Failed to Run Application ", realException.getMessage());
+	     	            	DataflowClient.getInstance().runApplication(runApplicationRequest);
+	     	             } 
+	     	             catch (Exception e) {
+	     	                 MessageDialog.openError(getShell(), "Failed to Run Application ", e.getMessage());
 	     	                 return false;
 	     	             }
+	     	            DataTransferObject.local=false;
 		        	    return true;
 		    	}
 			}

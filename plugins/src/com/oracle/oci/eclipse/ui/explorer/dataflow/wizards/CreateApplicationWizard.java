@@ -10,6 +10,7 @@ import com.oracle.bmc.dataflow.model.CreateApplicationDetails.Builder;
 import com.oracle.oci.eclipse.ErrorHandler;
 import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.AddCreateApplicationPagesAction;
+import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.GetBuckets;
 import com.oracle.oci.eclipse.ui.explorer.dataflow.actions.Validations;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -26,9 +27,9 @@ import org.eclipse.ui.IWorkbenchWizard;
 
 public class CreateApplicationWizard extends Wizard implements INewWizard {	
 	private String COMPARTMENT_ID;
-    private CreateApplicationWizardPage firstpage;
-    protected CreateApplicationWizardPage3 thirdpage;
-    private TagsPage tagpage;
+    private CreateApplicationWizardPage firstPage;
+    protected CreateApplicationWizardPage3 thirdPage;
+    private TagsPage tagsPage;
     private ISelection selection;
     
 	public CreateApplicationWizard(String COMPARTMENT_ID) {
@@ -42,6 +43,9 @@ public class CreateApplicationWizard extends Wizard implements INewWizard {
     	 try {
           	IRunnableWithProgress op = new AddCreateApplicationPagesAction(this);
               new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
+              String errorMessage=((AddCreateApplicationPagesAction)op).getErrorMessage();
+          	if(errorMessage!=null) 
+          		throw new Exception(errorMessage);
           } catch (Exception e) {
           	MessageDialog.openError(getShell(), "Unable to add pages to Create Application wizard", e.getMessage());
           }   
@@ -50,23 +54,23 @@ public class CreateApplicationWizard extends Wizard implements INewWizard {
     
     public void addPagesWithProgress(IProgressMonitor monitor) {
     	monitor.subTask("Adding Main page");    	
-    	firstpage = new CreateApplicationWizardPage(selection,COMPARTMENT_ID);
-       	addPage(firstpage);
+    	firstPage = new CreateApplicationWizardPage(selection,COMPARTMENT_ID);
+       	addPage(firstPage);
     	monitor.subTask("Adding Tags Page");
-        tagpage= new TagsPage(selection,COMPARTMENT_ID,null,null);
-        addPage(tagpage);  
+        tagsPage= new TagsPage(selection,COMPARTMENT_ID,null,null);
+        addPage(tagsPage);  
         monitor.subTask("Adding Advanced Options page");
-        thirdpage = new CreateApplicationWizardPage3(selection);
-        addPage(thirdpage);
+        thirdPage = new CreateApplicationWizardPage3(selection);
+        addPage(thirdPage);
     }
     
     @Override
     public IWizardPage getNextPage(IWizardPage page) {
-        if (page.equals(firstpage)) {
-        		return tagpage;
+        if (page.equals(firstPage)) {
+        		return tagsPage;
         }       
-        if (page.equals(tagpage)) {
-            return thirdpage;
+        if (page.equals(tagsPage)) {
+            return thirdPage;
         }    
         return null;       
     }
@@ -89,21 +93,21 @@ public class CreateApplicationWizard extends Wizard implements INewWizard {
     		return false;
     	}
     	
-    	final String compartmentId = firstpage.getApplicationCompartmentId();    	
-    	if(firstpage.usesSparkSubmit()) {   		
+    	final String compartmentId = firstPage.getApplicationCompartmentId();    	
+    	if(firstPage.usesSparkSubmit()) {   		
     		CreateRunDetails.Builder createApplicationRequestBuilder =  
     				CreateRunDetails.builder()
         	        .compartmentId(compartmentId)
-        			.displayName(firstpage.getDisplayName())
-        			.sparkVersion(firstpage.getSparkVersion())
-        			.driverShape(firstpage.getDriverShape())
-        			.executorShape(firstpage.getExecutorShape())
-        			.numExecutors(Integer.valueOf(firstpage.getNumofExecutors()))
-        			.definedTags(tagpage.getOT())
-        			.freeformTags(tagpage.getFT())   
-        			.execute(firstpage.getSparkSubmit())
-        	        .logsBucketUri(thirdpage.getApplicationLogLocation())
-        	        .warehouseBucketUri(thirdpage.getWarehouseUri());
+        			.displayName(firstPage.getDisplayName())
+        			.sparkVersion(firstPage.getSparkVersion())
+        			.driverShape(firstPage.getDriverShape())
+        			.executorShape(firstPage.getExecutorShape())
+        			.numExecutors(Integer.valueOf(firstPage.getNumofExecutors()))
+        			.definedTags(tagsPage.getOT())
+        			.freeformTags(tagsPage.getFT())   
+        			.execute(firstPage.getSparkSubmit())
+        	        .logsBucketUri(thirdPage.getApplicationLogLocation())
+        	        .warehouseBucketUri(thirdPage.getWarehouseUri());
         			
     				final CreateRunDetails createRunRequest;	
         			createRunRequest = createApplicationRequestBuilder.build();		
@@ -129,42 +133,42 @@ public class CreateApplicationWizard extends Wizard implements INewWizard {
         	Builder createApplicationRequestBuilder = 
         	        CreateApplicationDetails.builder()
         	        .compartmentId(compartmentId)
-        			.displayName(firstpage.getDisplayName())
-        			.description(firstpage.getApplicationDescription())
-        			.sparkVersion(firstpage.getSparkVersion())
-        			.driverShape(firstpage.getDriverShape())
-        			.executorShape(firstpage.getExecutorShape())
-        			.numExecutors(Integer.valueOf(firstpage.getNumofExecutors()))
-        			.definedTags(tagpage.getOT())
-        			.freeformTags(tagpage.getFT());
+        			.displayName(firstPage.getDisplayName())
+        			.description(firstPage.getApplicationDescription())
+        			.sparkVersion(firstPage.getSparkVersion())
+        			.driverShape(firstPage.getDriverShape())
+        			.executorShape(firstPage.getExecutorShape())
+        			.numExecutors(Integer.valueOf(firstPage.getNumofExecutors()))
+        			.definedTags(tagsPage.getOT())
+        			.freeformTags(tagsPage.getFT());
         	        			
-        			if(firstpage.usesSparkSubmit() == false) {
+        			if(firstPage.usesSparkSubmit() == false) {
         				createApplicationRequestBuilder = createApplicationRequestBuilder
-        						.language(firstpage.getLanguage())
-        						.fileUri(firstpage.getFileUri())
-        						.archiveUri(firstpage.getArchiveUri());
+        						.language(firstPage.getLanguage())
+        						.fileUri(firstPage.getFileUri())
+        						.archiveUri(firstPage.getArchiveUri());
         				
-        				if(firstpage.getLanguage()== ApplicationLanguage.Java || firstpage.getLanguage()== ApplicationLanguage.Scala){
-        		    		createApplicationRequestBuilder = createApplicationRequestBuilder.className(firstpage.getMainClassName())
-        		    				.arguments(firstpage.getArguments());					
+        				if(firstPage.getLanguage()== ApplicationLanguage.Java || firstPage.getLanguage()== ApplicationLanguage.Scala){
+        		    		createApplicationRequestBuilder = createApplicationRequestBuilder.className(firstPage.getMainClassName())
+        		    				.arguments(firstPage.getArguments());					
         		    	}
-        		    	else if (firstpage.getLanguage()== ApplicationLanguage.Python) {
-        		    		createApplicationRequestBuilder = createApplicationRequestBuilder.arguments(firstpage.getArguments());			
+        		    	else if (firstPage.getLanguage()== ApplicationLanguage.Python) {
+        		    		createApplicationRequestBuilder = createApplicationRequestBuilder.arguments(firstPage.getArguments());			
         		    	}        		    	
-        		    createApplicationRequestBuilder = createApplicationRequestBuilder.parameters(firstpage.getParameters());			       		    	
+        		    createApplicationRequestBuilder = createApplicationRequestBuilder.parameters(firstPage.getParameters());			       		    	
         			}
         			else{
-        				createApplicationRequestBuilder = createApplicationRequestBuilder.execute(firstpage.getSparkSubmit());
+        				createApplicationRequestBuilder = createApplicationRequestBuilder.execute(firstPage.getSparkSubmit());
         			}
         			final CreateApplicationDetails createApplicationRequest;       	    	
-        			final boolean usesAdvancedOptions = thirdpage.usesAdvancedOptions();
+        			final boolean usesAdvancedOptions = thirdPage.usesAdvancedOptions();
         			if (usesAdvancedOptions) {
-        				createApplicationRequestBuilder = createApplicationRequestBuilder.configuration(thirdpage.getSparkProperties())
-        						.logsBucketUri(thirdpage.getApplicationLogLocation()).warehouseBucketUri(thirdpage.getWarehouseUri());
+        				createApplicationRequestBuilder = createApplicationRequestBuilder.configuration(thirdPage.getSparkProperties())
+        						.logsBucketUri(thirdPage.getApplicationLogLocation()).warehouseBucketUri(thirdPage.getWarehouseUri());
         				
-        				final boolean usesPrivateSubnet = thirdpage.usesPrivateSubnet();
+        				final boolean usesPrivateSubnet = thirdPage.usesPrivateSubnet();
         				if(usesPrivateSubnet) {
-        					createApplicationRequest = createApplicationRequestBuilder.privateEndpointId(thirdpage.getPrivateEndPointId())
+        					createApplicationRequest = createApplicationRequestBuilder.privateEndpointId(thirdPage.getPrivateEndPointId())
         							.build();
         				}
         				else {
@@ -193,41 +197,41 @@ public class CreateApplicationWizard extends Wizard implements INewWizard {
     
     public void performValidations(List<Object> objectArray,List<String>nameArray) {
     	
-    	objectArray.add(firstpage.getDisplayName());
+    	objectArray.add(firstPage.getDisplayName());
     	nameArray.add("name");
     	
-    	objectArray.add(firstpage.getApplicationDescription());
+    	objectArray.add(firstPage.getApplicationDescription());
     	nameArray.add("description");
 
-    	if(!firstpage.usesSparkSubmit()) {    		
-        	objectArray.add(firstpage.getFileUri());
+    	if(!firstPage.usesSparkSubmit()) {    		
+        	objectArray.add(firstPage.getFileUri());
         	nameArray.add("fileuri");   		
     	}
-    	if(!firstpage.usesSparkSubmit() && (firstpage.getLanguage() == ApplicationLanguage.Java )) {
-        	objectArray.add(firstpage.getMainClassName());
+    	if(!firstPage.usesSparkSubmit() && (firstPage.getLanguage() == ApplicationLanguage.Java )) {
+        	objectArray.add(firstPage.getMainClassName());
         	nameArray.add("mainclassname"); 
     	}
     	
-       objectArray.add(thirdpage.getApplicationLogLocation());
+       objectArray.add(thirdPage.getApplicationLogLocation());
        nameArray.add("loguri"); 
        
-       if(thirdpage.getWarehouseUri() != null && !thirdpage.getWarehouseUri().isEmpty()) {
-           objectArray.add(thirdpage.getWarehouseUri());
+       if(thirdPage.getWarehouseUri() != null && !thirdPage.getWarehouseUri().isEmpty()) {
+           objectArray.add(thirdPage.getWarehouseUri());
            nameArray.add("warehouseuri"); 
        }     
-    	if (thirdpage.usesPrivateSubnet()){
-    	       objectArray.add(thirdpage.privateEndpointsCombo.getText());
+    	if (thirdPage.usesPrivateSubnet()){
+    	       objectArray.add(thirdPage.privateEndpointsCombo.getText());
     	       nameArray.add("subnetid"); 
     	}
     	
-    	if(!firstpage.usesSparkSubmit() && firstpage.getArchiveUri() != null && !firstpage.getArchiveUri().isEmpty()) {
-    	       objectArray.add(firstpage.getArchiveUri());
+    	if(!firstPage.usesSparkSubmit() && firstPage.getArchiveUri() != null && !firstPage.getArchiveUri().isEmpty()) {
+    	       objectArray.add(firstPage.getArchiveUri());
     	       nameArray.add("archiveuri"); 
     	}
     	
-    	if(!firstpage.usesSparkSubmit() && thirdpage.getSparkProperties() != null) {
- 	       objectArray.add(thirdpage.getSparkProperties().keySet());
- 	       nameArray.add("sparkprop" + firstpage.getSparkVersion().charAt(0));         
+    	if(!firstPage.usesSparkSubmit() && thirdPage.getSparkProperties() != null) {
+ 	       objectArray.add(thirdPage.getSparkProperties().keySet());
+ 	       nameArray.add("sparkprop" + firstPage.getSparkVersion().charAt(0));         
     	}
 
     }

@@ -10,6 +10,7 @@ import com.oracle.oci.eclipse.sdkclients.ObjStorageClient;
 public class ScheduleUploadObjectAction implements IRunnableWithProgress { 
 	private String bucketName;
 	private File applicationFile;
+	private String errorMessage=null;
 	
 	public ScheduleUploadObjectAction(String bucketName , File applicationFile){
 	    	this.bucketName = bucketName;
@@ -18,15 +19,22 @@ public class ScheduleUploadObjectAction implements IRunnableWithProgress {
 	   @Override
 	    public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException
 	    {
+		   try {
 	        // Tell the user what you are doing
 	        monitor.beginTask("Uploading in Progress", IProgressMonitor.UNKNOWN);
 	        // Do your work
-	    	try {
-				ObjStorageClient.getInstance().uploadObject(bucketName, applicationFile);				
-			} catch (Exception e) {
-				ErrorHandler.logError("Unable to upload objects to bucket: " + e.getMessage());
-			};
+	    
+			ObjStorageClient.getInstance().uploadObject(bucketName, applicationFile);				
+		
 	        // You are done
 	        monitor.done();
+		   }
+		   catch (Exception e) {
+	    		errorMessage=e.getMessage();
+	    	}
+	    }
+	   
+	    public String getErrorMessage() {
+	    	return errorMessage;
 	    }
 }
