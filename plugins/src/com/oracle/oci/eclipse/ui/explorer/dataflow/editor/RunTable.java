@@ -252,7 +252,7 @@ public class RunTable extends BaseTable {
     protected void fillMenu(IMenuManager manager) {
         if (getSelectedObjects().size() == 1) {
             manager.add(new Separator());
-            manager.add(new ShowLogsAction(((RunSummary)getSelectedObjects().get(0)).getId()));
+            manager.add(new ShowLogsAction(((RunSummary)getSelectedObjects().get(0))));
             manager.add(new DetailsRunAction(RunTable.this));
 			manager.add(new RunAction((RunSummary)getSelectedObjects().get(0),RunTable.this));
 			String lcs=((RunSummary)getSelectedObjects().get(0)).getLifecycleState().toString();

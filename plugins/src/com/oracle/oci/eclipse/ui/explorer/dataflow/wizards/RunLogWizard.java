@@ -5,30 +5,31 @@ import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 
+import com.oracle.bmc.dataflow.model.RunSummary;
 import com.oracle.oci.eclipse.sdkclients.DataflowClient;
 
 public class RunLogWizard extends Wizard implements INewWizard{
 
 	private IStructuredSelection selection;
 	private RunLogWizardPage page;
-	private String runId;
-	protected boolean canFinish=false;
+	private RunSummary runSum;
+	protected boolean canFinish=true;
 	
-	public RunLogWizard(String runId) {
+	public RunLogWizard(RunSummary runSum) {
 		super();
-		this.runId=runId;
+		this.runSum=runSum;
 		setNeedsProgressMonitor(true);
 	}
 	
 	@Override
     public void addPages() {	   
-	   page=new RunLogWizardPage(selection,runId);
+	   page=new RunLogWizardPage(selection,runSum.getId());
 	   addPage(page);
     }
 	
 	@Override
 	public boolean performFinish() {
-		DataflowClient.getInstance().downloadRunLog(runId,page.getSelectedLog().getName());
+		DataflowClient.getInstance().downloadRunLog(runSum,page.getSelectedLogs());
 		return false;
 	}
 	

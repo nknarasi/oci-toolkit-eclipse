@@ -233,20 +233,20 @@ public class DataflowClient extends BaseClient {
          
     }
     
-    public void downloadRunLog(String runId,String name) {
-    	
-    	GetRunLogRequest getRunLogRequest = GetRunLogRequest.builder()
-    			.runId(runId)
-    			.name(name).build();
-        GetRunLogResponse response = dataflowClient.getRunLog(getRunLogRequest);
-        downloadLog(response,name);
+    public GetRunLogResponse getLogResponse(String runId,String logName) {
+    	GetRunLogRequest getRunLogRequest = GetRunLogRequest.builder().runId(runId).name(logName).build();
+        return dataflowClient.getRunLog(getRunLogRequest);
     }
     
-    public void downloadLog(GetRunLogResponse runLogRes,String name) {
+    public void downloadRunLog(RunSummary runSum,List<String> name) {
+    	
+    	if(name.isEmpty())
+    		return;
+    	
     	String downloadPath=null,fileName=null,fullFilePath=null;
     	try {
     		FileDialog dialog = new FileDialog ( Display.getDefault().getActiveShell(), SWT.SAVE );
-    		dialog.setFileName(name);
+    		dialog.setFileName(runSum.getDisplayName()+".gz");
             String result = dialog.open();
             if (result == null) {
                 return;
@@ -270,16 +270,13 @@ public class DataflowClient extends BaseClient {
         }
 
         try {
-        fullFilePath = downloadPath + File.separator + name;
+        fullFilePath = downloadPath + File.separator + runSum.getDisplayName() + ".gz";
         // For single file the user can change the download fileName.
         if (fileName != null) {
         	fullFilePath = downloadPath + File.separator + fileName;
             fileName = null;
         }
-
-        //ObjStorageClient.getInstance().downloadObject(bucketName, object.getName(), fullFilePath);
-                        
-        IRunnableWithProgress op = new DownloadRunLogAction(runLogRes.getInputStream(),new File(fullFilePath));
+        IRunnableWithProgress op = new DownloadRunLogAction(name,fullFilePath,runSum.getId());
         new ProgressMonitorDialog(Display.getDefault().getActiveShell()).run(true, true, op);
         String errorMessage=((DownloadRunLogAction)op).getErrorMessage();
     	if(errorMessage!=null) 
@@ -290,4 +287,5 @@ public class DataflowClient extends BaseClient {
         	MessageDialog.openError(Display.getDefault().getActiveShell(), "Unable to download Run-log", e.getMessage());
         }
     }
+
 }
