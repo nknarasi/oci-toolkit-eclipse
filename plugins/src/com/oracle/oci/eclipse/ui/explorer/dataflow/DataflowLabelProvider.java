@@ -23,6 +23,9 @@ public class DataflowLabelProvider extends LabelProvider implements ILabelProvid
         else if ( element instanceof DataflowPrivateEndPointsElement ){
             return DataflowPrivateEndPointsElement.getName();
         }  
+        else if( element instanceof DataflowSettingUpElement) {
+        	return DataflowSettingUpElement.getName();
+        }
         return null;
     }
 
@@ -49,6 +52,10 @@ public class DataflowLabelProvider extends LabelProvider implements ILabelProvid
             return Activator.getImage(Icons.COMPUTE_INSTANCE.getPath());
         }
         else if (element instanceof DataflowPrivateEndPointsElement)
+        {
+            return Activator.getImage(Icons.COMPUTE_INSTANCE.getPath());
+        }
+        else if (element instanceof DataflowSettingUpElement)
         {
             return Activator.getImage(Icons.COMPUTE_INSTANCE.getPath());
         }
