@@ -79,6 +79,10 @@ public class ObjStorageClient extends BaseClient {
         return this.getNamespace(getObjectStorageClient());
     }
 
+    public void setNamespace(String namespace) {
+    	this.namespaceName = namespace;
+    }
+    
     public String getNamespace(ObjectStorage objectStorageClient) {
         if(namespaceName == null || namespaceName.isEmpty()) {
             GetNamespaceResponse namespaceResponse =
@@ -187,6 +191,23 @@ public class ObjStorageClient extends BaseClient {
                 objectStorageClient.createBucket(
                         CreateBucketRequest.builder()
                         .namespaceName(getNamespace(getObjectStorageClient()))
+                        .createBucketDetails(
+                                CreateBucketDetails.builder()
+                                .name(bucketName)
+                                .compartmentId(AuthProvider.getInstance().getCompartmentId())
+                                .publicAccessType(
+                                        CreateBucketDetails.PublicAccessType
+                                        .ObjectRead)
+                                .build())
+                        .build());
+        return createBucketResponse.getBucket();
+    }
+    
+    public Bucket createBucket(String bucketName, String namespace) {
+        CreateBucketResponse createBucketResponse =
+                objectStorageClient.createBucket(
+                        CreateBucketRequest.builder()
+                        .namespaceName(namespace)
                         .createBucketDetails(
                                 CreateBucketDetails.builder()
                                 .name(bucketName)

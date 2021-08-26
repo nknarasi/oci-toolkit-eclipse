@@ -16,6 +16,7 @@ public class DataflowContentProvider extends BaseContentProvider
 	private TreeViewer treeViewer;
 	Object dataflowRootElement;
 	Object dataflowApplicationElement;
+	Object dataflowSettingUpElement;
 	List<ApplicationSummary> applicationList = new ArrayList<ApplicationSummary>();
 	List<PrivateEndpointSummary> privateendpointsList = new ArrayList<PrivateEndpointSummary>();
     private boolean foundApplications = true;
@@ -41,7 +42,8 @@ public class DataflowContentProvider extends BaseContentProvider
 	            return new Object[] {	            			            		
 	                    new DataflowApplicationElement(),
 	                    new DataflowRunElement(),
-	                    new DataflowPrivateEndPointsElement()	                    
+	                    new DataflowPrivateEndPointsElement(),
+	                    new DataflowSettingUpElement()
 	            };
 	        } 
 	        else {
